@@ -38,25 +38,25 @@ def survey_dashboard(request):
     elif user.is_aamil or user.is_moze_coordinator:
         surveys = Survey.objects.filter(
             Q(created_by=user) | 
-            Q(target_audience__contains=user.role) |
-            Q(is_public=True)
+            Q(target_role=user.role) |
+            Q(is_anonymous=True)
         )
     else:
         surveys = Survey.objects.filter(
-            Q(target_audience__contains=user.role) |
-            Q(is_public=True),
+            Q(target_role=user.role) |
+            Q(target_role='all'),
             is_active=True
         )
     
     # Statistics
     total_surveys = surveys.count()
     active_surveys = surveys.filter(is_active=True).count()
-    my_responses = SurveyResponse.objects.filter(user=user).count()
+    my_responses = SurveyResponse.objects.filter(respondent=user).count()
     pending_surveys = surveys.filter(
         is_active=True,
         end_date__gte=timezone.now().date()
     ).exclude(
-        id__in=SurveyResponse.objects.filter(user=user).values('survey_id')
+        id__in=SurveyResponse.objects.filter(respondent=user).values('survey_id')
     ).count()
     
     # Recent surveys
@@ -76,7 +76,7 @@ def survey_dashboard(request):
             total_invited = 0
             total_responses = 0
             for survey in created_surveys:
-                target_count = User.objects.filter(role__in=survey.target_audience).count()
+                target_count = User.objects.filter(role=survey.target_role).count() if survey.target_role != 'all' else User.objects.count()
                 response_count = survey.responses.count()
                 total_invited += target_count
                 total_responses += response_count
@@ -113,12 +113,12 @@ class SurveyListView(LoginRequiredMixin, ListView):
         elif user.is_aamil or user.is_moze_coordinator:
             queryset = Survey.objects.filter(
                 Q(created_by=user) | 
-                Q(target_audience__contains=user.role) |
+                Q(target_role==user.role) |
                 Q(is_public=True)
             )
         else:
             queryset = Survey.objects.filter(
-                Q(target_audience__contains=user.role) |
+                Q(target_role==user.role) |
                 Q(is_public=True),
                 is_active=True
             )
@@ -139,7 +139,7 @@ class SurveyListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(end_date__lt=timezone.now().date())
         elif status == 'pending':
             queryset = queryset.exclude(
-                id__in=SurveyResponse.objects.filter(user=user).values('survey_id')
+                id__in=SurveyResponse.objects.filter(respondent=user).values('survey_id')
             )
         
         return queryset.select_related('created_by').order_by('-created_at')
@@ -178,12 +178,12 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         elif user.is_aamil or user.is_moze_coordinator:
             return Survey.objects.filter(
                 Q(created_by=user) | 
-                Q(target_audience__contains=user.role) |
+                Q(target_role==user.role) |
                 Q(is_public=True)
             )
         else:
             return Survey.objects.filter(
-                Q(target_audience__contains=user.role) |
+                Q(target_role==user.role) |
                 Q(is_public=True),
                 is_active=True
             )
@@ -196,7 +196,7 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         # Check if user has already responded
         user_response = SurveyResponse.objects.filter(
             survey=survey,
-            user=user
+            respondent=user
         ).first()
         
         context['user_response'] = user_response
@@ -204,13 +204,13 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
             not user_response and 
             survey.is_active and 
             survey.end_date >= timezone.now().date() and
-            (user.role in survey.target_audience or survey.is_public)
+            (user.role == survey.target_role or survey.target_role == 'all' or survey.is_public)
         )
         
         # Survey statistics for creators
         if user == survey.created_by or user.is_admin:
             total_responses = survey.responses.count()
-            target_users = User.objects.filter(role__in=survey.target_audience).count()
+            target_users = User.objects.filter(role=survey.target_role).count()
             
             context['survey_stats'] = {
                 'total_responses': total_responses,
@@ -232,7 +232,7 @@ def take_survey(request, pk):
     user = request.user
     
     # Check if user can take this survey
-    if not (user.role in survey.target_audience or survey.is_public):
+    if not (user.role == survey.target_role or survey.target_role == 'all' or survey.is_public):
         messages.error(request, "You are not eligible to take this survey.")
         return redirect('surveys:detail', pk=pk)
     
@@ -241,7 +241,7 @@ def take_survey(request, pk):
         return redirect('surveys:detail', pk=pk)
     
     # Check if user has already responded
-    if SurveyResponse.objects.filter(survey=survey, user=user).exists():
+    if SurveyResponse.objects.filter(survey=survey, respondent=user).exists():
         messages.info(request, "You have already completed this survey.")
         return redirect('surveys:detail', pk=pk)
     
@@ -277,9 +277,10 @@ def take_survey(request, pk):
         # Save response
         survey_response = SurveyResponse.objects.create(
             survey=survey,
-            user=user,
-            responses=responses,
-            completed_at=timezone.now()
+            respondent=user,
+            answers=responses,
+            completion_time=300,  # 5 minutes default
+            is_complete=True
         )
         
         # Update analytics
@@ -394,7 +395,7 @@ def survey_analytics(request, pk):
     
     # Basic statistics
     total_responses = responses.count()
-    target_users = User.objects.filter(role__in=survey.target_audience).count()
+    target_users = User.objects.filter(role=survey.target_role).count()
     completion_rate = round((total_responses / target_users) * 100, 1) if target_users > 0 else 0
     
     # Question-wise analysis
@@ -583,7 +584,7 @@ def analyze_question_responses(question, responses):
 def calculate_completion_rate(survey):
     """Calculate completion rate for a survey"""
     total_responses = survey.responses.count()
-    target_users = User.objects.filter(role__in=survey.target_audience).count()
+    target_users = User.objects.filter(role=survey.target_role).count()
     return round((total_responses / target_users) * 100, 1) if target_users > 0 else 0
 
 

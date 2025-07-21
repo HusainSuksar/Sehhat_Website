@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Surveys Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .survey-card {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+        border-left: 4px solid #007bff;
+    }
+    .survey-card:hover {
+        transform: translateY(-2px);
+    }
+    .stats-card {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .progress-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+    }
+    .survey-status {
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">📋 Surveys Dashboard</h1>
+                    <p class="text-muted mb-0">Community feedback and data collection</p>
+                </div>
+                <div>
+                    {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
+                        <a href="#" class="btn btn-success me-2">
+                            <i class="fas fa-plus"></i> Create Survey
+                        </a>
+                    {% endif %}
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> All Surveys
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <div class="progress-circle bg-white text-primary mx-auto mb-2">
+                        {{ total_surveys|default:0 }}
+                    </div>
+                    <h5 class="card-title mb-0">Total Surveys</h5>
+                    <small>Available to you</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <div class="progress-circle bg-white text-success mx-auto mb-2">
+                        {{ active_surveys|default:0 }}
+                    </div>
+                    <h5 class="card-title mb-0">Active Surveys</h5>
+                    <small>Currently running</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <div class="progress-circle bg-white text-info mx-auto mb-2">
+                        {{ my_responses|default:0 }}
+                    </div>
+                    <h5 class="card-title mb-0">My Responses</h5>
+                    <small>Surveys completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <div class="progress-circle bg-white text-warning mx-auto mb-2">
+                        {{ pending_surveys|default:0 }}
+                    </div>
+                    <h5 class="card-title mb-0">Pending</h5>
+                    <small>Awaiting response</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Surveys -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-poll text-primary"></i>
+                        Recent Surveys
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_surveys %}
+                        {% for survey in recent_surveys %}
+                        <div class="survey-card mb-3 p-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2">
+                                        <a href="#" class="text-decoration-none">{{ survey.title }}</a>
+                                    </h6>
+                                    <p class="text-muted mb-2">{{ survey.description|truncatewords:15 }}</p>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> {{ survey.created_by.get_full_name }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ survey.created_at|date:"M d, Y" }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-users"></i> {{ survey.get_target_role_display }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    {% if survey.is_active %}
+                                        <span class="survey-status bg-success text-white">Active</span>
+                                    {% else %}
+                                        <span class="survey-status bg-secondary text-white">Inactive</span>
+                                    {% endif %}
+                                    <div class="mt-2">
+                                        <a href="#" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-poll fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">No surveys available</h5>
+                            <p class="text-muted">Check back later for new surveys</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Analytics -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt text-warning"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if pending_surveys > 0 %}
+                            <a href="#" class="btn btn-primary">
+                                <i class="fas fa-clipboard-check"></i> Take Pending Surveys ({{ pending_surveys }})
+                            </a>
+                        {% endif %}
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar"></i> View Results
+                        </a>
+                        {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="fas fa-plus"></i> Create New Survey
+                            </a>
+                            <a href="#" class="btn btn-outline-secondary">
+                                <i class="fas fa-download"></i> Export Data
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics for Admins -->
+            {% if analytics_data %}
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-info"></i>
+                        My Analytics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary mb-1">{{ analytics_data.created_surveys|default:0 }}</h4>
+                            <small class="text-muted">Created Surveys</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success mb-1">{{ analytics_data.total_responses|default:0 }}</h4>
+                            <small class="text-muted">Total Responses</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-info mb-1">{{ analytics_data.avg_response_rate|default:0 }}%</h4>
+                            <small class="text-muted">Avg Response Rate</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning mb-1">{{ analytics_data.active_surveys|default:0 }}</h4>
+                            <small class="text-muted">Active Surveys</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Survey Categories -->
+    {% if survey_categories %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tags text-secondary"></i>
+                        Survey Categories
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category, count in survey_categories.items %}
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-left-primary h-100">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-primary">{{ count }}</h5>
+                                    <p class="card-text">{{ category|title }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh dashboard every 10 minutes
+setTimeout(function() {
+    location.reload();
+}, 600000);
+
+// Survey card hover effects
+document.querySelectorAll('.survey-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.borderLeftColor = '#28a745';
+    });
+    card.addEventListener('mouseleave', function() {
+        this.style.borderLeftColor = '#007bff';
+    });
+});
+
+// Animate progress circles on load
+document.addEventListener('DOMContentLoaded', function() {
+    const circles = document.querySelectorAll('.progress-circle');
+    circles.forEach(circle => {
+        circle.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            circle.style.transition = 'transform 0.3s ease';
+            circle.style.transform = 'scale(1)';
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

@@ -38,7 +38,7 @@ def dashboard(request):
     
     if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to access the doctor dashboard.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     # Get doctor profile
     if user.is_doctor:
@@ -84,8 +84,8 @@ def dashboard(request):
         
         # Recent patient logs
         recent_logs = PatientLog.objects.filter(
-            doctor=doctor
-        ).select_related('patient').order_by('-created_at')[:5]
+            seen_by=doctor
+        ).order_by('-timestamp')[:5]
         
     else:
         # Admin view - all doctors stats
@@ -101,7 +101,7 @@ def dashboard(request):
         total_patients = Patient.objects.count()
         pending_appointments = Appointment.objects.filter(status='pending').count()
         recent_appointments = Appointment.objects.select_related('patient', 'doctor').order_by('-appointment_date', '-appointment_time')[:5]
-        recent_logs = PatientLog.objects.select_related('patient', 'doctor').order_by('-created_at')[:5]
+        recent_logs = PatientLog.objects.select_related('seen_by').order_by('-timestamp')[:5]
     
     # Today's schedule
     todays_schedule = []
@@ -235,7 +235,7 @@ def patient_list(request):
     
     if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to view patients.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     # Get accessible patients
     if user.is_doctor:
@@ -280,7 +280,7 @@ def patient_detail(request, pk):
     
     if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to view patient details.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     patient = get_object_or_404(Patient, pk=pk)
     
@@ -293,7 +293,7 @@ def patient_detail(request, pk):
                 return redirect('doctordirectory:patient_list')
         except Doctor.DoesNotExist:
             messages.error(request, "Doctor profile not found.")
-            return redirect('accounts:dashboard')
+            return redirect('accounts:profile')
     
     # Get patient's medical history
     appointments = Appointment.objects.filter(
@@ -383,13 +383,13 @@ def schedule_management(request):
     
     if not user.is_doctor:
         messages.error(request, "Only doctors can manage schedules.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     try:
         doctor = Doctor.objects.get(user=user)
     except Doctor.DoesNotExist:
         messages.error(request, "Doctor profile not found.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     # Get current month's schedule
     today = timezone.now().date()
@@ -428,7 +428,7 @@ def add_medical_record(request, patient_id):
     
     if not user.is_doctor:
         messages.error(request, "Only doctors can add medical records.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     patient = get_object_or_404(Patient, pk=patient_id)
     
@@ -436,7 +436,7 @@ def add_medical_record(request, patient_id):
         doctor = Doctor.objects.get(user=user)
     except Doctor.DoesNotExist:
         messages.error(request, "Doctor profile not found.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     if request.method == 'POST':
         form = MedicalRecordForm(request.POST)
@@ -467,7 +467,7 @@ def doctor_analytics(request):
     
     if not (user.is_doctor or user.is_admin):
         messages.error(request, "You don't have permission to view analytics.")
-        return redirect('accounts:dashboard')
+        return redirect('accounts:profile')
     
     # Time period filter
     period = request.GET.get('period', '30')
