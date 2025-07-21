@@ -509,7 +509,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='doctor_profile'
+        related_name='mahalshifa_doctor_profile'
     )
     
     # Professional details

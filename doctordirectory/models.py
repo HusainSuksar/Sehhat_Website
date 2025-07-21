@@ -9,7 +9,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='doctor_profile',
+        related_name='doctordirectory_profile',
         limit_choices_to={'role': 'doctor'}
     )
     name = models.CharField(max_length=100)  # Can be different from user's name

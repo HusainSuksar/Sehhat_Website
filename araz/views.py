@@ -494,8 +494,8 @@ def bulk_update_status(request):
             petitions = Petition.objects.filter(id__in=petition_ids)
         else:
             petitions = Petition.objects.filter(
-                id__in=petition_ids,
-                Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
+                Q(id__in=petition_ids) &
+                (Q(moze__aamil=user) | Q(moze__moze_coordinator=user))
             )
         
         updated_count = 0

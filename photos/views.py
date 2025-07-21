@@ -677,10 +677,10 @@ def bulk_delete_photos(request):
             photos = Photo.objects.filter(id__in=photo_ids)
         else:
             photos = Photo.objects.filter(
-                id__in=photo_ids,
-                Q(uploaded_by=user) |
+                Q(id__in=photo_ids) &
+                (Q(uploaded_by=user) |
                 Q(moze__aamil=user) |
-                Q(moze__moze_coordinator=user)
+                Q(moze__moze_coordinator=user))
             )
         
         deleted_count = 0
