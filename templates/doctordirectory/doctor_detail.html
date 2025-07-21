@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Dr. {{ doctor.user.get_full_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">👨‍⚕️ Dr. {{ doctor.user.get_full_name }}</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Specialization:</strong> {{ doctor.specialization }}</div>
+                <div class="col-md-6"><strong>Experience:</strong> {{ doctor.years_of_experience }} years</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
+                <div class="col-md-6"><strong>Contact:</strong> {{ doctor.user.phone_number }}</div>
+            </div>
+            {% if doctor.bio %}
+            <div class="mb-3">
+                <h6 class="font-weight-bold">Bio:</h6>
+                <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}My Evaluations{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">⭐ My Evaluations</h1>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">My Evaluation History</h6>
+            </div>
+            <div class="card-body">
+                {%% if submissions %%}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Form</th>
+                                    <th>Type</th>
+                                    <th>Score</th>
+                                    <th>Submitted</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {%% for submission in submissions %%}
+                                <tr>
+                                    <td>{{ submission.form.title }}</td>
+                                    <td><span class="badge badge-secondary">{{ submission.form.get_evaluation_type_display }}</span></td>
+                                    <td>{{ submission.total_score|floatformat:1 }}</td>
+                                    <td>{{ submission.submitted_at|date:"M d, Y" }}</td>
+                                    <td><a href="{%% url 'evaluation:submission_detail' submission.pk %%}" class="btn btn-sm btn-primary">View</a></td>
+                                </tr>
+                                {%% endfor %%}
+                            </tbody>
+                        </table>
+                    </div>
+                {%% else %%}
+                    <p class="text-muted">No evaluations submitted yet.</p>
+                {%% endif %%}
+            </div>
+        </div>
+</div>
+{%% endblock %%}

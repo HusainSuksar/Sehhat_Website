@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}My Schedule{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">📅 My Class Schedule</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if schedule %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Course</th><th>Day</th><th>Time</th><th>Room</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for item in schedule %}
+                            <tr>
+                                <td>{{ item.course.name }}</td>
+                                <td>{{ item.day_of_week }}</td>
+                                <td>{{ item.start_time }} - {{ item.end_time }}</td>
+                                <td>{{ item.room }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No schedule items yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}Evaluation Submission{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">📊 Evaluation Details</h1>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Submission Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Form:</strong> {{ submission.form.title }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Evaluator:</strong> {{ submission.evaluator.get_full_name }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Submitted:</strong> {{ submission.submitted_at|date:"F d, Y g:i A" }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Total Score:</strong> {{ submission.total_score|floatformat:1 }}
+                    </div>
+                </div>
+                {%% if submission.comments %%}
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Comments:</h6>
+                    <div class="border-left-primary pl-3">
+                        {{ submission.comments|linebreaks }}
+                    </div>
+                </div>
+                {%% endif %%}
+            </div>
+        </div>
+</div>
+{%% endblock %%}

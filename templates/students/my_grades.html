@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}My Grades{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">⭐ My Grades</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if grades %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Assignment</th><th>Course</th><th>Grade</th><th>Date</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in grades %}
+                            <tr>
+                                <td>{{ grade.assignment.title }}</td>
+                                <td>{{ grade.assignment.course.name }}</td>
+                                <td><span class="badge badge-primary">{{ grade.points }}/{{ grade.assignment.max_points }}</span></td>
+                                <td>{{ grade.date_graded|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No grades yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

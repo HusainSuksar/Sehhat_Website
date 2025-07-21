@@ -1,0 +1,27 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}Upload Photos{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">📤 Upload Photos to {{ album.name }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {%% csrf_token %%}
+                {{ form.as_p }}
+                <div class="d-flex justify-content-between">
+                    <a href="{%% url 'photos:album_detail' album.pk %%}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Upload Photos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{%% endblock %%}

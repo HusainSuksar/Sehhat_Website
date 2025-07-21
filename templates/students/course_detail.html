@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">📚 {{ course.name }}</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Course Information</h6>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Instructor:</strong> {{ course.instructor.get_full_name }}</div>
+                <div class="col-md-6"><strong>Credits:</strong> {{ course.credits }}</div>
+            </div>
+            <div class="mb-3">
+                <h6 class="font-weight-bold">Description:</h6>
+                <div class="border-left-primary pl-3">{{ course.description|linebreaks }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}{{ moze.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">🏢 {{ moze.name }}</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Aamil:</strong> {{ moze.aamil.get_full_name }}</div>
+                <div class="col-md-6"><strong>Contact:</strong> {{ moze.contact_phone }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Email:</strong> {{ moze.contact_email }}</div>
+                <div class="col-md-6"><strong>Address:</strong> {{ moze.address }}</div>
+            </div>
+            {% if moze.description %}
+            <div class="mb-3">
+                <h6 class="font-weight-bold">Description:</h6>
+                <div class="border-left-primary pl-3">{{ moze.description|linebreaks }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

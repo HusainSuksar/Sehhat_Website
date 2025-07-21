@@ -1,0 +1,80 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}Appointment Details{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:dashboard' %%}">Mahal Shifa</a></li>
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:appointment_list' %%}">Appointments</a></li>
+                    <li class="breadcrumb-item active">Appointment Details</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">📅 Appointment Details</h1>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Appointment Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Patient:</strong> {{ appointment.patient.user.get_full_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Doctor:</strong> {{ appointment.doctor.user.get_full_name }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Date:</strong> {{ appointment.appointment_date|date:"F d, Y" }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Time:</strong> {{ appointment.appointment_time }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Type:</strong>
+                        {%% if appointment.appointment_type == 'emergency' %%}
+                            <span class="badge badge-danger ml-2">Emergency</span>
+                        {%% elif appointment.appointment_type == 'urgent' %%}
+                            <span class="badge badge-warning ml-2">Urgent</span>
+                        {%% else %%}
+                            <span class="badge badge-info ml-2">Regular</span>
+                        {%% endif %%}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        {%% if appointment.status == 'scheduled' %%}
+                            <span class="badge badge-warning ml-2">Scheduled</span>
+                        {%% elif appointment.status == 'completed' %%}
+                            <span class="badge badge-success ml-2">Completed</span>
+                        {%% elif appointment.status == 'cancelled' %%}
+                            <span class="badge badge-danger ml-2">Cancelled</span>
+                        {%% endif %%}
+                    </div>
+                </div>
+                {%% if appointment.notes %%}
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Notes:</h6>
+                    <div class="border-left-primary pl-3">
+                        {{ appointment.notes|linebreaks }}
+                    </div>
+                </div>
+                {%% endif %%}
+            </div>
+        </div>
+</div>
+{%% endblock %%}

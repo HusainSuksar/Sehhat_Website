@@ -1,0 +1,52 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}Evaluate: {{ form.title }}{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">⭐ Evaluate: {{ form.title }}</h1>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Evaluation</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {%% csrf_token %%}
+                    {%% for criterion in criteria %%}
+                        <div class="form-group">
+                            <label>{{ criterion.name }}</label>
+                            {%% if criterion.description %%}
+                                <small class="form-text text-muted">{{ criterion.description }}</small>
+                            {%% endif %%}
+                            <select name="rating_{{ criterion.id }}" class="form-control" required>
+                                <option value="">Select rating...</option>
+                                <option value="5">5 - Excellent</option>
+                                <option value="4">4 - Good</option>
+                                <option value="3">3 - Average</option>
+                                <option value="2">2 - Below Average</option>
+                                <option value="1">1 - Poor</option>
+                            </select>
+                        </div>
+                    {%% endfor %%}
+                    <div class="form-group">
+                        <label for="comments">Comments (Optional)</label>
+                        <textarea name="comments" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{%% url 'evaluation:form_detail' form.pk %%}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">Submit Evaluation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+</div>
+{%% endblock %%}

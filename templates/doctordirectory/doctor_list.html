@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Doctors{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">👨‍⚕️ Doctors Directory</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if doctors %}
+                <div class="row">
+                    {% for doctor in doctors %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'doctordirectory:doctor_detail' doctor.pk %}">Dr. {{ doctor.user.get_full_name }}</a>
+                                </h5>
+                                <p class="card-text">
+                                    <strong>Specialization:</strong> {{ doctor.specialization }}<br>
+                                    <strong>Experience:</strong> {{ doctor.years_of_experience }} years<br>
+                                    <strong>Contact:</strong> {{ doctor.user.phone_number }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No doctors registered yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

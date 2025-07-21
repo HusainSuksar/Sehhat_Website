@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Verify ITS ID{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">ITS ID Verification Required</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="its_id">ITS ID</label>
+                            <input type="text" name="its_id" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Verify</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

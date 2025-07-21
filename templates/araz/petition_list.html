@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Petitions{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">📋 Petitions</h1>
+                <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus fa-sm"></i> Submit New Petition
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filters</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row">
+                <div class="col-md-3 mb-3">
+                    <label for="status">Status</label>
+                    <select name="status" id="status" class="form-control">
+                        <option value="">All Statuses</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="priority">Priority</label>
+                    <select name="priority" id="priority" class="form-control">
+                        <option value="">All Priorities</option>
+                        {% for value, label in priority_choices %}
+                            <option value="{{ value }}" {% if current_filters.priority == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="category">Category</label>
+                    <select name="category" id="category" class="form-control">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if current_filters.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="search">Search</label>
+                    <div class="input-group">
+                        <input type="text" name="search" id="search" class="form-control" placeholder="Search petitions..." value="{{ current_filters.search }}">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Petitions List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Petitions ({{ petitions|length }} of {{ page_obj.paginator.count }})
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if petitions %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created By</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for petition in petitions %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'araz:petition_detail' petition.pk %}" class="font-weight-bold">
+                                        {{ petition.title|truncatechars:50 }}
+                                    </a>
+                                    {% if petition.description %}
+                                        <div class="small text-muted">{{ petition.description|truncatechars:80 }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if petition.category %}
+                                        <span class="badge badge-secondary">{{ petition.category.name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">No category</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if petition.priority == 'high' %}
+                                        <span class="badge badge-danger">High</span>
+                                    {% elif petition.priority == 'medium' %}
+                                        <span class="badge badge-warning">Medium</span>
+                                    {% else %}
+                                        <span class="badge badge-info">Low</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if petition.status == 'pending' %}
+                                        <span class="badge badge-warning">Pending</span>
+                                    {% elif petition.status == 'in_progress' %}
+                                        <span class="badge badge-info">In Progress</span>
+                                    {% elif petition.status == 'resolved' %}
+                                        <span class="badge badge-success">Resolved</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if petition.is_anonymous %}
+                                        <span class="text-muted">Anonymous</span>
+                                    {% else %}
+                                        {{ petition.created_by.get_full_name }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ petition.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'araz:petition_detail' petition.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Petitions pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-4x text-gray-300 mb-3"></i>
+                    <h4 class="text-gray-400">No petitions found</h4>
+                    <p class="text-muted">
+                        {% if current_filters.search or current_filters.status or current_filters.priority or current_filters.category %}
+                            Try adjusting your filters or <a href="{% url 'araz:petition_list' %}">clear all filters</a>.
+                        {% else %}
+                            Be the first to submit a petition.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus fa-sm"></i> Submit New Petition
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

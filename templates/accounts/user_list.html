@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">👥 Users Directory</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Name</th><th>ITS ID</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td><a href="{% url 'accounts:user_detail' user.pk %}">{{ user.get_full_name }}</a></td>
+                                <td>{{ user.its_id }}</td>
+                                <td><span class="badge badge-info">{{ user.get_role_display }}</span></td>
+                                <td>{% if user.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
+                                <td><a href="{% url 'accounts:user_detail' user.pk %}" class="btn btn-sm btn-primary">View</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No users found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

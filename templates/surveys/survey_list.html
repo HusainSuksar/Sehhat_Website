@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Surveys{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">📋 Surveys</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if surveys %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Title</th><th>Target Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for survey in surveys %}
+                            <tr>
+                                <td><a href="{% url 'surveys:survey_detail' survey.pk %}">{{ survey.title }}</a></td>
+                                <td><span class="badge badge-info">{{ survey.get_target_role_display }}</span></td>
+                                <td>{% if survey.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
+                                <td>{{ survey.created_at|date:"M d, Y" }}</td>
+                                <td><a href="{% url 'surveys:survey_detail' survey.pk %}" class="btn btn-sm btn-primary">View</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No surveys available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

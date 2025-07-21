@@ -1,0 +1,36 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}{{ album.name }} - Album Details{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div><h1 class="h3 mb-0 text-gray-800">📸 {{ album.name }}</h1></div>
+    <div><a href="{%% url 'photos:upload_photos' album.pk %%}" class="btn btn-primary">Upload Photos</a></div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Album Photos</h6>
+        </div>
+        <div class="card-body">
+            {%% if photos %%}
+                <div class="row">
+                    {%% for photo in photos %%}
+                    <div class="col-md-3 col-sm-4 col-6 mb-3">
+                        <a href="{%% url 'photos:photo_detail' photo.pk %%}">
+                            <img src="{{ photo.image.url }}" class="img-fluid" style="height: 150px; object-fit: cover;">
+                        </a>
+                    </div>
+                    {%% endfor %%}
+                </div>
+            {%% else %%}
+                <p class="text-muted">No photos in this album yet.</p>
+            {%% endif %%}
+        </div>
+    </div>
+</div>
+{%% endblock %%}

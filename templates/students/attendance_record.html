@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Record{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">✅ Attendance Record</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if attendance %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr><th>Course</th><th>Date</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for record in attendance %}
+                            <tr>
+                                <td>{{ record.course.name }}</td>
+                                <td>{{ record.date|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if record.status == 'present' %}
+                                        <span class="badge badge-success">Present</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Absent</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No attendance records yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

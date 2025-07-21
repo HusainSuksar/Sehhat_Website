@@ -1,0 +1,84 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}{{ hospital.name }} - Hospital Details{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:dashboard' %%}">Mahal Shifa</a></li>
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:hospital_list' %%}">Hospitals</a></li>
+                    <li class="breadcrumb-item active">{{ hospital.name|truncatechars:30 }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">🏥 {{ hospital.name }}</h1>
+        </div>
+        <div>
+            {%% if can_edit %%}
+                <a href="{%% url 'mahalshifa:hospital_update' hospital.pk %%}" class="btn btn-warning btn-sm">Edit</a>
+            {%% endif %%}
+        </div>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Hospital Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Type:</strong> <span class="badge badge-info ml-2">{{ hospital.get_hospital_type_display }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Total Beds:</strong> {{ hospital.total_beds }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Location:</strong> {{ hospital.location }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Contact:</strong> {{ hospital.contact_phone }}
+                            </div>
+                        </div>
+                        {%% if hospital.description %%}
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold">Description:</h6>
+                            <div class="border-left-primary pl-3">
+                                {{ hospital.description|linebreaks }}
+                            </div>
+                        </div>
+                        {%% endif %%}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Statistics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="h4 text-primary">{{ total_patients }}</div>
+                            <div class="text-muted">Total Patients</div>
+                        </div>
+                        <div class="text-center mb-3">
+                            <div class="h4 text-success">{{ total_appointments }}</div>
+                            <div class="text-muted">Appointments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{%% endblock %%}

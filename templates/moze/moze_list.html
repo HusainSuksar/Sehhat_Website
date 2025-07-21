@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Moze Directory{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">🏢 Moze Directory</h1>
+        </div>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if mozes %}
+                <div class="row">
+                    {% for moze in mozes %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'moze:moze_detail' moze.pk %}">{{ moze.name }}</a>
+                                </h5>
+                                <p class="card-text">
+                                    <i class="fas fa-map-marker-alt text-muted"></i> {{ moze.address }}<br>
+                                    <i class="fas fa-user text-muted"></i> Aamil: {{ moze.aamil.get_full_name }}<br>
+                                    <i class="fas fa-phone text-muted"></i> {{ moze.contact_phone }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No mozes registered yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

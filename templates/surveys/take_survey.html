@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Take Survey: {{ survey.title }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ survey.title }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p>{{ survey.description }}</p>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for question in questions %}
+                            <div class="form-group">
+                                <label class="font-weight-bold">{{ question.text }}</label>
+                                {% if question.question_type == 'text' %}
+                                    <input type="text" name="question_{{ question.id }}" class="form-control" required>
+                                {% elif question.question_type == 'textarea' %}
+                                    <textarea name="question_{{ question.id }}" class="form-control" rows="4" required></textarea>
+                                {% elif question.question_type == 'choice' %}
+                                    {% for choice in question.choices.all %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" required>
+                                            <label class="form-check-label">{{ choice.text }}</label>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'surveys:survey_detail' survey.pk %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Submit Response</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

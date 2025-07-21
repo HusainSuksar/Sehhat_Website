@@ -1,0 +1,53 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}Hospitals{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">🏥 Hospitals</h1>
+        <a href="{%% url 'mahalshifa:hospital_create' %%}" class="btn btn-primary">
+            <i class="fas fa-plus fa-sm"></i> Add Hospital
+        </a>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Hospitals Directory</h6>
+            </div>
+            <div class="card-body">
+                {%% if hospitals %%}
+                    <div class="row">
+                        {%% for hospital in hospitals %%}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{%% url 'mahalshifa:hospital_detail' hospital.pk %%}">{{ hospital.name }}</a>
+                                    </h5>
+                                    <p class="card-text">
+                                        <i class="fas fa-map-marker-alt text-muted"></i> {{ hospital.location }}<br>
+                                        <i class="fas fa-tag text-muted"></i> {{ hospital.get_hospital_type_display }}<br>
+                                        <i class="fas fa-bed text-muted"></i> {{ hospital.total_beds }} beds
+                                    </p>
+                                    <div class="text-muted small">
+                                        <i class="fas fa-phone"></i> {{ hospital.contact_phone }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {%% endfor %%}
+                    </div>
+                {%% else %%}
+                    <p class="text-muted">No hospitals registered yet.</p>
+                {%% endif %%}
+            </div>
+        </div>
+</div>
+{%% endblock %%}

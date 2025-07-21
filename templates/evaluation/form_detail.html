@@ -1,0 +1,61 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}{{ form.title }} - Form Details{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{%% url 'evaluation:dashboard' %%}">Evaluation</a></li>
+                    <li class="breadcrumb-item"><a href="{%% url 'evaluation:form_list' %%}">Forms</a></li>
+                    <li class="breadcrumb-item active">{{ form.title|truncatechars:30 }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">📋 {{ form.title }}</h1>
+        </div>
+        <div>
+            {%% if can_edit %%}
+                <a href="{%% url 'evaluation:form_update' form.pk %%}" class="btn btn-warning btn-sm">Edit</a>
+            {%% endif %%}
+            {%% if can_evaluate %%}
+                <a href="{%% url 'evaluation:evaluate_form' form.pk %%}" class="btn btn-success btn-sm">Evaluate</a>
+            {%% endif %%}
+        </div>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Form Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Type:</strong> <span class="badge badge-secondary ml-2">{{ form.get_evaluation_type_display }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        {%% if form.is_active %%}
+                            <span class="badge badge-success ml-2">Active</span>
+                        {%% else %%}
+                            <span class="badge badge-danger ml-2">Inactive</span>
+                        {%% endif %%}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Description:</h6>
+                    <div class="border-left-primary pl-3">
+                        {{ form.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+{%% endblock %%}

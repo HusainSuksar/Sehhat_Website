@@ -1,0 +1,58 @@
+{%% extends 'base.html' %%}
+
+{%% block title %%}{{ patient.user.get_full_name }} - Patient Details{%% endblock %%}
+
+{%% block content %%}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:dashboard' %%}">Mahal Shifa</a></li>
+                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:patient_list' %%}">Patients</a></li>
+                    <li class="breadcrumb-item active">{{ patient.user.get_full_name|truncatechars:30 }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">👤 {{ patient.user.get_full_name }}</h1>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Patient Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>ITS ID:</strong> {{ patient.user.its_id }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Age:</strong> {{ patient.age }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Gender:</strong> {{ patient.get_gender_display }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Contact:</strong> {{ patient.user.phone_number }}
+                    </div>
+                </div>
+                {%% if patient.medical_history %%}
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Medical History:</h6>
+                    <div class="border-left-primary pl-3">
+                        {{ patient.medical_history|linebreaks }}
+                    </div>
+                </div>
+                {%% endif %%}
+            </div>
+        </div>
+</div>
+{%% endblock %%}
