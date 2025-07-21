@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - Umoor Sehhat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="content-area">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="me-3">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Profile
+                        </a>
+                    </div>
+                    <div>
+                        <h2 class="mb-1">Edit Profile</h2>
+                        <p class="text-muted mb-0">Update your personal information and preferences</p>
+                    </div>
+                </div>
+
+                <!-- Profile Form -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Basic Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user me-2"></i>Basic Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        First Name <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        Last Name <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.arabic_name.id_for_label }}" class="form-label">
+                                        Arabic Name
+                                    </label>
+                                    {{ form.arabic_name }}
+                                    {% if form.arabic_name.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.arabic_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Your name in Arabic (optional)</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        Email Address <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                        Phone Number
+                                    </label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.phone_number.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Photo -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-camera me-2"></i>Profile Photo
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    {% if user.profile_photo %}
+                                        <img src="{{ user.profile_photo.url }}" alt="Current Profile Photo" 
+                                             class="rounded-circle" width="80" height="80" id="current-photo">
+                                    {% else %}
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                             style="width: 80px; height: 80px;" id="current-photo">
+                                            <i class="fas fa-user fa-2x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    {{ form.profile_photo }}
+                                    {% if form.profile_photo.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.profile_photo.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Upload a new profile photo. Supported formats: JPG, PNG, GIF. Max size: 5MB.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    {% if user.is_doctor or user.is_student %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                {% if user.is_doctor %}
+                                    <i class="fas fa-stethoscope me-2"></i>Medical Practice Information
+                                {% else %}
+                                    <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% if user.is_doctor %}
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.specialty.id_for_label }}" class="form-label">
+                                            Medical Specialty
+                                        </label>
+                                        {{ form.specialty }}
+                                        {% if form.specialty.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.specialty.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if user.is_student %}
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.college.id_for_label }}" class="form-label">
+                                            College/University
+                                        </label>
+                                        {{ form.college }}
+                                        {% if form.college.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.college.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.specialization.id_for_label }}" class="form-label">
+                                            Field of Study
+                                        </label>
+                                        {{ form.specialization }}
+                                        {% if form.specialization.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.specialization.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Preview uploaded image
+document.getElementById('id_profile_photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const currentPhoto = document.getElementById('current-photo');
+            if (currentPhoto.tagName === 'IMG') {
+                currentPhoto.src = e.target.result;
+            } else {
+                // Replace the placeholder div with an image
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Profile Photo Preview';
+                img.className = 'rounded-circle';
+                img.width = 80;
+                img.height = 80;
+                img.id = 'current-photo';
+                currentPhoto.parentNode.replaceChild(img, currentPhoto);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(44, 85, 48, 0.25);
+}
+
+.was-validated .form-control:valid {
+    border-color: var(--accent-color);
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
