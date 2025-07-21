@@ -115,6 +115,20 @@ class PhotoComment(models.Model):
         return f"Comment by {self.author.get_full_name()} on {self.photo}"
 
 
+class PhotoLike(models.Model):
+    """Likes on photos"""
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['photo', 'user']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} likes {self.photo}"
+
+
 class PhotoTag(models.Model):
     """Tags for photos for better organization"""
     name = models.CharField(max_length=50, unique=True)
