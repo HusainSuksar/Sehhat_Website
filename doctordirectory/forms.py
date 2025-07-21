@@ -301,7 +301,7 @@ class DoctorScheduleForm(forms.ModelForm):
         model = DoctorSchedule
         fields = [
             'date', 'start_time', 'end_time', 'is_available',
-            'moze_location', 'notes'
+            'moze', 'notes'
         ]
         widgets = {
             'date': forms.DateInput(attrs={
@@ -319,7 +319,7 @@ class DoctorScheduleForm(forms.ModelForm):
             'is_available': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
-            'moze_location': forms.Select(attrs={'class': 'form-control'}),
+            'moze': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 2,
@@ -355,12 +355,11 @@ class DoctorAvailabilityForm(forms.ModelForm):
     class Meta:
         model = DoctorAvailability
         fields = [
-            'date', 'start_time', 'end_time', 'is_available', 'max_appointments'
+            'day_of_week', 'start_time', 'end_time', 'is_active'
         ]
         widgets = {
-            'date': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
+            'day_of_week': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'start_time': forms.TimeInput(attrs={
                 'class': 'form-control',
@@ -370,13 +369,8 @@ class DoctorAvailabilityForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'time'
             }),
-            'is_available': forms.CheckboxInput(attrs={
+            'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
-            }),
-            'max_appointments': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'max': '20'
             }),
         }
     
@@ -385,11 +379,10 @@ class DoctorAvailabilityForm(forms.ModelForm):
         
         # Set defaults
         if not self.instance.pk:
-            self.fields['is_available'].initial = True
-            self.fields['max_appointments'].initial = 8
+            self.fields['is_active'].initial = True
         
         # Add help text
-        self.fields['max_appointments'].help_text = 'Maximum appointments for this time slot'
+        self.fields['is_active'].help_text = 'Mark as available for this day'
 
 
 class PatientLogForm(forms.ModelForm):
@@ -397,18 +390,30 @@ class PatientLogForm(forms.ModelForm):
     
     class Meta:
         model = PatientLog
-        fields = ['log_type', 'description', 'action_taken']
+        fields = ['patient_its_id', 'patient_name', 'ailment', 'visit_type', 'symptoms', 'diagnosis', 'prescription']
         widgets = {
-            'log_type': forms.Select(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={
+            'patient_its_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'patient_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'ailment': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Describe the interaction or observation'
+                'placeholder': 'Describe the main ailment or complaint'
             }),
-            'action_taken': forms.Textarea(attrs={
+            'visit_type': forms.Select(attrs={'class': 'form-control'}),
+            'symptoms': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 2,
-                'placeholder': 'Action taken or recommended'
+                'placeholder': 'Patient symptoms'
+            }),
+            'diagnosis': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Medical diagnosis'
+            }),
+            'prescription': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Prescribed medication and treatment'
             }),
         }
     
@@ -416,8 +421,8 @@ class PatientLogForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Set required fields
-        self.fields['log_type'].required = True
-        self.fields['description'].required = True
+        self.fields['patient_its_id'].required = True
+        self.fields['ailment'].required = True
 
 
 class LabTestForm(forms.ModelForm):
