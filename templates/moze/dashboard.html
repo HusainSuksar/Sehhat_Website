@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}Moze Dashboard - Umoor Sehhat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Moze Management Dashboard</h2>
+                    <p class="text-muted mb-0">Welcome back, {{ user.get_full_name }} ({{ user_role }})</p>
+                </div>
+                <div>
+                    <a href="{% url 'moze:create' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus me-1"></i>New Moze
+                    </a>
+                    <a href="{% url 'moze:list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>View All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">{{ total_mozes }}</h3>
+                            <p class="mb-0">Total Mozes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clinic-medical fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">{{ active_mozes }}</h3>
+                            <p class="mb-0">Active Mozes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">{{ team_members_count }}</h3>
+                            <p class="mb-0">Team Members</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="mb-1">{{ recent_comments|length }}</h3>
+                            <p class="mb-0">Recent Activities</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-comments fa-2x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Moze Overview -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clinic-medical me-2"></i>Moze Overview
+                        </h5>
+                        <a href="{% url 'moze:list' %}" class="btn btn-sm btn-outline-primary">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if moze_stats %}
+                        <div class="row">
+                            {% for stat in moze_stats %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <a href="{% url 'moze:detail' stat.moze.pk %}" 
+                                                       class="text-decoration-none">
+                                                        {{ stat.moze.name }}
+                                                    </a>
+                                                </h6>
+                                                <p class="small text-muted mb-2">
+                                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                                    {{ stat.moze.location }}
+                                                </p>
+                                                <div class="row text-center">
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">Team</small>
+                                                        <strong>{{ stat.team_count }}</strong>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">Comments</small>
+                                                        <strong>{{ stat.comments_count }}</strong>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <small class="text-muted d-block">Status</small>
+                                                        {% if stat.moze.is_active %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Inactive</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% if stat.last_activity %}
+                                            <div class="border-top pt-2 mt-2">
+                                                <small class="text-muted">
+                                                    Last activity: {{ stat.last_activity.created_at|timesince }} ago
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clinic-medical fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Mozes Found</h5>
+                            <p class="text-muted">Create your first Moze to get started.</p>
+                            <a href="{% url 'moze:create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Create Moze
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities & Quick Actions -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if user.is_admin or user.is_aamil %}
+                            <a href="{% url 'moze:create' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Create New Moze
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'moze:list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-search me-1"></i>Find Mozes
+                        </a>
+                        {% if user.is_admin or user.is_moze_coordinator %}
+                            <a href="{% url 'moze:analytics' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-chart-bar me-1"></i>View Analytics
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-users me-1"></i>Manage Team
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Recent Activity
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_comments %}
+                        <div class="activity-feed">
+                            {% for comment in recent_comments %}
+                                <div class="activity-item mb-3">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            {% if comment.author.profile_photo %}
+                                                <img src="{{ comment.author.profile_photo.url }}" 
+                                                     alt="{{ comment.author.get_full_name }}"
+                                                     class="rounded-circle" width="32" height="32">
+                                            {% else %}
+                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                                     style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-user text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 ms-2">
+                                            <div class="small">
+                                                <strong>{{ comment.author.get_full_name }}</strong>
+                                                commented on
+                                                <a href="{% url 'moze:detail' comment.moze.pk %}" 
+                                                   class="text-decoration-none">
+                                                    {{ comment.moze.name }}
+                                                </a>
+                                            </div>
+                                            <div class="small text-muted">
+                                                {{ comment.created_at|timesince }} ago
+                                            </div>
+                                            <div class="small mt-1">
+                                                {{ comment.content|truncatewords:15 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'moze:list' %}" class="btn btn-sm btn-outline-primary">
+                                View All Activities
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No recent activity</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.activity-item {
+    border-left: 2px solid var(--bs-border-color);
+    padding-left: 1rem;
+    position: relative;
+}
+
+.activity-item:before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 1rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+.activity-item:last-child {
+    border-left-color: transparent;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.bg-primary, .bg-success, .bg-info, .bg-warning {
+    background: linear-gradient(45deg, var(--bs-primary), var(--primary-color)) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #6f42c1) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #fd7e14) !important;
+}
+</style>
+{% endblock %}
