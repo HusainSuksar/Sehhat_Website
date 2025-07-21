@@ -4,41 +4,415 @@
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <h1 class="h3 mb-1">🎓 Students Dashboard</h1>
-            <p class="text-muted mb-0">Welcome, {{ user.get_full_name }}</p>
+            <p class="text-muted mb-0">Academic management and course tracking</p>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-poll text-primary"></i> Available Surveys</h5>
-                </div>
+    <!-- Quick Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <p class="text-muted">Check surveys section for available questionnaires</p>
-                    <a href="/surveys/" class="btn btn-primary">
-                        <i class="fas fa-clipboard-check"></i> View Surveys
-                    </a>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-user text-info"></i> My Profile</h5>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Students</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_students }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Courses</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Enrollments</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_enrollments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student-specific Dashboard (if user is a student) -->
+    {% if student_profile %}
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Current Courses</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.current_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-book-open fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.completed_courses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Assignments</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.pending_assignments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Average Grade</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.average_grade|floatformat:1 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-star fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Recent Activities -->
+        <div class="col-lg-8">
+            <!-- Recent Assignments -->
+            {% if recent_assignments %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Assignments</h6>
+                    <a href="{% url 'students:course_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-list fa-sm"></i> View All Courses
+                    </a>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">View and update your profile information</p>
-                    <a href="/accounts/profile/" class="btn btn-outline-info">
-                        <i class="fas fa-user-edit"></i> Edit Profile
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Assignment</th>
+                                    <th>Course</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in recent_assignments %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'students:assignment_detail' assignment.pk %}">
+                                            {{ assignment.title|truncatechars:50 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ assignment.course.name }}</td>
+                                    <td>
+                                        {{ assignment.due_date|date:"M d, Y" }}
+                                        {% if assignment.due_date < today %}
+                                            <span class="badge badge-danger ml-1">Overdue</span>
+                                        {% elif assignment.due_date <= tomorrow %}
+                                            <span class="badge badge-warning ml-1">Due Soon</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if student_profile %}
+                                            {% if assignment.submissions.filter:student=student_profile %}
+                                                <span class="badge badge-success">Submitted</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Pending</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-info">View Details</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Submissions -->
+            {% if recent_submissions %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Submissions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Assignment</th>
+                                    <th>Student</th>
+                                    <th>Submitted</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in recent_submissions %}
+                                <tr>
+                                    <td>{{ submission.assignment.title|truncatechars:40 }}</td>
+                                    <td>{{ submission.student.user.get_full_name }}</td>
+                                    <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if submission.grade %}
+                                            <span class="badge badge-primary">{{ submission.grade.points }}/{{ submission.assignment.max_points }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Not graded</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Announcements -->
+            {% if recent_announcements %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Announcements</h6>
+                </div>
+                <div class="card-body">
+                    {% for announcement in recent_announcements %}
+                    <div class="border-left-primary pl-3 mb-3">
+                        <div class="font-weight-bold">{{ announcement.title }}</div>
+                        <div class="small text-muted mb-1">
+                            {{ announcement.course.name }} - {{ announcement.created_at|date:"M d, Y" }}
+                        </div>
+                        <p class="mb-0">{{ announcement.content|truncatechars:100 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    {% if student_profile %}
+                        <a href="{% url 'students:my_schedule' %}" class="btn btn-primary btn-block mb-2">
+                            <i class="fas fa-calendar fa-sm"></i> My Schedule
+                        </a>
+                        <a href="{% url 'students:my_grades' %}" class="btn btn-info btn-block mb-2">
+                            <i class="fas fa-star fa-sm"></i> My Grades
+                        </a>
+                        <a href="{% url 'students:attendance_record' %}" class="btn btn-success btn-block">
+                            <i class="fas fa-check fa-sm"></i> Attendance Record
+                        </a>
+                    {% else %}
+                        <a href="{% url 'students:student_list' %}" class="btn btn-primary btn-block mb-2">
+                            <i class="fas fa-users fa-sm"></i> View Students
+                        </a>
+                        <a href="{% url 'students:course_list' %}" class="btn btn-info btn-block mb-2">
+                            <i class="fas fa-book fa-sm"></i> View Courses
+                        </a>
+                        {% if can_manage %}
+                            <a href="{% url 'students:analytics' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-chart-bar fa-sm"></i> View Analytics
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Course Statistics -->
+            {% if course_stats %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Popular Courses</h6>
+                </div>
+                <div class="card-body">
+                    {% for course in course_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <a href="{% url 'students:course_detail' course.pk %}" class="font-weight-bold">
+                                {{ course.name|truncatechars:25 }}
+                            </a>
+                            <div class="small text-muted">{{ course.instructor.get_full_name }}</div>
+                        </div>
+                        <span class="badge badge-primary">{{ course.enrollment_count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Upcoming Events -->
+            {% if upcoming_events %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Upcoming Events</h6>
+                </div>
+                <div class="card-body">
+                    {% for event in upcoming_events %}
+                    <div class="border-left-info pl-3 mb-3">
+                        <div class="font-weight-bold">{{ event.title }}</div>
+                        <div class="small text-muted">
+                            {{ event.date|date:"M d, Y" }} at {{ event.time }}
+                        </div>
+                        <p class="small mb-0">{{ event.description|truncatechars:60 }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Study Resources -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resources</h6>
+                </div>
+                <div class="card-body">
+                    <a href="/surveys/" class="btn btn-outline-primary btn-block mb-2">
+                        <i class="fas fa-poll fa-sm"></i> Surveys
+                    </a>
+                    <a href="/photos/" class="btn btn-outline-info btn-block mb-2">
+                        <i class="fas fa-images fa-sm"></i> Photo Gallery
+                    </a>
+                    <a href="/accounts/profile/" class="btn btn-outline-success btn-block">
+                        <i class="fas fa-user fa-sm"></i> My Profile
                     </a>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Monthly Enrollment Trends -->
+    {% if monthly_stats %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Enrollment Trends</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="enrollmentChart" width="100%" height="30"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+{% if monthly_stats %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Enrollment Chart
+var ctx = document.getElementById('enrollmentChart').getContext('2d');
+var enrollmentChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Enrollments',
+            data: [{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endif %}
 {% endblock %}
