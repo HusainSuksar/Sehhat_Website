@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Umoor Sehhat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-heartbeat fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">Welcome Back</h3>
+                        <p class="text-muted">Sign in to your Umoor Sehhat account</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-1"></i>Username or ITS ID
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.username.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock me-1"></i>Password
+                            </label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember">
+                            <label class="form-check-label" for="remember">
+                                Remember me
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                        
+                        <div class="text-center">
+                            <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">
+                                Forgot your password?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-center bg-light">
+                    <p class="mb-0">
+                        Don't have an account? 
+                        <a href="{% url 'accounts:register' %}" class="text-decoration-none">
+                            Sign up here
+                        </a>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Role Information -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>System Roles
+                    </h6>
+                    <div class="row">
+                        <div class="col-6 small">
+                            <div class="mb-1">
+                                <span class="badge bg-primary">Aamil</span> - Moze Management
+                            </div>
+                            <div class="mb-1">
+                                <span class="badge bg-info">Coordinator</span> - Operations
+                            </div>
+                            <div class="mb-1">
+                                <span class="badge bg-success">Doctor</span> - Medical Care
+                            </div>
+                        </div>
+                        <div class="col-6 small">
+                            <div class="mb-1">
+                                <span class="badge bg-warning">Student</span> - Academic
+                            </div>
+                            <div class="mb-1">
+                                <span class="badge bg-danger">Admin</span> - Full Access
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

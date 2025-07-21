@@ -1,0 +1,7 @@
+Django==5.0.1
+djangorestframework==3.16.0
+psycopg2-binary==2.9.10
+Pillow==11.3.0
+reportlab==4.4.2
+xhtml2pdf==0.2.17
+django-extensions==4.1
