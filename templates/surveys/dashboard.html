@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Surveys Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">📋 Surveys Dashboard</h1>
+            <p class="text-muted mb-0">Community feedback and data collection</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h2>{{ total_surveys|default:0 }}</h2>
+                    <h5>Total Surveys</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h2>{{ active_surveys|default:0 }}</h2>
+                    <h5>Active Surveys</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h2>{{ my_responses|default:0 }}</h2>
+                    <h5>My Responses</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h2>{{ pending_surveys|default:0 }}</h2>
+                    <h5>Pending</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Surveys -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Surveys</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_surveys %}
+                        {% for survey in recent_surveys %}
+                        <div class="mb-3 p-3 border-start border-primary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6><a href="#" class="text-decoration-none">{{ survey.title }}</a></h6>
+                                    <p class="text-muted mb-2">{{ survey.description|truncatewords:15 }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> {{ survey.created_by.get_full_name }} | 
+                                        <i class="fas fa-calendar"></i> {{ survey.created_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                                <div>
+                                    {% if survey.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-poll fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">No surveys available</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if pending_surveys > 0 %}
+                            <a href="#" class="btn btn-primary">
+                                <i class="fas fa-clipboard-check"></i> Take Pending Surveys ({{ pending_surveys }})
+                            </a>
+                        {% endif %}
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar"></i> View Results
+                        </a>
+                        {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="fas fa-plus"></i> Create New Survey
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics for Admins -->
+            {% if analytics_data %}
+            <div class="card">
+                <div class="card-header">
+                    <h5>My Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <h4 class="text-primary">{{ analytics_data.created_surveys|default:0 }}</h4>
+                            <small class="text-muted">Created</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success">{{ analytics_data.total_responses|default:0 }}</h4>
+                            <small class="text-muted">Responses</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

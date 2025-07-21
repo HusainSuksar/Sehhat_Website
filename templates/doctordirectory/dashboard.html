@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Directory Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">🏥 Doctor Directory Dashboard</h1>
+            <p class="text-muted mb-0">
+                {% if doctor %}Welcome back, Dr. {{ doctor.name }}{% else %}Medical Services Management{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Today's Appointments</h5>
+                    <h2>{{ todays_appointments|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>This Week</h5>
+                    <h2>{{ weekly_appointments|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>Total Patients</h5>
+                    <h2>{{ total_patients|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5>Pending</h5>
+                    <h2>{{ pending_appointments|default:0 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Appointments</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                        {% for appointment in recent_appointments %}
+                        <div class="mb-3 p-3 border-start border-primary">
+                            <h6>{% if not doctor %}Dr. {{ appointment.doctor.name }} - {% endif %}{{ appointment.patient.user.get_full_name }}</h6>
+                            <p class="mb-1">{{ appointment.reason_for_visit }}</p>
+                            <small class="text-muted">{{ appointment.appointment_date }} at {{ appointment.appointment_time }}</small>
+                            <span class="badge bg-{{ appointment.status|default:'secondary' }} ms-2">{{ appointment.get_status_display }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent appointments</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-users"></i> All Doctors
+                        </a>
+                        {% if user.is_doctor %}
+                        <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar"></i> My Schedule
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-users"></i> View Patients
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Patient Logs -->
+    {% if recent_logs %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Patient Logs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>ITS ID</th>
+                                    <th>Ailment</th>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                <tr>
+                                    <td><strong>{{ log.patient_name }}</strong></td>
+                                    <td><code>{{ log.patient_its_id }}</code></td>
+                                    <td>{{ log.ailment|truncatewords:5 }}</td>
+                                    <td>{{ log.seen_by.name }}</td>
+                                    <td><small>{{ log.timestamp|date:"M d, Y" }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
