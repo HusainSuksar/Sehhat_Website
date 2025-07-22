@@ -136,9 +136,8 @@ class Command(BaseCommand):
                 commenter = User.objects.order_by('?').first()
                 MozeComment.objects.create(
                     moze=moze,
-                    user=commenter,
-                    content=f"Great facilities and services at {name}. Very helpful staff.",
-                    created_at=timezone.now() - timedelta(days=random.randint(1, 30))
+                    author=commenter,
+                    content=f"Great facilities and services at {name}. Very helpful staff."
                 )
 
     def create_medical_data(self):

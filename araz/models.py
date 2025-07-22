@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
+from django.utils import timezone
 from doctordirectory.models import Doctor
 
 
@@ -270,10 +271,10 @@ class ArazAttachment(models.Model):
     """File attachments for Araz requests"""
     araz = models.ForeignKey(DuaAraz, on_delete=models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to='araz_attachments/')
-    original_filename = models.CharField(max_length=255)
+    original_filename = models.CharField(max_length=255, default='unknown')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    file_size = models.PositiveIntegerField(help_text='File size in bytes')
+    file_size = models.PositiveIntegerField(help_text='File size in bytes', default=0)
     
     def __str__(self):
         return f"Attachment: {self.original_filename}"
@@ -298,7 +299,7 @@ class ArazStatusHistory(models.Model):
     new_status = models.CharField(max_length=20)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     change_reason = models.TextField(blank=True, null=True)
-    changed_at = models.DateTimeField(auto_now_add=True)
+    changed_at = models.DateTimeField(default=timezone.now)
     
     class Meta:
         verbose_name_plural = 'Araz Status Histories'
