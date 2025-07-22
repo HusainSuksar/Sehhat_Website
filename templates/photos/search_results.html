@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Photo Search Results{%% endblock %%}
+{% block title %}Photo Search Results{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
@@ -13,20 +13,20 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
-            {%% if photos %%}
+            {% if photos %}
                 <div class="row">
-                    {%% for photo in photos %%}
+                    {% for photo in photos %}
                     <div class="col-md-3 col-sm-4 col-6 mb-3">
-                        <a href="{%% url 'photos:photo_detail' photo.pk %%}">
+                        <a href="{% url 'photos:photo_detail' photo.pk %}">
                             <img src="{{ photo.image.url }}" class="img-fluid" style="height: 150px; object-fit: cover;">
                         </a>
                     </div>
-                    {%% endfor %%}
+                    {% endfor %}
                 </div>
-            {%% else %%}
+            {% else %}
                 <p class="text-muted">No photos found.</p>
-            {%% endif %%}
+            {% endif %}
         </div>
     </div>
 </div>
-{%% endblock %%}
+{% endblock %}

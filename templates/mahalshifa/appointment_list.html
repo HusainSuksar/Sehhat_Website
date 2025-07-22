@@ -1,15 +1,15 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Appointments{%% endblock %%}
+{% block title %}Appointments{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h1 class="h3 mb-0 text-gray-800">📅 Appointments</h1>
-        <a href="{%% url 'mahalshifa:create_appointment' %%}" class="btn btn-primary">
+        <a href="{% url 'mahalshifa:create_appointment' %}" class="btn btn-primary">
             <i class="fas fa-plus fa-sm"></i> Schedule Appointment
         </a>
             </div>
@@ -22,7 +22,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Appointments Schedule</h6>
             </div>
             <div class="card-body">
-                {%% if appointments %%}
+                {% if appointments %}
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
@@ -36,10 +36,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {%% for appointment in appointments %%}
+                                {% for appointment in appointments %}
                                 <tr>
                                     <td>
-                                        <a href="{%% url 'mahalshifa:patient_detail' appointment.patient.pk %%}">
+                                        <a href="{% url 'mahalshifa:patient_detail' appointment.patient.pk %}">
                                             {{ appointment.patient.user.get_full_name }}
                                         </a>
                                     </td>
@@ -49,37 +49,37 @@
                                         <small class="text-muted">{{ appointment.appointment_time }}</small>
                                     </td>
                                     <td>
-                                        {%% if appointment.appointment_type == 'emergency' %%}
+                                        {% if appointment.appointment_type == 'emergency' %}
                                             <span class="badge badge-danger">Emergency</span>
-                                        {%% elif appointment.appointment_type == 'urgent' %%}
+                                        {% elif appointment.appointment_type == 'urgent' %}
                                             <span class="badge badge-warning">Urgent</span>
-                                        {%% else %%}
+                                        {% else %}
                                             <span class="badge badge-info">Regular</span>
-                                        {%% endif %%}
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {%% if appointment.status == 'scheduled' %%}
+                                        {% if appointment.status == 'scheduled' %}
                                             <span class="badge badge-warning">Scheduled</span>
-                                        {%% elif appointment.status == 'completed' %%}
+                                        {% elif appointment.status == 'completed' %}
                                             <span class="badge badge-success">Completed</span>
-                                        {%% elif appointment.status == 'cancelled' %%}
+                                        {% elif appointment.status == 'cancelled' %}
                                             <span class="badge badge-danger">Cancelled</span>
-                                        {%% else %%}
+                                        {% else %}
                                             <span class="badge badge-info">{{ appointment.get_status_display }}</span>
-                                        {%% endif %%}
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{%% url 'mahalshifa:appointment_detail' appointment.pk %%}" class="btn btn-sm btn-primary">View</a>
+                                        <a href="{% url 'mahalshifa:appointment_detail' appointment.pk %}" class="btn btn-sm btn-primary">View</a>
                                     </td>
                                 </tr>
-                                {%% endfor %%}
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                {%% else %%}
+                {% else %}
                     <p class="text-muted">No appointments scheduled.</p>
-                {%% endif %%}
+                {% endif %}
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

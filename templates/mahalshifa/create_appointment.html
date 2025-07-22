@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Schedule Appointment{%% endblock %%}
+{% block title %}Schedule Appointment{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -20,14 +20,14 @@
             </div>
             <div class="card-body">
                 <form method="post">
-                    {%% csrf_token %%}
+                    {% csrf_token %}
                     {{ form.as_p }}
                     <div class="d-flex justify-content-between">
-                        <a href="{%% url 'mahalshifa:appointment_list' %%}" class="btn btn-secondary">Cancel</a>
+                        <a href="{% url 'mahalshifa:appointment_list' %}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Schedule Appointment</button>
                     </div>
                 </form>
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}{{ hospital.name }} - Hospital Details{%% endblock %%}
+{% block title %}{{ hospital.name }} - Hospital Details{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -11,17 +11,17 @@
                 <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:dashboard' %%}">Mahal Shifa</a></li>
-                    <li class="breadcrumb-item"><a href="{%% url 'mahalshifa:hospital_list' %%}">Hospitals</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'mahalshifa:dashboard' %}">Mahal Shifa</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'mahalshifa:hospital_list' %}">Hospitals</a></li>
                     <li class="breadcrumb-item active">{{ hospital.name|truncatechars:30 }}</li>
                 </ol>
             </nav>
             <h1 class="h3 mb-0 text-gray-800">🏥 {{ hospital.name }}</h1>
         </div>
         <div>
-            {%% if can_edit %%}
-                <a href="{%% url 'mahalshifa:hospital_update' hospital.pk %%}" class="btn btn-warning btn-sm">Edit</a>
-            {%% endif %%}
+            {% if can_edit %}
+                <a href="{% url 'mahalshifa:hospital_update' hospital.pk %}" class="btn btn-warning btn-sm">Edit</a>
+            {% endif %}
         </div>
             </div>
         </div>
@@ -51,14 +51,14 @@
                                 <strong>Contact:</strong> {{ hospital.contact_phone }}
                             </div>
                         </div>
-                        {%% if hospital.description %%}
+                        {% if hospital.description %}
                         <div class="mb-3">
                             <h6 class="font-weight-bold">Description:</h6>
                             <div class="border-left-primary pl-3">
                                 {{ hospital.description|linebreaks }}
                             </div>
                         </div>
-                        {%% endif %%}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -81,4 +81,4 @@
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

@@ -235,7 +235,7 @@
                             <div class="font-weight-bold text-primary">{{ rating.avg_rating|floatformat:1 }}/5</div>
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-primary" role="progressbar" 
-                                     style="width: {{ rating.avg_rating|floatformat:0|add:0|mul:20 }}%"></div>
+                                     style="width: {% widthratio rating.avg_rating 5 100 %}%"></div>
                             </div>
                         </div>
                     </div>

@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Create Album{%% endblock %%}
+{% block title %}Create Album{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
@@ -14,14 +14,14 @@
     <div class="card shadow">
         <div class="card-body">
             <form method="post">
-                {%% csrf_token %%}
+                {% csrf_token %}
                 {{ form.as_p }}
                 <div class="d-flex justify-content-between">
-                    <a href="{%% url 'photos:album_list' %%}" class="btn btn-secondary">Cancel</a>
+                    <a href="{% url 'photos:album_list' %}" class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-primary">Create Album</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{%% endblock %%}
+{% endblock %}

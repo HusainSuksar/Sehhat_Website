@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}My Assignments{%% endblock %%}
+{% block title %}My Assignments{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -19,7 +19,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Assigned Petitions</h6>
             </div>
             <div class="card-body">
-                {%% if assignments %%}
+                {% if assignments %}
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
@@ -32,22 +32,22 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {%% for assignment in assignments %%}
+                                {% for assignment in assignments %}
                                 <tr>
-                                    <td><a href="{%% url 'araz:petition_detail' assignment.petition.pk %%}">{{ assignment.petition.title|truncatechars:50 }}</a></td>
+                                    <td><a href="{% url 'araz:petition_detail' assignment.petition.pk %}">{{ assignment.petition.title|truncatechars:50 }}</a></td>
                                     <td><span class="badge badge-info">{{ assignment.petition.get_priority_display }}</span></td>
                                     <td><span class="badge badge-warning">{{ assignment.petition.get_status_display }}</span></td>
                                     <td>{{ assignment.created_at|date:"M d, Y" }}</td>
-                                    <td><a href="{%% url 'araz:petition_detail' assignment.petition.pk %%}" class="btn btn-sm btn-primary">View</a></td>
+                                    <td><a href="{% url 'araz:petition_detail' assignment.petition.pk %}" class="btn btn-sm btn-primary">View</a></td>
                                 </tr>
-                                {%% endfor %%}
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                {%% else %%}
+                {% else %}
                     <p class="text-muted">No assignments found.</p>
-                {%% endif %%}
+                {% endif %}
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

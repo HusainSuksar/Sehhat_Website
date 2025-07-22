@@ -1,15 +1,15 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Photo Albums{%% endblock %%}
+{% block title %}Photo Albums{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h1 class="h3 mb-0 text-gray-800">📸 Photo Albums</h1>
-        <a href="{%% url 'photos:album_create' %%}" class="btn btn-primary">
+        <a href="{% url 'photos:album_create' %}" class="btn btn-primary">
             <i class="fas fa-plus fa-sm"></i> Create Album
         </a>
             </div>
@@ -22,21 +22,21 @@
                 <h6 class="m-0 font-weight-bold text-primary">Albums Gallery</h6>
             </div>
             <div class="card-body">
-                {%% if albums %%}
+                {% if albums %}
                     <div class="row">
-                        {%% for album in albums %%}
+                        {% for album in albums %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100">
                                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    {%% if album.photos.first %%}
+                                    {% if album.photos.first %}
                                         <img src="{{ album.photos.first.image.url }}" class="img-fluid" style="max-height: 190px; object-fit: cover;">
-                                    {%% else %%}
+                                    {% else %}
                                         <i class="fas fa-images fa-4x text-gray-300"></i>
-                                    {%% endif %%}
+                                    {% endif %}
                                 </div>
                                 <div class="card-body">
                                     <h5 class="card-title">
-                                        <a href="{%% url 'photos:album_detail' album.pk %%}">{{ album.name }}</a>
+                                        <a href="{% url 'photos:album_detail' album.pk %}">{{ album.name }}</a>
                                     </h5>
                                     <p class="card-text">{{ album.description|truncatechars:100 }}</p>
                                     <div class="d-flex justify-content-between align-items-center">
@@ -46,17 +46,17 @@
                                 </div>
                             </div>
                         </div>
-                        {%% endfor %%}
+                        {% endfor %}
                     </div>
-                {%% else %%}
+                {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-images fa-4x text-gray-300 mb-3"></i>
                         <h4 class="text-gray-400">No albums yet</h4>
                         <p class="text-muted">Create your first photo album to get started.</p>
-                        <a href="{%% url 'photos:album_create' %%}" class="btn btn-primary">Create Album</a>
+                        <a href="{% url 'photos:album_create' %}" class="btn btn-primary">Create Album</a>
                     </div>
-                {%% endif %%}
+                {% endif %}
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

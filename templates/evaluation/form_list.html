@@ -1,15 +1,15 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Evaluation Forms{%% endblock %%}
+{% block title %}Evaluation Forms{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h1 class="h3 mb-0 text-gray-800">📋 Evaluation Forms</h1>
-        <a href="{%% url 'evaluation:form_create' %%}" class="btn btn-primary">
+        <a href="{% url 'evaluation:form_create' %}" class="btn btn-primary">
             <i class="fas fa-plus fa-sm"></i> Create Form
         </a>
             </div>
@@ -22,7 +22,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Forms</h6>
             </div>
             <div class="card-body">
-                {%% if forms %%}
+                {% if forms %}
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
@@ -35,28 +35,28 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {%% for form in forms %%}
+                                {% for form in forms %}
                                 <tr>
-                                    <td><a href="{%% url 'evaluation:form_detail' form.pk %%}">{{ form.title }}</a></td>
+                                    <td><a href="{% url 'evaluation:form_detail' form.pk %}">{{ form.title }}</a></td>
                                     <td><span class="badge badge-secondary">{{ form.get_evaluation_type_display }}</span></td>
                                     <td>
-                                        {%% if form.is_active %%}
+                                        {% if form.is_active %}
                                             <span class="badge badge-success">Active</span>
-                                        {%% else %%}
+                                        {% else %}
                                             <span class="badge badge-danger">Inactive</span>
-                                        {%% endif %%}
+                                        {% endif %}
                                     </td>
                                     <td>{{ form.created_at|date:"M d, Y" }}</td>
-                                    <td><a href="{%% url 'evaluation:form_detail' form.pk %%}" class="btn btn-sm btn-primary">View</a></td>
+                                    <td><a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-sm btn-primary">View</a></td>
                                 </tr>
-                                {%% endfor %%}
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                {%% else %%}
+                {% else %}
                     <p class="text-muted">No forms found.</p>
-                {%% endif %%}
+                {% endif %}
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

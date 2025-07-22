@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}{{ form.title }} - Form Details{%% endblock %%}
+{% block title %}{{ form.title }} - Form Details{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -11,20 +11,20 @@
                 <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{%% url 'evaluation:dashboard' %%}">Evaluation</a></li>
-                    <li class="breadcrumb-item"><a href="{%% url 'evaluation:form_list' %%}">Forms</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'evaluation:dashboard' %}">Evaluation</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'evaluation:form_list' %}">Forms</a></li>
                     <li class="breadcrumb-item active">{{ form.title|truncatechars:30 }}</li>
                 </ol>
             </nav>
             <h1 class="h3 mb-0 text-gray-800">📋 {{ form.title }}</h1>
         </div>
         <div>
-            {%% if can_edit %%}
-                <a href="{%% url 'evaluation:form_update' form.pk %%}" class="btn btn-warning btn-sm">Edit</a>
-            {%% endif %%}
-            {%% if can_evaluate %%}
-                <a href="{%% url 'evaluation:evaluate_form' form.pk %%}" class="btn btn-success btn-sm">Evaluate</a>
-            {%% endif %%}
+            {% if can_edit %}
+                <a href="{% url 'evaluation:form_update' form.pk %}" class="btn btn-warning btn-sm">Edit</a>
+            {% endif %}
+            {% if can_evaluate %}
+                <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-success btn-sm">Evaluate</a>
+            {% endif %}
         </div>
             </div>
         </div>
@@ -42,11 +42,11 @@
                     </div>
                     <div class="col-md-6">
                         <strong>Status:</strong>
-                        {%% if form.is_active %%}
+                        {% if form.is_active %}
                             <span class="badge badge-success ml-2">Active</span>
-                        {%% else %%}
+                        {% else %}
                             <span class="badge badge-danger ml-2">Inactive</span>
-                        {%% endif %%}
+                        {% endif %}
                     </div>
                 </div>
                 <div class="mb-3">
@@ -58,4 +58,4 @@
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}

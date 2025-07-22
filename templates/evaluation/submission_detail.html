@@ -1,8 +1,8 @@
-{%% extends 'base.html' %%}
+{% extends 'base.html' %}
 
-{%% block title %%}Evaluation Submission{%% endblock %%}
+{% block title %}Evaluation Submission{% endblock %}
 
-{%% block content %%}
+{% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="row mb-4">
@@ -35,15 +35,15 @@
                         <strong>Total Score:</strong> {{ submission.total_score|floatformat:1 }}
                     </div>
                 </div>
-                {%% if submission.comments %%}
+                {% if submission.comments %}
                 <div class="mb-3">
                     <h6 class="font-weight-bold">Comments:</h6>
                     <div class="border-left-primary pl-3">
                         {{ submission.comments|linebreaks }}
                     </div>
                 </div>
-                {%% endif %%}
+                {% endif %}
             </div>
         </div>
 </div>
-{%% endblock %%}
+{% endblock %}
