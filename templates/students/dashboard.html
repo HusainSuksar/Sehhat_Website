@@ -190,11 +190,17 @@
                                     </td>
                                     <td>
                                         {% if student_profile %}
-                                            {% if assignment.submissions.filter:student=student_profile %}
-                                                <span class="badge badge-success">Submitted</span>
-                                            {% else %}
-                                                <span class="badge badge-warning">Pending</span>
-                                            {% endif %}
+                                                                        {% with submitted=False %}
+                                {% for submission in assignment.submissions.all %}
+                                    {% if submission.student == student_profile %}
+                                        <span class="badge badge-success">Submitted</span>
+                                        {% with submitted=True %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not submitted %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            {% endwith %}
                                         {% else %}
                                             <span class="badge badge-info">View Details</span>
                                         {% endif %}
