@@ -8,10 +8,7 @@ import random
 
 from accounts.models import UserProfile
 from moze.models import Moze, MozeSettings, MozeComment
-from doctordirectory.models import (
-    Doctor, Patient, Appointment, MedicalRecord, Prescription,
-    LabTest, VitalSigns, PatientLog, MedicalService
-)
+from doctordirectory.models import Doctor, PatientLog
 from surveys.models import Survey, SurveyResponse, SurveyReminder
 from photos.models import PhotoAlbum, Photo
 
@@ -155,98 +152,34 @@ class Command(BaseCommand):
             doctor = Doctor.objects.create(
                 user=doctor_user,
                 name=f"Dr. {doctor_user.first_name} {doctor_user.last_name}",
+                its_id=f"{random.randint(10000000, 99999999)}",  # 8-digit ID
                 specialty=specialty,
                 qualification="MBBS, MD",
                 experience_years=random.randint(5, 25),
-                consultation_fee=Decimal(str(random.randint(300, 1500))),
-                moze=moze,
-                is_available=True
+                assigned_moze=moze,
+                is_verified=True
             )
             
-            # Create medical services
-            services = ['Consultation', 'Follow-up', 'Diagnostic', 'Procedure']
-            for service_name in services:
-                MedicalService.objects.create(
-                    doctor=doctor,
-                    name=f"{specialty} {service_name}",
-                    service_type='consultation',
-                    description=f"{service_name} for {specialty}",
-                    duration_minutes=random.choice([30, 45, 60]),
-                    fee=Decimal(str(random.randint(200, 1000))),
-                    is_active=True
+            # Create patient logs for this doctor
+            for j in range(random.randint(3, 8)):
+                PatientLog.objects.create(
+                    patient_its_id=f"{random.randint(10000000, 99999999)}",
+                    patient_name=f"Patient {j+1}",
+                    ailment=f"General {specialty.lower()} concern",
+                    seen_by=doctor,
+                    moze=moze,
+                    visit_type='consultation',
+                    symptoms=f"Routine {specialty.lower()} symptoms",
+                    diagnosis=f"General {specialty.lower()} examination",
+                    prescription="Follow routine care guidelines"
                 )
         
-        # Create patients
-        student_users = User.objects.filter(role='student')[:14]
-        for patient_user in student_users:
-            Patient.objects.create(
-                user=patient_user,
-                blood_group=random.choice(['A+', 'B+', 'AB+', 'O+', 'A-', 'B-', 'AB-', 'O-']),
-                emergency_contact_name=f"{patient_user.first_name} Family",
-                emergency_contact_phone=f"+91{random.randint(9000000000, 9999999999)}",
-                medical_history="General medical history notes",
-                allergies="No known allergies",
-                chronic_conditions="None reported"
-            )
+        # Note: Patient and Appointment models don't have database tables yet
+        # Skipping patient and appointment creation for now
         
-        # Create appointments
-        doctors = Doctor.objects.all()
-        patients = Patient.objects.all()
-        
-        for i in range(random.randint(50, 100)):
-            doctor = random.choice(doctors)
-            patient = random.choice(patients)
-            service = doctor.services.first()
-            
-            # Random date within last 30 days or next 30 days
-            days_offset = random.randint(-30, 30)
-            appointment_date = date.today() + timedelta(days=days_offset)
-            appointment_time = time(random.randint(9, 17), random.choice([0, 30]))
-            
-            appointment = Appointment.objects.create(
-                doctor=doctor,
-                patient=patient,
-                service=service,
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                reason_for_visit=random.choice([
-                    'Regular checkup', 'Follow-up consultation', 'Health screening',
-                    'Vaccination', 'Diagnostic consultation'
-                ]),
-                status=random.choice(['pending', 'confirmed', 'completed', 'cancelled'])
-            )
-            
-            # Create medical records for completed appointments
-            if appointment.status == 'completed' and days_offset < 0:
-                MedicalRecord.objects.create(
-                    appointment=appointment,
-                    patient=patient,
-                    doctor=doctor,
-                    diagnosis="Diagnosis notes",
-                    symptoms="Patient symptoms",
-                    treatment_plan="Treatment recommendations",
-                    notes="Additional medical notes",
-                    follow_up_required=random.choice([True, False])
-                )
-        
-        # Create patient logs
-        for i in range(random.randint(30, 60)):
-            patient = random.choice(patients)
-            doctor = random.choice(doctors)
-            moze = random.choice(list(Moze.objects.all()))
-            
-            PatientLog.objects.create(
-                patient_its_id=patient.user.its_id,
-                patient_name=patient.user.get_full_name(),
-                ailment=random.choice(['Fever', 'Headache', 'Cough', 'Back pain', 'Fatigue']),
-                visit_type=random.choice(['consultation', 'follow_up', 'emergency', 'screening']),
-                symptoms="Patient reported symptoms",
-                diagnosis="Medical diagnosis",
-                prescription="Prescribed medications",
-                seen_by=doctor,
-                moze=moze,
-                timestamp=timezone.now() - timedelta(days=random.randint(1, 30))
-            )
+        self.stdout.write(self.style.SUCCESS('✅ Medical data creation completed!'))
+
+
 
     def create_survey_data(self):
         self.stdout.write('📋 Creating survey data...')
@@ -328,19 +261,8 @@ class Command(BaseCommand):
                 created_by=User.objects.order_by('?').first()
             )
             
-            # Create photos for each album
-            for i in range(random.randint(5, 12)):
-                photo = Photo.objects.create(
-                    album=album,
-                    title=f"Photo {i+1} - {album_data['name']}",
-                    description=f"Description for photo {i+1}",
-                    uploaded_by=User.objects.order_by('?').first(),
-                    moze=moze
-                )
-                
-                # Set a cover photo for the album
-                if i == 0:
-                    album.cover_photo = photo
-                    album.save()
+            # Note: Skipping photo creation for now since it requires actual image files
+            # In a real scenario, photos would be uploaded through the web interface
+            self.stdout.write(f"  📸 Album '{album_data['name']}' created (photos can be uploaded via web interface)")
 
         self.stdout.write('✅ All test data created successfully!')
