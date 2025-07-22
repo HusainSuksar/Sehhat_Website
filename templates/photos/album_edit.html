@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Album - {{ album.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Edit Album: {{ album.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="album-edit-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_name" class="form-label">Album Name *</label>
+                                    <input type="text" name="name" class="form-control" id="id_name" 
+                                           value="{{ album.name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_moze" class="form-label">Moze</label>
+                                    <select name="moze" class="form-control" id="id_moze">
+                                        <option value="">Select Moze (Optional)</option>
+                                        {% for moze in moze_options %}
+                                            <option value="{{ moze.id }}" {% if album.moze_id == moze.id %}selected{% endif %}>
+                                                {{ moze.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_description" class="form-label">Description</label>
+                            <textarea name="description" class="form-control" id="id_description" 
+                                      rows="4" placeholder="Describe this photo album...">{{ album.description }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_public" class="form-check-input" 
+                                           id="id_is_public" {% if album.is_public %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_public">
+                                        Public Album (visible to all users)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="allow_uploads" class="form-check-input" 
+                                           id="id_allow_uploads" {% if album.allow_uploads %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_allow_uploads">
+                                        Allow others to upload photos
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Update Album
+                            </button>
+                            <a href="{% url 'photos:album_detail' album.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Album Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        {{ album.created_at|date:"M d, Y" }} by {{ album.created_by.get_full_name }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Photos:</strong><br>
+                        {{ album.photos.count }} photo{{ album.photos.count|pluralize }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{% if album.is_public %}success{% else %}warning{% endif %}">
+                            {% if album.is_public %}Public{% else %}Private{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('album-edit-form');
+    const nameInput = document.getElementById('id_name');
+    
+    form.addEventListener('submit', function(e) {
+        if (!nameInput.value.trim()) {
+            e.preventDefault();
+            alert('Album name is required.');
+            nameInput.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

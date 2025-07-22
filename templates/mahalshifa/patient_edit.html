@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Patient - {{ patient.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-edit"></i> Edit Patient: {{ patient.user.get_full_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="patient-edit-form">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" id="id_first_name" 
+                                           value="{{ patient.user.first_name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" id="id_last_name" 
+                                           value="{{ patient.user.last_name }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_date_of_birth" class="form-label">Date of Birth *</label>
+                                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" 
+                                           value="{{ patient.date_of_birth|date:'Y-m-d' }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_gender" class="form-label">Gender *</label>
+                                    <select name="gender" class="form-control" id="id_gender" required>
+                                        <option value="male" {% if patient.gender == 'male' %}selected{% endif %}>Male</option>
+                                        <option value="female" {% if patient.gender == 'female' %}selected{% endif %}>Female</option>
+                                        <option value="other" {% if patient.gender == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_blood_group" class="form-label">Blood Group</label>
+                                    <select name="blood_group" class="form-control" id="id_blood_group">
+                                        <option value="">Select Blood Group</option>
+                                        {% for bg in blood_groups %}
+                                            <option value="{{ bg }}" {% if patient.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_patient_id" class="form-label">Patient ID *</label>
+                                    <input type="text" name="patient_id" class="form-control" id="id_patient_id" 
+                                           value="{{ patient.patient_id }}" required readonly>
+                                    <small class="text-muted">Patient ID cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Contact Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <input type="tel" name="phone_number" class="form-control" id="id_phone_number" 
+                                           value="{{ patient.user.phone_number }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_email" class="form-label">Email Address</label>
+                                    <input type="email" name="email" class="form-control" id="id_email" 
+                                           value="{{ patient.user.email|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_address" class="form-label">Address *</label>
+                            <textarea name="address" class="form-control" id="id_address" 
+                                      rows="3" required>{{ patient.address }}</textarea>
+                        </div>
+                        
+                        <!-- Hospital Assignment -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Hospital Assignment</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_hospital" class="form-label">Hospital *</label>
+                                    <select name="hospital" class="form-control" id="id_hospital" required>
+                                        {% for hospital in hospitals %}
+                                            <option value="{{ hospital.id }}" {% if patient.hospital_id == hospital.id %}selected{% endif %}>
+                                                {{ hospital.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_registration_date" class="form-label">Registration Date</label>
+                                    <input type="date" name="registration_date" class="form-control" id="id_registration_date" 
+                                           value="{{ patient.created_at|date:'Y-m-d' }}" readonly>
+                                    <small class="text-muted">Registration date cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Emergency Contact -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Emergency Contact</h5>
+                            </div>
+                        </div>
+                        
+                        {% if patient.emergency_contacts.first %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_name" class="form-label">Contact Name *</label>
+                                    <input type="text" name="emergency_contact_name" class="form-control" 
+                                           id="id_emergency_contact_name" 
+                                           value="{{ patient.emergency_contacts.first.name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_phone" class="form-label">Contact Phone *</label>
+                                    <input type="tel" name="emergency_contact_phone" class="form-control" 
+                                           id="id_emergency_contact_phone" 
+                                           value="{{ patient.emergency_contacts.first.phone_number }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_relationship" class="form-label">Relationship *</label>
+                                    <select name="emergency_contact_relationship" class="form-control" 
+                                            id="id_emergency_contact_relationship" required>
+                                        <option value="spouse" {% if patient.emergency_contacts.first.relationship == 'spouse' %}selected{% endif %}>Spouse</option>
+                                        <option value="parent" {% if patient.emergency_contacts.first.relationship == 'parent' %}selected{% endif %}>Parent</option>
+                                        <option value="child" {% if patient.emergency_contacts.first.relationship == 'child' %}selected{% endif %}>Child</option>
+                                        <option value="sibling" {% if patient.emergency_contacts.first.relationship == 'sibling' %}selected{% endif %}>Sibling</option>
+                                        <option value="friend" {% if patient.emergency_contacts.first.relationship == 'friend' %}selected{% endif %}>Friend</option>
+                                        <option value="other" {% if patient.emergency_contacts.first.relationship == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Medical Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Medical Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_allergies" class="form-label">Known Allergies</label>
+                            <textarea name="allergies" class="form-control" id="id_allergies" 
+                                      rows="2">{{ patient.allergies|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_medical_history" class="form-label">Medical History</label>
+                            <textarea name="medical_history" class="form-control" id="id_medical_history" 
+                                      rows="3">{{ patient.medical_history|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_current_medications" class="form-label">Current Medications</label>
+                            <textarea name="current_medications" class="form-control" id="id_current_medications" 
+                                      rows="2">{{ patient.current_medications|default:'' }}</textarea>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_active" class="form-check-input" 
+                                           id="id_is_active" {% if patient.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Patient Status
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'mahalshifa:patient_detail' patient.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <a href="{% url 'mahalshifa:patient_detail' patient.pk %}" class="btn btn-info ms-2">
+                                <i class="fas fa-eye"></i> View Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Patient Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Patient Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Registered:</strong><br>
+                        {{ patient.created_at|date:"M d, Y" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        {{ patient.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Age:</strong><br>
+                        {{ patient.age }} years
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total Appointments:</strong><br>
+                        {{ patient.appointments.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{% if patient.is_active %}success{% else %}danger{% endif %}">
+                            {% if patient.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mahalshifa:patient_detail' patient.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> View Full Profile
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                        </a>
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-notes-medical"></i> Add Medical Record
+                        </a>
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-prescription"></i> Create Prescription
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Medical Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-heartbeat"></i> Medical Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Blood Group:</small><br>
+                        {{ patient.blood_group|default:"Not specified" }}
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Known Allergies:</small><br>
+                        {{ patient.allergies|default:"None recorded"|truncatewords:5 }}
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Last Appointment:</small><br>
+                        {% if patient.appointments.first %}
+                            {{ patient.appointments.first.appointment_date|date:"M d, Y" }}
+                        {% else %}
+                            No appointments
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('patient-edit-form');
+    const dobInput = document.getElementById('id_date_of_birth');
+    
+    // Auto-calculate and display age
+    function updateAge() {
+        const dob = new Date(dobInput.value);
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+        
+        let ageDisplay = document.getElementById('age-display');
+        if (!ageDisplay) {
+            ageDisplay = document.createElement('small');
+            ageDisplay.id = 'age-display';
+            ageDisplay.className = 'text-muted';
+            dobInput.parentNode.appendChild(ageDisplay);
+        }
+        ageDisplay.textContent = `Age: ${age} years`;
+    }
+    
+    dobInput.addEventListener('change', updateAge);
+    updateAge(); // Calculate initial age
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Phone number formatting
+    const phoneInputs = form.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const phoneRegex = /^[\d\s\+\-\(\)]+$/;
+            if (this.value && !phoneRegex.test(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+    
+    // Highlight changes
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        const originalValue = input.value;
+        input.addEventListener('input', function() {
+            if (this.value !== originalValue) {
+                this.classList.add('border-warning');
+            } else {
+                this.classList.remove('border-warning');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

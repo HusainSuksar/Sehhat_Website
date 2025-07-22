@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Petition Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="total-petitions">{{ stats.total }}</h4>
+                            <p>Total Petitions</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clipboard-list fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="pending-petitions">{{ stats.pending }}</h4>
+                            <p>Pending</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="in-progress-petitions">{{ stats.in_progress }}</h4>
+                            <p>In Progress</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-spinner fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 id="resolved-petitions">{{ stats.resolved }}</h4>
+                            <p>Resolved</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Period Filter -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="date-range" class="form-label">Time Period</label>
+                            <select id="date-range" class="form-select" onchange="updateAnalytics()">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                                <option value="365">Last year</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="category-filter" class="form-label">Category</label>
+                            <select id="category-filter" class="form-select" onchange="updateAnalytics()">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="moze-filter" class="form-label">Moze</label>
+                            <select id="moze-filter" class="form-select" onchange="updateAnalytics()">
+                                <option value="">All Mozes</option>
+                                {% for moze in mozes %}
+                                    <option value="{{ moze.id }}">{{ moze.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line"></i> Petition Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie"></i> Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Category Performance</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-area"></i> Resolution Time Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resolution-time-stats">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 id="avg-resolution-time">{{ avg_resolution_time|default:"N/A" }}</h4>
+                                <small>Avg Days</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 id="fastest-resolution">{{ fastest_resolution|default:"N/A" }}</h4>
+                                <small>Fastest</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 id="slowest-resolution">{{ slowest_resolution|default:"N/A" }}</h4>
+                                <small>Slowest</small>
+                            </div>
+                        </div>
+                    </div>
+                    <canvas id="resolutionChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Real-time Updates -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-sync-alt"></i> Real-time Activity Feed</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleAutoRefresh()">
+                        <i class="fas fa-pause" id="refresh-icon"></i> Auto-refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="activity-feed" style="height: 300px; overflow-y: auto;">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let trendsChart, statusChart, categoryChart, resolutionChart;
+let autoRefreshInterval;
+let autoRefreshEnabled = true;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadActivityFeed();
+    startAutoRefresh();
+});
+
+function initializeCharts() {
+    // Trends Chart
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    trendsChart = new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_trend|safe }}.map(item => item.month),
+            datasets: [{
+                label: 'Petitions',
+                data: {{ monthly_trend|safe }}.map(item => item.count),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'In Progress', 'Resolved', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ stats.pending }},
+                    {{ stats.in_progress }},
+                    {{ stats.resolved }},
+                    {{ stats.rejected }}
+                ],
+                backgroundColor: [
+                    '#ffc107',
+                    '#17a2b8',
+                    '#28a745',
+                    '#dc3545'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    categoryChart = new Chart(categoryCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ category_stats|safe }}.map(item => item.category__name),
+            datasets: [{
+                label: 'Petitions',
+                data: {{ category_stats|safe }}.map(item => item.count),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Resolution Chart
+    const resolutionCtx = document.getElementById('resolutionChart').getContext('2d');
+    resolutionChart = new Chart(resolutionCtx, {
+        type: 'bar',
+        data: {
+            labels: ['0-3 days', '4-7 days', '8-14 days', '15-30 days', '30+ days'],
+            datasets: [{
+                label: 'Count',
+                data: {{ resolution_distribution|safe }},
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#fd7e14',
+                    '#dc3545',
+                    '#6f42c1'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function updateAnalytics() {
+    const dateRange = document.getElementById('date-range').value;
+    const category = document.getElementById('category-filter').value;
+    const moze = document.getElementById('moze-filter').value;
+    
+    fetch('/araz/analytics/data/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            date_range: dateRange,
+            category: category,
+            moze: moze
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateChartsWithData(data);
+        updateStatCards(data.stats);
+    })
+    .catch(error => {
+        console.error('Error updating analytics:', error);
+    });
+}
+
+function updateChartsWithData(data) {
+    // Update trends chart
+    trendsChart.data.labels = data.monthly_trend.map(item => item.month);
+    trendsChart.data.datasets[0].data = data.monthly_trend.map(item => item.count);
+    trendsChart.update();
+    
+    // Update status chart
+    statusChart.data.datasets[0].data = [
+        data.stats.pending,
+        data.stats.in_progress,
+        data.stats.resolved,
+        data.stats.rejected
+    ];
+    statusChart.update();
+    
+    // Update category chart
+    categoryChart.data.labels = data.category_stats.map(item => item.category__name);
+    categoryChart.data.datasets[0].data = data.category_stats.map(item => item.count);
+    categoryChart.update();
+}
+
+function updateStatCards(stats) {
+    document.getElementById('total-petitions').textContent = stats.total;
+    document.getElementById('pending-petitions').textContent = stats.pending;
+    document.getElementById('in-progress-petitions').textContent = stats.in_progress;
+    document.getElementById('resolved-petitions').textContent = stats.resolved;
+}
+
+function loadActivityFeed() {
+    fetch('/araz/analytics/activity-feed/')
+        .then(response => response.json())
+        .then(data => {
+            const feedContainer = document.getElementById('activity-feed');
+            feedContainer.innerHTML = '';
+            
+            data.activities.forEach(activity => {
+                const activityHtml = `
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas ${activity.icon} text-${activity.color}"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold">${activity.title}</div>
+                            <div class="text-muted small">${activity.description}</div>
+                            <div class="text-muted small">${activity.timestamp}</div>
+                        </div>
+                    </div>
+                `;
+                feedContainer.insertAdjacentHTML('beforeend', activityHtml);
+            });
+        });
+}
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+        if (autoRefreshEnabled) {
+            updateAnalytics();
+            loadActivityFeed();
+        }
+    }, 30000); // Refresh every 30 seconds
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    const icon = document.getElementById('refresh-icon');
+    
+    if (autoRefreshEnabled) {
+        icon.className = 'fas fa-pause';
+    } else {
+        icon.className = 'fas fa-play';
+    }
+}
+
+// Export functionality
+function exportData(format) {
+    const params = new URLSearchParams({
+        format: format,
+        date_range: document.getElementById('date-range').value,
+        category: document.getElementById('category-filter').value,
+        moze: document.getElementById('moze-filter').value
+    });
+    
+    window.open(`/araz/analytics/export/?${params.toString()}`);
+}
+</script>
+
+<!-- Hidden CSRF token for AJAX requests -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}

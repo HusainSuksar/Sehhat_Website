@@ -1,0 +1,460 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Umoor Sehhat - Comprehensive Health Management System">
+    <meta name="theme-color" content="#007bff">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+    
+    <title>{% block title %}Umoor Sehhat{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #0056b3  100%);
+        }
+        
+        .main-content {
+            padding: 20px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            transition: all 0.3s;
+            border-radius: 5px;
+            margin: 2px 0;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+        }
+        
+        /* Progressive Enhancement Styles */
+        .enhanced-form {
+            position: relative;
+        }
+        
+        .form-validation-feedback {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+        }
+        
+        .auto-save-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-md-block sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-white text-center">
+                        <i class="fas fa-heartbeat"></i> Umoor Sehhat
+                    </h4>
+                </div>
+                
+                <div class="nav flex-column p-3">
+                    {% if user.is_authenticated %}
+                        <!-- Dashboard -->
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        
+                        <!-- Role-based Navigation -->
+                        {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
+                            <a class="nav-link" href="{% url 'moze:dashboard' %}">
+                                <i class="fas fa-users me-2"></i> Moze Management
+                            </a>
+                            <a class="nav-link" href="{% url 'araz:dashboard' %}">
+                                <i class="fas fa-clipboard-list me-2"></i> Petitions (Araz)
+                            </a>
+                            <a class="nav-link" href="{% url 'evaluation:dashboard' %}">
+                                <i class="fas fa-chart-line me-2"></i> Evaluations
+                            </a>
+                        {% endif %}
+                        
+                        {% if user.is_doctor or user.is_admin %}
+                            <a class="nav-link" href="{% url 'doctordirectory:dashboard' %}">
+                                <i class="fas fa-user-md me-2"></i> Doctor Directory
+                            </a>
+                            <a class="nav-link" href="{% url 'mahalshifa:dashboard' %}">
+                                <i class="fas fa-hospital me-2"></i> Mahal Shifa
+                            </a>
+                        {% endif %}
+                        
+                        {% if user.is_student or user.is_admin %}
+                            <a class="nav-link" href="{% url 'students:dashboard' %}">
+                                <i class="fas fa-graduation-cap me-2"></i> Students
+                            </a>
+                        {% endif %}
+                        
+                        <!-- Common Features -->
+                        <a class="nav-link" href="{% url 'surveys:dashboard' %}">
+                            <i class="fas fa-poll me-2"></i> Surveys
+                        </a>
+                        <a class="nav-link" href="{% url 'photos:dashboard' %}">
+                            <i class="fas fa-images me-2"></i> Photo Gallery
+                        </a>
+                        
+                        <hr class="text-white">
+                        
+                        <!-- User Menu -->
+                        <a class="nav-link" href="{% url 'accounts:profile' %}">
+                            <i class="fas fa-user me-2"></i> Profile
+                        </a>
+                        <a class="nav-link" href="{% url 'accounts:logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'accounts:login' %}">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </a>
+                        <a class="nav-link" href="{% url 'accounts:register' %}">
+                            <i class="fas fa-user-plus me-2"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+            
+            <!-- Main Content -->
+            <main class="col-md-10 ms-sm-auto main-content">
+                <!-- Breadcrumb -->
+                {% block breadcrumb %}
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% block breadcrumb_items %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endblock %}
+                
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Progressive Enhancement Scripts -->
+    <script>
+        // Global utilities for progressive enhancement
+        const UmoorSehhat = {
+            // Show loading spinner
+            showLoading() {
+                document.querySelector('.loading-spinner').style.display = 'block';
+            },
+            
+            // Hide loading spinner
+            hideLoading() {
+                document.querySelector('.loading-spinner').style.display = 'none';
+            },
+            
+            // Show toast notification
+            showToast(message, type = 'info') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+                
+                const toastHtml = `
+                    <div class="toast align-items-center text-white bg-${type} border-0" 
+                         role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                                    data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+                
+                // Remove toast element after it's hidden
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            },
+            
+            // Enhanced form submission with AJAX
+            enhanceForm(formElement, options = {}) {
+                const form = typeof formElement === 'string' 
+                    ? document.getElementById(formElement) 
+                    : formElement;
+                    
+                if (!form) return;
+                
+                form.classList.add('enhanced-form');
+                
+                // Add auto-save functionality
+                if (options.autoSave) {
+                    this.addAutoSave(form, options.autoSaveInterval || 5000);
+                }
+                
+                // Add real-time validation
+                if (options.realTimeValidation !== false) {
+                    this.addRealTimeValidation(form);
+                }
+                
+                // Enhanced form submission
+                form.addEventListener('submit', (e) => {
+                    if (options.ajax !== false) {
+                        e.preventDefault();
+                        this.submitFormAjax(form, options);
+                    }
+                });
+            },
+            
+            // Add auto-save functionality
+            addAutoSave(form, interval) {
+                let autoSaveTimer;
+                const indicator = document.createElement('div');
+                indicator.className = 'auto-save-indicator';
+                indicator.textContent = 'Saved';
+                form.style.position = 'relative';
+                form.appendChild(indicator);
+                
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        clearTimeout(autoSaveTimer);
+                        autoSaveTimer = setTimeout(() => {
+                            this.saveFormDraft(form);
+                            indicator.classList.add('show');
+                            setTimeout(() => indicator.classList.remove('show'), 2000);
+                        }, interval);
+                    });
+                });
+            },
+            
+            // Save form as draft
+            saveFormDraft(form) {
+                const formData = new FormData(form);
+                const draftKey = `draft_${form.id || 'form'}_${window.location.pathname}`;
+                const draftData = Object.fromEntries(formData);
+                localStorage.setItem(draftKey, JSON.stringify(draftData));
+            },
+            
+            // Load form draft
+            loadFormDraft(form) {
+                const draftKey = `draft_${form.id || 'form'}_${window.location.pathname}`;
+                const draftData = localStorage.getItem(draftKey);
+                
+                if (draftData) {
+                    const data = JSON.parse(draftData);
+                    Object.keys(data).forEach(key => {
+                        const input = form.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            if (input.type === 'checkbox' || input.type === 'radio') {
+                                input.checked = data[key] === input.value;
+                            } else {
+                                input.value = data[key];
+                            }
+                        }
+                    });
+                }
+            },
+            
+            // Add real-time validation
+            addRealTimeValidation(form) {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.addEventListener('blur', () => {
+                        this.validateField(input);
+                    });
+                });
+            },
+            
+            // Validate individual field
+            validateField(field) {
+                const isValid = field.checkValidity();
+                const feedbackElement = field.parentNode.querySelector('.form-validation-feedback');
+                
+                if (feedbackElement) {
+                    feedbackElement.remove();
+                }
+                
+                if (!isValid) {
+                    field.classList.add('is-invalid');
+                    const feedback = document.createElement('div');
+                    feedback.className = 'form-validation-feedback text-danger';
+                    feedback.textContent = field.validationMessage;
+                    field.parentNode.appendChild(feedback);
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
+                
+                return isValid;
+            },
+            
+            // Submit form via AJAX
+            submitFormAjax(form, options = {}) {
+                this.showLoading();
+                
+                const formData = new FormData(form);
+                
+                fetch(form.action || window.location.pathname, {
+                    method: form.method || 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.hideLoading();
+                    
+                    if (data.success) {
+                        this.showToast(data.message || 'Operation completed successfully', 'success');
+                        
+                        if (options.onSuccess) {
+                            options.onSuccess(data);
+                        } else if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    } else {
+                        this.showToast(data.message || 'An error occurred', 'danger');
+                        
+                        if (options.onError) {
+                            options.onError(data);
+                        }
+                    }
+                })
+                .catch(error => {
+                    this.hideLoading();
+                    this.showToast('Network error occurred', 'danger');
+                    console.error('Form submission error:', error);
+                });
+            }
+        };
+        
+        // Initialize progressive enhancements on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight current page in navigation
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Auto-enhance forms with data attributes
+            document.querySelectorAll('form[data-enhance]').forEach(form => {
+                const options = JSON.parse(form.dataset.enhance || '{}');
+                UmoorSehhat.enhanceForm(form, options);
+            });
+            
+            // Service Worker Registration for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Hospital - {{ hospital.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Edit Hospital: {{ hospital.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="hospital-edit-form">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_name" class="form-label">Hospital Name *</label>
+                                    <input type="text" name="name" class="form-control" id="id_name" 
+                                           value="{{ hospital.name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_hospital_type" class="form-label">Hospital Type *</label>
+                                    <select name="hospital_type" class="form-control" id="id_hospital_type" required>
+                                        {% for value, label in hospital_types %}
+                                            <option value="{{ value }}" {% if hospital.hospital_type == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_description" class="form-label">Description</label>
+                            <textarea name="description" class="form-control" id="id_description" 
+                                      rows="4">{{ hospital.description }}</textarea>
+                        </div>
+                        
+                        <!-- Location Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Location Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_location" class="form-label">Address *</label>
+                            <textarea name="location" class="form-control" id="id_location" 
+                                      rows="3" required>{{ hospital.location }}</textarea>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Contact Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_contact_phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" name="contact_phone" class="form-control" id="id_contact_phone" 
+                                           value="{{ hospital.contact_phone }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_contact_email" class="form-label">Email Address *</label>
+                                    <input type="email" name="contact_email" class="form-control" id="id_contact_email" 
+                                           value="{{ hospital.contact_email }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact" class="form-label">Emergency Contact</label>
+                                    <input type="tel" name="emergency_contact" class="form-control" id="id_emergency_contact"
+                                           value="{{ hospital.emergency_contact|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_website" class="form-label">Website</label>
+                                    <input type="url" name="website" class="form-control" id="id_website" 
+                                           value="{{ hospital.website|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Administration -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Administration</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_administrator" class="form-label">Administrator</label>
+                                    <select name="administrator" class="form-control" id="id_administrator">
+                                        <option value="">Select Administrator</option>
+                                        {% for admin in administrators %}
+                                            <option value="{{ admin.id }}" {% if hospital.administrator_id == admin.id %}selected{% endif %}>
+                                                {{ admin.get_full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_license_number" class="form-label">License Number</label>
+                                    <input type="text" name="license_number" class="form-control" id="id_license_number"
+                                           value="{{ hospital.license_number|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_active" class="form-check-input" 
+                                           id="id_is_active" {% if hospital.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Hospital (accepting patients)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'mahalshifa:hospital_detail' hospital.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <a href="{% url 'mahalshifa:hospital_detail' hospital.pk %}" class="btn btn-info ms-2">
+                                <i class="fas fa-eye"></i> View Hospital
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Hospital Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Hospital Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        {{ hospital.created_at|date:"M d, Y" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        {{ hospital.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total Patients:</strong><br>
+                        {{ hospital.patients.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total Doctors:</strong><br>
+                        {{ hospital.doctors.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Departments:</strong><br>
+                        {{ hospital.departments.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{% if hospital.is_active %}success{% else %}danger{% endif %}">
+                            {% if hospital.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'mahalshifa:hospital_detail' hospital.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fas fa-plus"></i> Add Department
+                        </a>
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-user-md"></i> Manage Doctors
+                        </a>
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-bed"></i> Room Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Recent appointments:</small><br>
+                        {{ recent_appointments_count|default:0 }}
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">New patients this week:</small><br>
+                        {{ new_patients_week|default:0 }}
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Last appointment:</small><br>
+                        {{ last_appointment_date|date:"M d, Y"|default:"No appointments" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('hospital-edit-form');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Phone number formatting
+    const phoneInputs = form.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const phoneRegex = /^[\d\s\+\-\(\)]+$/;
+            if (this.value && !phoneRegex.test(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+    
+    // Auto-save functionality
+    let autoSaveTimer;
+    const inputs = form.querySelectorAll('input, textarea, select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(saveDraft, 3000);
+        });
+    });
+    
+    function saveDraft() {
+        const formData = new FormData(form);
+        localStorage.setItem('hospital_edit_draft_{{ hospital.id }}', JSON.stringify(Object.fromEntries(formData)));
+        
+        // Show auto-save indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'alert alert-info alert-dismissible fade show position-fixed';
+        indicator.style.top = '20px';
+        indicator.style.right = '20px';
+        indicator.style.zIndex = '9999';
+        indicator.innerHTML = '<i class="fas fa-save"></i> Draft saved automatically';
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            indicator.remove();
+        }, 2000);
+    }
+});
+</script>
+{% endblock %}

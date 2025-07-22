@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Evaluation Form - {{ form.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Edit Evaluation Form</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="evaluation-form-edit">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_title" class="form-label">Form Title *</label>
+                            <input type="text" name="title" class="form-control" id="id_title" 
+                                   value="{{ form.title }}" required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_description" class="form-label">Description</label>
+                            <textarea name="description" class="form-control" id="id_description" 
+                                      rows="4" placeholder="Describe the purpose of this evaluation...">{{ form.description }}</textarea>
+                        </div>
+                        
+                        <!-- Configuration -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Configuration</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_evaluation_type" class="form-label">Evaluation Type *</label>
+                                    <select name="evaluation_type" class="form-control" id="id_evaluation_type" required>
+                                        {% for value, label in evaluation_types %}
+                                            <option value="{{ value }}" {% if form.evaluation_type == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_target_role" class="form-label">Target Role *</label>
+                                    <select name="target_role" class="form-control" id="id_target_role" required>
+                                        {% for value, label in target_roles %}
+                                            <option value="{{ value }}" {% if form.target_role == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_moze" class="form-label">Moze</label>
+                                    <select name="moze" class="form-control" id="id_moze">
+                                        <option value="">All Mozes</option>
+                                        {% for moze in moze_options %}
+                                            <option value="{{ moze.id }}" {% if form.moze_id == moze.id %}selected{% endif %}>
+                                                {{ moze.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_due_date" class="form-label">Due Date</label>
+                                    <input type="date" name="due_date" class="form-control" id="id_due_date" 
+                                           value="{{ form.due_date|date:'Y-m-d'|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input type="checkbox" name="is_active" class="form-check-input" 
+                                   id="id_is_active" {% if form.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_active">
+                                Active (users can submit evaluations)
+                            </label>
+                        </div>
+                        
+                        <!-- Evaluation Criteria -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Evaluation Criteria</h5>
+                            </div>
+                        </div>
+                        
+                        <div id="criteria-container">
+                            {% for criteria in form.criteria.all %}
+                            <div class="criteria-item card mb-3" data-criteria-id="{{ criteria.id }}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-2">
+                                                <label class="form-label">Criteria Title</label>
+                                                <input type="text" name="criteria_title_{{ criteria.id }}" 
+                                                       class="form-control" value="{{ criteria.title }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group mb-2">
+                                                <label class="form-label">Category</label>
+                                                <input type="text" name="criteria_category_{{ criteria.id }}" 
+                                                       class="form-control" value="{{ criteria.category }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group mb-2">
+                                                <label class="form-label">Weight</label>
+                                                <input type="number" name="criteria_weight_{{ criteria.id }}" 
+                                                       class="form-control" value="{{ criteria.weight|default:1 }}" 
+                                                       min="1" max="10">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="criteria_description_{{ criteria.id }}" 
+                                                  class="form-control" rows="2">{{ criteria.description }}</textarea>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" name="criteria_active_{{ criteria.id }}" 
+                                               class="form-check-input" {% if criteria.is_active %}checked{% endif %}>
+                                        <label class="form-check-label">Active</label>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeCriteria(this)">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button type="button" class="btn btn-success mb-4" onclick="addCriteria()">
+                            <i class="fas fa-plus"></i> Add Criteria
+                        </button>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-info ms-2" onclick="previewForm()">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Form Statistics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Form Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        {{ form.created_at|date:"M d, Y" }} by {{ form.created_by.get_full_name }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total Submissions:</strong><br>
+                        {{ form.submissions.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Completed Submissions:</strong><br>
+                        {{ form.submissions.filter.is_complete=True.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{% if form.is_active %}success{% else %}secondary{% endif %}">
+                            {% if form.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if form.due_date %}
+                    <div class="mb-3">
+                        <strong>Due Date:</strong><br>
+                        {{ form.due_date|date:"M d, Y" }}
+                        {% if form.due_date < today %}
+                            <small class="text-danger">(Overdue)</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Guidelines -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lightbulb"></i> Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Use clear, specific criteria titles
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Group related criteria by category
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Set appropriate weights for importance
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Deactivating affects existing submissions
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let criteriaCounter = {{ form.criteria.count }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('evaluation-form-edit');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const title = document.getElementById('id_title').value.trim();
+        const criteriaItems = document.querySelectorAll('.criteria-item');
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Form title is required.');
+            return;
+        }
+        
+        if (criteriaItems.length === 0) {
+            e.preventDefault();
+            alert('At least one evaluation criteria is required.');
+            return;
+        }
+    });
+});
+
+function addCriteria() {
+    criteriaCounter++;
+    const container = document.getElementById('criteria-container');
+    const criteriaHtml = `
+        <div class="criteria-item card mb-3" data-criteria-id="new_${criteriaCounter}">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-2">
+                            <label class="form-label">Criteria Title</label>
+                            <input type="text" name="criteria_title_new_${criteriaCounter}" 
+                                   class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group mb-2">
+                            <label class="form-label">Category</label>
+                            <input type="text" name="criteria_category_new_${criteriaCounter}" 
+                                   class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-2">
+                            <label class="form-label">Weight</label>
+                            <input type="number" name="criteria_weight_new_${criteriaCounter}" 
+                                   class="form-control" value="1" min="1" max="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="form-label">Description</label>
+                    <textarea name="criteria_description_new_${criteriaCounter}" 
+                              class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-check mb-2">
+                    <input type="checkbox" name="criteria_active_new_${criteriaCounter}" 
+                           class="form-check-input" checked>
+                    <label class="form-check-label">Active</label>
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeCriteria(this)">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', criteriaHtml);
+}
+
+function removeCriteria(button) {
+    if (confirm('Are you sure you want to remove this criteria?')) {
+        button.closest('.criteria-item').remove();
+    }
+}
+
+function previewForm() {
+    window.open('{% url "evaluation:form_detail" form.pk %}', '_blank');
+}
+</script>
+{% endblock %}

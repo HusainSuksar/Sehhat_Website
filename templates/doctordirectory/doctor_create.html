@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register New Doctor{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-md"></i> Register New Doctor</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="doctor-create-form" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" id="id_first_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" id="id_last_name" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_email" class="form-label">Email Address *</label>
+                                    <input type="email" name="email" class="form-control" id="id_email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <input type="tel" name="phone_number" class="form-control" id="id_phone_number" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_its_id" class="form-label">ITS ID</label>
+                                    <input type="text" name="its_id" class="form-control" id="id_its_id">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_username" class="form-label">Username *</label>
+                                    <input type="text" name="username" class="form-control" id="id_username" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Professional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_license_number" class="form-label">License Number *</label>
+                                    <input type="text" name="license_number" class="form-control" id="id_license_number" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_specialization" class="form-label">Specialization *</label>
+                                    <select name="specialization" class="form-control" id="id_specialization" required>
+                                        <option value="">Select Specialization</option>
+                                        <option value="general_medicine">General Medicine</option>
+                                        <option value="cardiology">Cardiology</option>
+                                        <option value="neurology">Neurology</option>
+                                        <option value="orthopedics">Orthopedics</option>
+                                        <option value="pediatrics">Pediatrics</option>
+                                        <option value="gynecology">Gynecology</option>
+                                        <option value="dermatology">Dermatology</option>
+                                        <option value="psychiatry">Psychiatry</option>
+                                        <option value="radiology">Radiology</option>
+                                        <option value="anesthesiology">Anesthesiology</option>
+                                        <option value="emergency_medicine">Emergency Medicine</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_years_of_experience" class="form-label">Years of Experience *</label>
+                                    <input type="number" name="years_of_experience" class="form-control" 
+                                           id="id_years_of_experience" min="0" max="50" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_consultation_fee" class="form-label">Consultation Fee</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" name="consultation_fee" class="form-control" 
+                                               id="id_consultation_fee" min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_qualifications" class="form-label">Qualifications *</label>
+                            <textarea name="qualifications" class="form-control" id="id_qualifications" 
+                                      rows="3" placeholder="MBBS, MD, specialized certifications..." required></textarea>
+                        </div>
+                        
+                        <!-- Hospital Assignment -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Hospital Assignment</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_hospital" class="form-label">Primary Hospital</label>
+                                    <select name="hospital" class="form-control" id="id_hospital">
+                                        <option value="">Select Hospital</option>
+                                        {% for hospital in hospitals %}
+                                            <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_department" class="form-label">Department</label>
+                                    <input type="text" name="department" class="form-control" id="id_department">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_assigned_moze" class="form-label">Assigned Moze</label>
+                                    <select name="assigned_moze" class="form-control" id="id_assigned_moze">
+                                        <option value="">Select Moze</option>
+                                        {% for moze in mozes %}
+                                            <option value="{{ moze.id }}">{{ moze.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_employee_id" class="form-label">Employee ID</label>
+                                    <input type="text" name="employee_id" class="form-control" id="id_employee_id">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact & Availability -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Contact & Availability</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_office_address" class="form-label">Office Address</label>
+                            <textarea name="office_address" class="form-control" id="id_office_address" 
+                                      rows="3" placeholder="Complete office address..."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_consultation_hours" class="form-label">Consultation Hours</label>
+                                    <input type="text" name="consultation_hours" class="form-control" 
+                                           id="id_consultation_hours" placeholder="e.g., 9:00 AM - 5:00 PM">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact" class="form-label">Emergency Contact</label>
+                                    <input type="tel" name="emergency_contact" class="form-control" id="id_emergency_contact">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Additional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_bio" class="form-label">Biography</label>
+                            <textarea name="bio" class="form-control" id="id_bio" 
+                                      rows="4" placeholder="Brief professional biography..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_languages_spoken" class="form-label">Languages Spoken</label>
+                            <input type="text" name="languages_spoken" class="form-control" id="id_languages_spoken" 
+                                   placeholder="e.g., English, Hindi, Gujarati">
+                        </div>
+                        
+                        <!-- Status & Permissions -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Status & Permissions</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_verified" class="form-check-input" 
+                                           id="id_is_verified" checked>
+                                    <label class="form-check-label" for="id_is_verified">
+                                        Verified Doctor
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_available" class="form-check-input" 
+                                           id="id_is_available" checked>
+                                    <label class="form-check-label" for="id_is_available">
+                                        Available for Appointments
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="accepts_online_consultations" class="form-check-input" 
+                                           id="id_accepts_online_consultations">
+                                    <label class="form-check-label" for="id_accepts_online_consultations">
+                                        Accepts Online Consultations
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="emergency_services" class="form-check-input" 
+                                           id="id_emergency_services">
+                                    <label class="form-check-label" for="id_emergency_services">
+                                        Available for Emergency Services
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Register Doctor
+                            </button>
+                            <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Registration Guidelines -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Registration Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Required fields marked with *
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Valid medical license required
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Verify all credentials before approval
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            Information will be publicly visible
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-user-check text-success"></i>
+                            Verification can be updated later
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Specializations Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-stethoscope"></i> Specializations</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        Select the primary specialization. Additional specializations 
+                        can be added later in the doctor's profile.
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-arrow-right"></i> After Registration</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        After registering the doctor:
+                    </small>
+                    <ul class="mt-2">
+                        <li>Set up availability schedule</li>
+                        <li>Configure appointment slots</li>
+                        <li>Add medical services</li>
+                        <li>Upload profile photo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('doctor-create-form');
+    
+    // Auto-generate username from email
+    const emailInput = document.getElementById('id_email');
+    const usernameInput = document.getElementById('id_username');
+    
+    emailInput.addEventListener('blur', function() {
+        if (this.value && !usernameInput.value) {
+            const username = this.value.split('@')[0];
+            usernameInput.value = username;
+        }
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        // Experience validation
+        const experience = document.getElementById('id_years_of_experience');
+        if (experience.value && (experience.value < 0 || experience.value > 50)) {
+            isValid = false;
+            experience.classList.add('is-invalid');
+            alert('Years of experience must be between 0 and 50.');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+    
+    // Phone number formatting
+    const phoneInputs = form.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const phoneRegex = /^[\d\s\+\-\(\)]+$/;
+            if (this.value && !phoneRegex.test(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+    
+    // License number validation
+    const licenseInput = document.getElementById('id_license_number');
+    licenseInput.addEventListener('blur', function() {
+        if (this.value.length < 5) {
+            this.setCustomValidity('License number must be at least 5 characters');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
+{% endblock %}

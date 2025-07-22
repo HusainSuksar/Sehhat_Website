@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ student.user.get_full_name }} - Student Profile{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Student Profile Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-graduate"></i> {{ student.user.get_full_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-info-circle"></i> Personal Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Student ID:</strong></td>
+                                    <td>{{ student.student_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ITS ID:</strong></td>
+                                    <td>{{ student.user.its_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ student.user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td>{{ student.user.phone_number|default:"Not provided" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Year of Study:</strong></td>
+                                    <td>{{ student.get_year_of_study_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Moze:</strong></td>
+                                    <td>
+                                        {% if student.moze %}
+                                            <a href="{% url 'moze:detail' student.moze.pk %}">{{ student.moze.name }}</a>
+                                        {% else %}
+                                            Not assigned
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if student.is_active %}success{% else %}danger{% endif %}">
+                                            {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-chart-bar"></i> Academic Statistics</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-primary text-white text-center">
+                                        <div class="card-body">
+                                            <h5>{{ academic_stats.enrolled_courses }}</h5>
+                                            <small>Enrolled Courses</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-success text-white text-center">
+                                        <div class="card-body">
+                                            <h5>{{ academic_stats.completed_courses }}</h5>
+                                            <small>Completed</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mt-2">
+                                    <div class="card bg-info text-white text-center">
+                                        <div class="card-body">
+                                            <h5>{{ academic_stats.average_grade|floatformat:1 }}</h5>
+                                            <small>Average Grade</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mt-2">
+                                    <div class="card bg-warning text-white text-center">
+                                        <div class="card-body">
+                                            <h5>{{ academic_stats.attendance_rate|floatformat:1 }}%</h5>
+                                            <small>Attendance</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if can_edit %}
+                    <div class="mt-3">
+                        <a href="{% url 'students:student_edit' student.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        <a href="{% url 'students:student_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-list"></i> Back to Students
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Current Enrollments -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-book"></i> Current Enrollments</h5>
+                </div>
+                <div class="card-body">
+                    {% if enrollments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Instructor</th>
+                                        <th>Status</th>
+                                        <th>Enrolled Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for enrollment in enrollments %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'students:course_detail' enrollment.course.pk %}">
+                                                {{ enrollment.course.name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ enrollment.course.instructor.get_full_name }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if enrollment.status == 'enrolled' %}primary{% elif enrollment.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                                {{ enrollment.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'students:course_detail' enrollment.course.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No current enrollments.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Grades -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-graduation-cap"></i> Recent Grades</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_grades %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Course</th>
+                                        <th>Grade</th>
+                                        <th>Points</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grade in recent_grades %}
+                                    <tr>
+                                        <td>{{ grade.assignment.title }}</td>
+                                        <td>{{ grade.assignment.course.name }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if grade.grade == 'A' %}success{% elif grade.grade == 'B' %}primary{% elif grade.grade == 'C' %}warning{% else %}danger{% endif %}">
+                                                {{ grade.grade }}
+                                            </span>
+                                        </td>
+                                        <td>{{ grade.points }}/{{ grade.assignment.max_points }}</td>
+                                        <td>{{ grade.graded_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'students:my_grades' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-chart-line"></i> View All Grades
+                        </a>
+                    {% else %}
+                        <p class="text-muted">No grades available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'students:my_schedule' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar"></i> View Schedule
+                        </a>
+                        <a href="{% url 'students:my_grades' %}" class="btn btn-outline-success">
+                            <i class="fas fa-chart-bar"></i> View Grades
+                        </a>
+                        <a href="{% url 'students:attendance_record' %}" class="btn btn-outline-info">
+                            <i class="fas fa-clipboard-check"></i> Attendance Record
+                        </a>
+                        <a href="{% url 'students:course_list' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-search"></i> Browse Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Assignments -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks"></i> Upcoming Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_assignments %}
+                        {% for assignment in upcoming_assignments %}
+                        <div class="mb-3 p-2 border-start border-primary border-3">
+                            <h6 class="mb-1">{{ assignment.title }}</h6>
+                            <small class="text-muted">{{ assignment.course.name }}</small><br>
+                            <small class="text-danger">
+                                <i class="fas fa-clock"></i> Due: {{ assignment.due_date|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No upcoming assignments.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        {% for activity in recent_activity %}
+                        <div class="mb-2">
+                            <small class="text-muted">{{ activity.date|date:"M d" }}</small><br>
+                            <span>{{ activity.description }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent activity.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltips to badges
+    const badges = document.querySelectorAll('.badge');
+    badges.forEach(badge => {
+        badge.setAttribute('title', 'Click for more details');
+    });
+    
+    // Highlight overdue assignments
+    const dueDates = document.querySelectorAll('[data-due-date]');
+    const today = new Date();
+    
+    dueDates.forEach(element => {
+        const dueDate = new Date(element.dataset.dueDate);
+        if (dueDate < today) {
+            element.classList.add('text-danger', 'fw-bold');
+        }
+    });
+});
+</script>
+{% endblock %}

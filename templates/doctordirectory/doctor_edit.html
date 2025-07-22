@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Doctor - {{ doctor.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-edit"></i> Edit Doctor: {{ doctor.user.get_full_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="doctor-edit-form">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" id="id_first_name" 
+                                           value="{{ doctor.user.first_name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" id="id_last_name" 
+                                           value="{{ doctor.user.last_name }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_email" class="form-label">Email Address *</label>
+                                    <input type="email" name="email" class="form-control" id="id_email" 
+                                           value="{{ doctor.user.email }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <input type="tel" name="phone_number" class="form-control" id="id_phone_number" 
+                                           value="{{ doctor.user.phone_number }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Professional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_license_number" class="form-label">License Number *</label>
+                                    <input type="text" name="license_number" class="form-control" id="id_license_number" 
+                                           value="{{ doctor.license_number }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_specialization" class="form-label">Specialization *</label>
+                                    <select name="specialization" class="form-control" id="id_specialization" required>
+                                        {% for value, label in specializations %}
+                                            <option value="{{ value }}" {% if doctor.specialization == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_years_of_experience" class="form-label">Years of Experience *</label>
+                                    <input type="number" name="years_of_experience" class="form-control" 
+                                           id="id_years_of_experience" value="{{ doctor.years_of_experience }}" 
+                                           min="0" max="50" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_consultation_fee" class="form-label">Consultation Fee</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" name="consultation_fee" class="form-control" 
+                                               id="id_consultation_fee" value="{{ doctor.consultation_fee|default:'' }}" 
+                                               min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_qualifications" class="form-label">Qualifications *</label>
+                            <textarea name="qualifications" class="form-control" id="id_qualifications" 
+                                      rows="3" required>{{ doctor.qualifications }}</textarea>
+                        </div>
+                        
+                        <!-- Hospital Assignment -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Hospital Assignment</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_hospital" class="form-label">Primary Hospital</label>
+                                    <select name="hospital" class="form-control" id="id_hospital">
+                                        <option value="">Select Hospital</option>
+                                        {% for hospital in hospitals %}
+                                            <option value="{{ hospital.id }}" {% if doctor.hospital_id == hospital.id %}selected{% endif %}>
+                                                {{ hospital.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_department" class="form-label">Department</label>
+                                    <input type="text" name="department" class="form-control" id="id_department" 
+                                           value="{{ doctor.department|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_assigned_moze" class="form-label">Assigned Moze</label>
+                                    <select name="assigned_moze" class="form-control" id="id_assigned_moze">
+                                        <option value="">Select Moze</option>
+                                        {% for moze in mozes %}
+                                            <option value="{{ moze.id }}" {% if doctor.assigned_moze_id == moze.id %}selected{% endif %}>
+                                                {{ moze.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_employee_id" class="form-label">Employee ID</label>
+                                    <input type="text" name="employee_id" class="form-control" id="id_employee_id" 
+                                           value="{{ doctor.employee_id|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact & Availability -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Contact & Availability</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_office_address" class="form-label">Office Address</label>
+                            <textarea name="office_address" class="form-control" id="id_office_address" 
+                                      rows="3">{{ doctor.office_address|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_consultation_hours" class="form-label">Consultation Hours</label>
+                                    <input type="text" name="consultation_hours" class="form-control" 
+                                           id="id_consultation_hours" value="{{ doctor.consultation_hours|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact" class="form-label">Emergency Contact</label>
+                                    <input type="tel" name="emergency_contact" class="form-control" 
+                                           id="id_emergency_contact" value="{{ doctor.emergency_contact|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Additional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_bio" class="form-label">Biography</label>
+                            <textarea name="bio" class="form-control" id="id_bio" 
+                                      rows="4">{{ doctor.bio|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_languages_spoken" class="form-label">Languages Spoken</label>
+                            <input type="text" name="languages_spoken" class="form-control" id="id_languages_spoken" 
+                                   value="{{ doctor.languages_spoken|default:'' }}">
+                        </div>
+                        
+                        <!-- Status & Permissions -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Status & Permissions</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_verified" class="form-check-input" 
+                                           id="id_is_verified" {% if doctor.is_verified %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_verified">
+                                        Verified Doctor
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_available" class="form-check-input" 
+                                           id="id_is_available" {% if doctor.is_available %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_available">
+                                        Available for Appointments
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'doctordirectory:doctor_detail' doctor.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <a href="{% url 'doctordirectory:doctor_detail' doctor.pk %}" class="btn btn-info ms-2">
+                                <i class="fas fa-eye"></i> View Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Doctor Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Doctor Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Registered:</strong><br>
+                        {{ doctor.created_at|date:"M d, Y" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        {{ doctor.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Total Patients:</strong><br>
+                        {{ doctor.patients.count }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Appointments This Month:</strong><br>
+                        {{ appointments_this_month|default:0 }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{% if doctor.is_verified %}success{% else %}warning{% endif %}">
+                            {% if doctor.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Availability:</strong><br>
+                        <span class="badge bg-{% if doctor.is_available %}success{% else %}secondary{% endif %}">
+                            {% if doctor.is_available %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'doctordirectory:doctor_detail' doctor.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye"></i> View Profile
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                            <i class="fas fa-calendar"></i> Manage Schedule
+                        </a>
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="fas fa-users"></i> View Patients
+                        </a>
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-chart-bar"></i> View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Professional Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-stethoscope"></i> Professional Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Specialization:</small><br>
+                        {{ doctor.get_specialization_display }}
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Experience:</small><br>
+                        {{ doctor.years_of_experience }} years
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">License:</small><br>
+                        {{ doctor.license_number }}
+                    </div>
+                    {% if doctor.consultation_fee %}
+                    <div class="mb-2">
+                        <small class="text-muted">Consultation Fee:</small><br>
+                        ₹{{ doctor.consultation_fee }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('doctor-edit-form');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Highlight changes
+    const inputs = form.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        const originalValue = input.value;
+        input.addEventListener('input', function() {
+            if (this.value !== originalValue) {
+                this.classList.add('border-warning');
+            } else {
+                this.classList.remove('border-warning');
+            }
+        });
+    });
+    
+    // Phone number formatting
+    const phoneInputs = form.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const phoneRegex = /^[\d\s\+\-\(\)]+$/;
+            if (this.value && !phoneRegex.test(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

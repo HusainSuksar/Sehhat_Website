@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Range Selector -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Time Period</label>
+                            <select id="timePeriod" class="form-select" onchange="updateDashboard()">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                                <option value="365">Last year</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3" id="customDateRange" style="display: none;">
+                            <label class="form-label">Date Range</label>
+                            <input type="date" id="startDate" class="form-control mb-2">
+                            <input type="date" id="endDate" class="form-control">
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">Module</label>
+                            <select id="moduleFilter" class="form-select" onchange="updateDashboard()">
+                                <option value="">All Modules</option>
+                                <option value="araz">Petitions (Araz)</option>
+                                <option value="moze">Moze Management</option>
+                                <option value="students">Students</option>
+                                <option value="mahalshifa">Mahal Shifa</option>
+                                <option value="photos">Photo Gallery</option>
+                                <option value="surveys">Surveys</option>
+                                <option value="evaluation">Evaluations</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">Metrics</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="realTimeUpdate" checked>
+                                <label class="form-check-label" for="realTimeUpdate">
+                                    Real-time Updates
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Performance Indicators -->
+    <div class="row mb-4" id="kpiCards">
+        <!-- KPI cards will be dynamically loaded here -->
+    </div>
+    
+    <!-- Main Charts -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-area"></i> Activity Trends</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" onclick="changeChartType('line')">Line</button>
+                        <button class="btn btn-outline-secondary" onclick="changeChartType('bar')">Bar</button>
+                        <button class="btn btn-outline-secondary" onclick="changeChartType('area')">Area</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="mainChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie"></i> Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-users"></i> User Engagement</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="engagementChart" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock"></i> Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 id="avgResponseTime">--</h4>
+                            <small>Avg Response Time</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 id="activeUsers">--</h4>
+                            <small>Active Users</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 id="systemLoad">--</h4>
+                            <small>System Load</small>
+                        </div>
+                    </div>
+                    <canvas id="performanceChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Real-time Activity Feed -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-stream"></i> Real-time Activity Stream</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="pauseStream">
+                        <label class="form-check-label" for="pauseStream">Pause Stream</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="activityStream" style="height: 300px; overflow-y: auto;">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let mainChart, distributionChart, engagementChart, performanceChart;
+let realTimeInterval;
+let currentChartType = 'line';
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadInitialData();
+    startRealTimeUpdates();
+    
+    // Setup event listeners
+    document.getElementById('timePeriod').addEventListener('change', function() {
+        if (this.value === 'custom') {
+            document.getElementById('customDateRange').style.display = 'block';
+        } else {
+            document.getElementById('customDateRange').style.display = 'none';
+            updateDashboard();
+        }
+    });
+    
+    document.getElementById('startDate').addEventListener('change', updateDashboard);
+    document.getElementById('endDate').addEventListener('change', updateDashboard);
+});
+
+function initializeCharts() {
+    // Main Activity Chart
+    const mainCtx = document.getElementById('mainChart').getContext('2d');
+    mainChart = new Chart(mainCtx, {
+        type: currentChartType,
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Activity',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Distribution Chart
+    const distCtx = document.getElementById('distributionChart').getContext('2d');
+    distributionChart = new Chart(distCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Engagement Chart
+    const engCtx = document.getElementById('engagementChart').getContext('2d');
+    engagementChart = new Chart(engCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'User Activity',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Performance Chart
+    const perfCtx = document.getElementById('performanceChart').getContext('2d');
+    performanceChart = new Chart(perfCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Response Time (ms)',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function loadInitialData() {
+    updateDashboard();
+    loadKPICards();
+    loadActivityStream();
+}
+
+function updateDashboard() {
+    const timePeriod = document.getElementById('timePeriod').value;
+    const moduleFilter = document.getElementById('moduleFilter').value;
+    
+    let startDate, endDate;
+    if (timePeriod === 'custom') {
+        startDate = document.getElementById('startDate').value;
+        endDate = document.getElementById('endDate').value;
+    }
+    
+    const requestData = {
+        time_period: timePeriod,
+        module: moduleFilter,
+        start_date: startDate,
+        end_date: endDate
+    };
+    
+    fetch('/api/analytics/dashboard-data/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateCharts(data);
+        updatePerformanceMetrics(data.performance);
+    })
+    .catch(error => {
+        console.error('Error updating dashboard:', error);
+    });
+}
+
+function updateCharts(data) {
+    // Update main chart
+    mainChart.data.labels = data.activity_trend.labels;
+    mainChart.data.datasets[0].data = data.activity_trend.data;
+    mainChart.update();
+    
+    // Update distribution chart
+    distributionChart.data.labels = data.distribution.labels;
+    distributionChart.data.datasets[0].data = data.distribution.data;
+    distributionChart.update();
+    
+    // Update engagement chart
+    engagementChart.data.datasets[0].data = data.engagement.data;
+    engagementChart.update();
+    
+    // Update performance chart
+    performanceChart.data.labels = data.performance.labels;
+    performanceChart.data.datasets[0].data = data.performance.response_times;
+    performanceChart.update();
+}
+
+function updatePerformanceMetrics(performance) {
+    document.getElementById('avgResponseTime').textContent = performance.avg_response_time + 'ms';
+    document.getElementById('activeUsers').textContent = performance.active_users;
+    document.getElementById('systemLoad').textContent = performance.system_load + '%';
+}
+
+function loadKPICards() {
+    fetch('/api/analytics/kpi-data/')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('kpiCards');
+            container.innerHTML = '';
+            
+            data.kpis.forEach(kpi => {
+                const cardHtml = `
+                    <div class="col-md-3">
+                        <div class="card bg-${kpi.color} text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4>${kpi.value}</h4>
+                                        <p>${kpi.label}</p>
+                                        <small>${kpi.change}% from last period</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="fas ${kpi.icon} fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        });
+}
+
+function loadActivityStream() {
+    if (document.getElementById('pauseStream').checked) return;
+    
+    fetch('/api/analytics/activity-stream/')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('activityStream');
+            
+            data.activities.forEach(activity => {
+                const activityHtml = `
+                    <div class="d-flex mb-3 activity-item" data-timestamp="${activity.timestamp}">
+                        <div class="flex-shrink-0">
+                            <i class="fas ${activity.icon} text-${activity.color}"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold">${activity.title}</div>
+                            <div class="text-muted small">${activity.description}</div>
+                            <div class="text-muted small">${activity.timestamp}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add to top of stream
+                container.insertAdjacentHTML('afterbegin', activityHtml);
+            });
+            
+            // Remove old items (keep last 50)
+            const items = container.querySelectorAll('.activity-item');
+            if (items.length > 50) {
+                for (let i = 50; i < items.length; i++) {
+                    items[i].remove();
+                }
+            }
+        });
+}
+
+function startRealTimeUpdates() {
+    if (document.getElementById('realTimeUpdate').checked) {
+        realTimeInterval = setInterval(() => {
+            loadActivityStream();
+            // Update performance metrics every 30 seconds
+            if (Date.now() % 30000 < 5000) {
+                updateDashboard();
+            }
+        }, 5000);
+    }
+}
+
+function changeChartType(type) {
+    currentChartType = type;
+    mainChart.config.type = type;
+    mainChart.update();
+}
+
+function refreshDashboard() {
+    updateDashboard();
+    loadKPICards();
+    loadActivityStream();
+}
+
+function exportData() {
+    const timePeriod = document.getElementById('timePeriod').value;
+    const moduleFilter = document.getElementById('moduleFilter').value;
+    
+    const params = new URLSearchParams({
+        time_period: timePeriod,
+        module: moduleFilter,
+        format: 'csv'
+    });
+    
+    window.open(`/api/analytics/export/?${params.toString()}`);
+}
+</script>
+
+<!-- Hidden CSRF token -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}

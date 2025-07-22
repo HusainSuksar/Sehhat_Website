@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register New Patient{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-plus"></i> Register New Patient</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="patient-create-form">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" id="id_first_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" id="id_last_name" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_date_of_birth" class="form-label">Date of Birth *</label>
+                                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_gender" class="form-label">Gender *</label>
+                                    <select name="gender" class="form-control" id="id_gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_blood_group" class="form-label">Blood Group</label>
+                                    <select name="blood_group" class="form-control" id="id_blood_group">
+                                        <option value="">Select Blood Group</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_patient_id" class="form-label">Patient ID</label>
+                                    <input type="text" name="patient_id" class="form-control" id="id_patient_id" 
+                                           placeholder="Auto-generated if left blank">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Contact Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_phone_number" class="form-label">Phone Number *</label>
+                                    <input type="tel" name="phone_number" class="form-control" id="id_phone_number" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_email" class="form-label">Email Address</label>
+                                    <input type="email" name="email" class="form-control" id="id_email">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_address" class="form-label">Address *</label>
+                            <textarea name="address" class="form-control" id="id_address" 
+                                      rows="3" placeholder="Full address including city, state, postal code" required></textarea>
+                        </div>
+                        
+                        <!-- Hospital Assignment -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Hospital Assignment</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_hospital" class="form-label">Hospital *</label>
+                                    <select name="hospital" class="form-control" id="id_hospital" required>
+                                        <option value="">Select Hospital</option>
+                                        {% for hospital in hospitals %}
+                                            <option value="{{ hospital.id }}">{{ hospital.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_registration_date" class="form-label">Registration Date *</label>
+                                    <input type="date" name="registration_date" class="form-control" id="id_registration_date" 
+                                           value="{% now 'Y-m-d' %}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Emergency Contact -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Emergency Contact</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_name" class="form-label">Contact Name *</label>
+                                    <input type="text" name="emergency_contact_name" class="form-control" 
+                                           id="id_emergency_contact_name" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_phone" class="form-label">Contact Phone *</label>
+                                    <input type="tel" name="emergency_contact_phone" class="form-control" 
+                                           id="id_emergency_contact_phone" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_emergency_contact_relationship" class="form-label">Relationship *</label>
+                                    <select name="emergency_contact_relationship" class="form-control" 
+                                            id="id_emergency_contact_relationship" required>
+                                        <option value="">Select Relationship</option>
+                                        <option value="spouse">Spouse</option>
+                                        <option value="parent">Parent</option>
+                                        <option value="child">Child</option>
+                                        <option value="sibling">Sibling</option>
+                                        <option value="friend">Friend</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Medical Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Medical Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_allergies" class="form-label">Known Allergies</label>
+                            <textarea name="allergies" class="form-control" id="id_allergies" 
+                                      rows="2" placeholder="List any known allergies..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_medical_history" class="form-label">Medical History</label>
+                            <textarea name="medical_history" class="form-control" id="id_medical_history" 
+                                      rows="3" placeholder="Brief medical history..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_current_medications" class="form-label">Current Medications</label>
+                            <textarea name="current_medications" class="form-control" id="id_current_medications" 
+                                      rows="2" placeholder="List current medications..."></textarea>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_active" class="form-check-input" 
+                                           id="id_is_active" checked>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Patient Status
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Register Patient
+                            </button>
+                            <a href="{% url 'mahalshifa:patient_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Registration Guidelines -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Registration Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Required fields marked with *
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Verify patient information accuracy
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Emergency contact is mandatory
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i>
+                            Patient ID auto-generated if blank
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            All information is confidential
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> After Registration</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        After registering the patient, you can:
+                    </small>
+                    <ul class="mt-2">
+                        <li>Schedule appointments</li>
+                        <li>Create medical records</li>
+                        <li>Order lab tests</li>
+                        <li>Assign to departments</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Privacy Notice -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lock"></i> Privacy Notice</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        Patient information is protected under medical privacy laws. 
+                        Only authorized healthcare personnel can access this data.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('patient-create-form');
+    
+    // Auto-calculate age from date of birth
+    const dobInput = document.getElementById('id_date_of_birth');
+    dobInput.addEventListener('change', function() {
+        const dob = new Date(this.value);
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+        
+        // Show age near the date of birth field
+        let ageDisplay = document.getElementById('age-display');
+        if (!ageDisplay) {
+            ageDisplay = document.createElement('small');
+            ageDisplay.id = 'age-display';
+            ageDisplay.className = 'text-muted';
+            this.parentNode.appendChild(ageDisplay);
+        }
+        ageDisplay.textContent = `Age: ${age} years`;
+    });
+    
+    // Auto-generate patient ID
+    const patientIdInput = document.getElementById('id_patient_id');
+    const hospitalSelect = document.getElementById('id_hospital');
+    
+    function generatePatientId() {
+        if (!patientIdInput.value && hospitalSelect.value) {
+            const hospitalCode = hospitalSelect.options[hospitalSelect.selectedIndex].text.substring(0, 3).toUpperCase();
+            const timestamp = new Date().getTime().toString().slice(-6);
+            patientIdInput.value = `${hospitalCode}${timestamp}`;
+        }
+    }
+    
+    hospitalSelect.addEventListener('change', generatePatientId);
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        // Age validation
+        const dob = new Date(dobInput.value);
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+        
+        if (age < 0 || age > 150) {
+            isValid = false;
+            dobInput.classList.add('is-invalid');
+            alert('Please enter a valid date of birth.');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+    
+    // Phone number formatting
+    const phoneInputs = form.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            const phoneRegex = /^[\d\s\+\-\(\)]+$/;
+            if (this.value && !phoneRegex.test(this.value)) {
+                this.setCustomValidity('Please enter a valid phone number');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Student - {{ student.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user-edit"></i> Edit Student Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="student-edit-form">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_first_name" class="form-label">First Name *</label>
+                                    <input type="text" name="first_name" class="form-control" id="id_first_name" 
+                                           value="{{ student.user.first_name }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_last_name" class="form-label">Last Name *</label>
+                                    <input type="text" name="last_name" class="form-control" id="id_last_name" 
+                                           value="{{ student.user.last_name }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_email" class="form-label">Email *</label>
+                                    <input type="email" name="email" class="form-control" id="id_email" 
+                                           value="{{ student.user.email }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_phone_number" class="form-label">Phone Number</label>
+                                    <input type="tel" name="phone_number" class="form-control" id="id_phone_number" 
+                                           value="{{ student.user.phone_number|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Academic Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Academic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_student_id" class="form-label">Student ID *</label>
+                                    <input type="text" name="student_id" class="form-control" id="id_student_id" 
+                                           value="{{ student.student_id }}" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_its_id" class="form-label">ITS ID</label>
+                                    <input type="text" name="its_id" class="form-control" id="id_its_id" 
+                                           value="{{ student.user.its_id|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_year_of_study" class="form-label">Year of Study *</label>
+                                    <select name="year_of_study" class="form-control" id="id_year_of_study" required>
+                                        {% for value, label in year_choices %}
+                                            <option value="{{ value }}" {% if student.year_of_study == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_moze" class="form-label">Moze</label>
+                                    <select name="moze" class="form-control" id="id_moze">
+                                        <option value="">Select Moze (Optional)</option>
+                                        {% for moze in moze_options %}
+                                            <option value="{{ moze.id }}" {% if student.moze_id == moze.id %}selected{% endif %}>
+                                                {{ moze.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" name="is_active" class="form-check-input" 
+                                           id="id_is_active" {% if student.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_is_active">
+                                        Active Student Status
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3 mt-4">Additional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_date_of_birth" class="form-label">Date of Birth</label>
+                                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth" 
+                                           value="{{ student.date_of_birth|date:'Y-m-d'|default:'' }}">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="id_address" class="form-label">Address</label>
+                                    <input type="text" name="address" class="form-control" id="id_address" 
+                                           value="{{ student.address|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="id_emergency_contact" class="form-label">Emergency Contact</label>
+                            <input type="text" name="emergency_contact" class="form-control" id="id_emergency_contact" 
+                                   value="{{ student.emergency_contact|default:'' }}"
+                                   placeholder="Name and phone number of emergency contact">
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'students:student_detail' student.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            {% if can_delete %}
+                            <button type="button" class="btn btn-danger ms-2" onclick="confirmDelete()">
+                                <i class="fas fa-trash"></i> Delete Student
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Current Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Current Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        {{ student.created_at|date:"M d, Y" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        {{ student.updated_at|date:"M d, Y H:i" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Current Enrollments:</strong><br>
+                        {{ student.enrollments.count }} course{{ student.enrollments.count|pluralize }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Academic Status:</strong><br>
+                        <span class="badge bg-{% if student.is_active %}success{% else %}danger{% endif %}">
+                            {% if student.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Guidelines -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-question-circle"></i> Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            Required fields are marked with *
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-info-circle text-info"></i>
+                            Student ID must be unique
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Deactivating a student affects course access
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-shield-alt text-primary"></i>
+                            Emergency contact is for safety purposes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('student-edit-form');
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Student ID validation
+    const studentIdInput = document.getElementById('id_student_id');
+    studentIdInput.addEventListener('blur', function() {
+        const studentId = this.value.trim();
+        if (studentId && studentId !== '{{ student.student_id }}') {
+            // AJAX check for duplicate student ID
+            fetch('/api/check-student-id/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({student_id: studentId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    this.classList.add('is-invalid');
+                    alert('This Student ID is already in use.');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking student ID:', error);
+            });
+        }
+    });
+});
+
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete this student? This action cannot be undone and will remove all associated academic records.')) {
+        // Create form to submit delete request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "students:student_delete" student.pk %}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}
