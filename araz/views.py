@@ -16,6 +16,7 @@ from .models import (
     Petition, PetitionCategory, PetitionComment, PetitionAssignment,
     PetitionUpdate, PetitionAttachment, PetitionStatus
 )
+from .forms import PetitionForm, PetitionCommentForm, PetitionFilterForm
 from accounts.models import User
 
 
