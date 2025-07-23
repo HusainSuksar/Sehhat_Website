@@ -530,7 +530,7 @@ def my_assignments(request):
     assignments = PetitionAssignment.objects.filter(
         assigned_to=user,
         is_active=True
-    ).select_related('petition', 'assigned_by').order_by('-created_at')
+    ).select_related('petition', 'assigned_by').order_by('-assigned_at')
     
     paginator = Paginator(assignments, 20)
     page_number = request.GET.get('page')
