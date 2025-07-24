@@ -34,34 +34,33 @@ def dashboard(request):
         patients = Patient.objects.all()
         can_manage = True
     elif user.is_aamil or user.is_moze_coordinator:
-        # Hospital administrators can see their hospital data
-        user_hospitals = Hospital.objects.filter(
-            Q(administrator=user) | Q(staff__user=user)
-        ).distinct()
+        # Hospital administrators can see their hospital data via staff relationship
+        user_hospitals = Hospital.objects.filter(staff__user=user).distinct()
         hospitals = user_hospitals
-        appointments = Appointment.objects.filter(hospital__in=user_hospitals)
-        patients = Patient.objects.filter(hospital__in=user_hospitals)
+        appointments = Appointment.objects.filter(doctor__hospital__in=user_hospitals)
+        patients = Patient.objects.filter(registered_moze__aamil=user)
         can_manage = True
     elif user.is_doctor:
         # Doctors can see their own data
-        doctor_profile = Doctor.objects.filter(user=user).first()
-        if doctor_profile:
+        try:
+            from .models import Doctor as MahalshifaDoctor
+            doctor_profile = MahalshifaDoctor.objects.get(user=user)
             hospitals = Hospital.objects.filter(id=doctor_profile.hospital.id)
             appointments = Appointment.objects.filter(doctor=doctor_profile)
             patients = Patient.objects.filter(appointments__doctor=doctor_profile).distinct()
-        else:
+        except:
             hospitals = Hospital.objects.none()
             appointments = Appointment.objects.none()
             patients = Patient.objects.none()
         can_manage = False
     else:
         # Patients can see their own data
-        patient_profile = Patient.objects.filter(user=user).first()
-        if patient_profile:
-            hospitals = Hospital.objects.filter(id=patient_profile.hospital.id)
+        try:
+            patient_profile = user.patient_record
+            hospitals = Hospital.objects.filter(doctors__appointments__patient=patient_profile).distinct()
             appointments = Appointment.objects.filter(patient=patient_profile)
             patients = Patient.objects.filter(id=patient_profile.id)
-        else:
+        except:
             hospitals = Hospital.objects.none()
             appointments = Appointment.objects.none()
             patients = Patient.objects.none()
@@ -79,7 +78,7 @@ def dashboard(request):
     
     # Recent appointments
     recent_appointments = appointments.select_related(
-        'patient__user', 'doctor__user', 'hospital'
+        'patient__user_account', 'doctor__user', 'doctor__hospital'
     ).order_by('-appointment_date', '-appointment_time')[:10]
     
     # Hospital statistics
@@ -98,14 +97,12 @@ def dashboard(request):
             'count': month_appointments
         })
     
-    # Department statistics
+    # Department statistics - simplified without complex joins
     dept_stats = []
     if can_manage:
         dept_stats = Department.objects.filter(
             hospital__in=hospitals
-        ).annotate(
-            appointment_count=Count('doctors__appointments')
-        ).order_by('-appointment_count')[:5]
+        )[:5]
     
     # Emergency cases
     emergency_cases = appointments.filter(
@@ -158,9 +155,7 @@ class HospitalListView(LoginRequiredMixin, ListView):
         if user.is_admin:
             queryset = Hospital.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
-            queryset = Hospital.objects.filter(
-                Q(administrator=user) | Q(staff__user=user)
-            ).distinct()
+            queryset = Hospital.objects.filter(staff__user=user).distinct()
         else:
             # Public view for doctors and patients
             queryset = Hospital.objects.filter(is_active=True)
@@ -186,7 +181,13 @@ class HospitalListView(LoginRequiredMixin, ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['hospital_types'] = Hospital.HOSPITAL_TYPES
+        context['hospital_types'] = [
+            ('general', 'General Hospital'),
+            ('specialty', 'Specialty Hospital'),
+            ('clinic', 'Clinic'),
+            ('emergency', 'Emergency Center'),
+            ('rehabilitation', 'Rehabilitation Center'),
+        ]
         context['current_filters'] = {
             'location': self.request.GET.get('location', ''),
             'type': self.request.GET.get('type', ''),
@@ -231,7 +232,6 @@ class HospitalDetailView(LoginRequiredMixin, DetailView):
         # Permission checks
         context['can_manage'] = (
             user.is_admin or
-            hospital.administrator == user or
             hospital.staff.filter(user=user).exists()
         )
         
@@ -252,21 +252,20 @@ class PatientListView(LoginRequiredMixin, ListView):
         if user.is_admin:
             queryset = Patient.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
-            user_hospitals = Hospital.objects.filter(
-                Q(administrator=user) | Q(staff__user=user)
-            )
-            queryset = Patient.objects.filter(hospital__in=user_hospitals)
+            # Filter by patients registered under their moze
+            queryset = Patient.objects.filter(registered_moze__aamil=user)
         elif user.is_doctor:
-            doctor_profile = Doctor.objects.filter(user=user).first()
-            if doctor_profile:
+            try:
+                from .models import Doctor as MahalshifaDoctor
+                doctor_profile = MahalshifaDoctor.objects.get(user=user)
                 queryset = Patient.objects.filter(
                     appointments__doctor=doctor_profile
                 ).distinct()
-            else:
+            except:
                 queryset = Patient.objects.none()
         else:
             # Patients can only see themselves
-            queryset = Patient.objects.filter(user=user)
+            queryset = Patient.objects.filter(user_account=user)
         
         # Apply filters
         hospital = self.request.GET.get('hospital')
@@ -288,7 +287,7 @@ class PatientListView(LoginRequiredMixin, ListView):
                 Q(patient_id__icontains=search)
             )
         
-        return queryset.select_related('user', 'hospital').order_by('-created_at')
+        return queryset.select_related('user_account', 'registered_moze').order_by('-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -319,22 +318,22 @@ class AppointmentListView(LoginRequiredMixin, ListView):
         if user.is_admin:
             queryset = Appointment.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
-            user_hospitals = Hospital.objects.filter(
-                Q(administrator=user) | Q(staff__user=user)
-            )
-            queryset = Appointment.objects.filter(hospital__in=user_hospitals)
+            # Filter by appointments in hospitals where user is staff
+            user_hospitals = Hospital.objects.filter(staff__user=user)
+            queryset = Appointment.objects.filter(doctor__hospital__in=user_hospitals)
         elif user.is_doctor:
-            doctor_profile = Doctor.objects.filter(user=user).first()
-            if doctor_profile:
+            try:
+                from .models import Doctor as MahalshifaDoctor
+                doctor_profile = MahalshifaDoctor.objects.get(user=user)
                 queryset = Appointment.objects.filter(doctor=doctor_profile)
-            else:
+            except:
                 queryset = Appointment.objects.none()
         else:
             # Patients can only see their appointments
-            patient_profile = Patient.objects.filter(user=user).first()
-            if patient_profile:
+            try:
+                patient_profile = user.patient_record
                 queryset = Appointment.objects.filter(patient=patient_profile)
-            else:
+            except:
                 queryset = Appointment.objects.none()
         
         # Apply filters
@@ -355,7 +354,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(doctor_id=doctor_filter)
         
         return queryset.select_related(
-            'patient__user', 'doctor__user', 'hospital'
+            'patient__user_account', 'doctor__user', 'doctor__hospital'
         ).order_by('-appointment_date', '-appointment_time')
     
     def get_context_data(self, **kwargs):
@@ -365,7 +364,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
         context['status_choices'] = Appointment.STATUS_CHOICES
         
         if user.is_admin or user.is_aamil or user.is_moze_coordinator:
-            context['doctors'] = Doctor.objects.filter(is_active=True).select_related('user')
+            context['doctors'] = Doctor.objects.filter(is_available=True).select_related('user')
         
         context['current_filters'] = {
             'status': self.request.GET.get('status', ''),
@@ -384,10 +383,9 @@ def appointment_detail(request, pk):
     # Check permissions
     can_view = (
         user.is_admin or
-        user == appointment.patient.user or
+        user == appointment.patient.user_account or
         user == appointment.doctor.user or
-        appointment.hospital.administrator == user or
-        appointment.hospital.staff.filter(user=user).exists()
+        appointment.doctor.hospital.staff.filter(user=user).exists()
     )
     
     if not can_view:
@@ -421,9 +419,7 @@ def patient_detail(request, pk):
     # Check permissions
     can_view = (
         user.is_admin or
-        user == patient.user or
-        patient.hospital.administrator == user or
-        patient.hospital.staff.filter(user=user).exists() or
+        user == patient.user_account or
         patient.appointments.filter(doctor__user=user).exists()
     )
     
@@ -432,7 +428,7 @@ def patient_detail(request, pk):
         return redirect('mahalshifa:patient_list')
     
     # Get patient data
-    appointments = patient.appointments.select_related('doctor__user', 'hospital').order_by('-appointment_date')
+    appointments = patient.appointments.select_related('doctor__user', 'doctor__hospital').order_by('-appointment_date')
     medical_records = MedicalRecord.objects.filter(patient=patient).order_by('-created_at')
     prescriptions = Prescription.objects.filter(patient=patient).order_by('-created_at')
     lab_tests = LabTest.objects.filter(patient=patient).order_by('-created_at')
@@ -457,7 +453,6 @@ def patient_detail(request, pk):
         'recent_vitals': recent_vitals,
         'can_edit': (
             user.is_admin or
-            patient.hospital.administrator == user or
             patient.appointments.filter(doctor__user=user).exists()
         ),
     }
@@ -488,8 +483,7 @@ def create_appointment(request):
             # Check permissions
             can_create = (
                 user.is_admin or
-                user == patient.user or
-                hospital.administrator == user or
+                user == patient.user_account or
                 hospital.staff.filter(user=user).exists()
             )
             
@@ -525,23 +519,23 @@ def create_appointment(request):
     
     if user.is_admin:
         patients = Patient.objects.filter(is_active=True)
-        doctors = Doctor.objects.filter(is_active=True)
+        doctors = Doctor.objects.filter(is_available=True)
         hospitals = Hospital.objects.filter(is_active=True)
     elif user.is_aamil or user.is_moze_coordinator:
-        user_hospitals = Hospital.objects.filter(
-            Q(administrator=user) | Q(staff__user=user)
-        )
-        patients = Patient.objects.filter(hospital__in=user_hospitals, is_active=True)
-        doctors = Doctor.objects.filter(hospital__in=user_hospitals, is_active=True)
+        user_hospitals = Hospital.objects.filter(staff__user=user)
+        patients = Patient.objects.filter(registered_moze__aamil=user, is_active=True)
+        doctors = Doctor.objects.filter(hospital__in=user_hospitals, is_available=True)
         hospitals = user_hospitals
     else:
         # Patients can create appointments for themselves
-        patient_profile = Patient.objects.filter(user=user).first()
-        if patient_profile:
+        try:
+            patient_profile = user.patient_record
             patients = Patient.objects.filter(id=patient_profile.id)
-            doctors = Doctor.objects.filter(hospital=patient_profile.hospital, is_active=True)
-            hospitals = Hospital.objects.filter(id=patient_profile.hospital.id)
-        else:
+            # Get hospitals where this patient has appointments or could have them
+            available_hospitals = Hospital.objects.filter(is_active=True)
+            doctors = Doctor.objects.filter(hospital__in=available_hospitals, is_available=True)
+            hospitals = available_hospitals
+        except:
             patients = Patient.objects.none()
             doctors = Doctor.objects.none()
             hospitals = Hospital.objects.none()
@@ -572,11 +566,9 @@ def medical_analytics(request):
         appointments = Appointment.objects.all()
         patients = Patient.objects.all()
     else:
-        hospitals = Hospital.objects.filter(
-            Q(administrator=user) | Q(staff__user=user)
-        )
-        appointments = Appointment.objects.filter(hospital__in=hospitals)
-        patients = Patient.objects.filter(hospital__in=hospitals)
+        hospitals = Hospital.objects.filter(staff__user=user)
+        appointments = Appointment.objects.filter(doctor__hospital__in=hospitals)
+        patients = Patient.objects.filter(registered_moze__aamil=user)
     
     # Time-based statistics
     today = timezone.now().date()
@@ -592,13 +584,10 @@ def medical_analytics(request):
         'emergency_cases': appointments.filter(appointment_type='emergency').count(),
     }
     
-    # Department performance
+    # Department performance - simplified
     dept_performance = Department.objects.filter(
         hospital__in=hospitals
-    ).annotate(
-        appointment_count=Count('doctors__appointments'),
-        patient_count=Count('doctors__appointments__patient', distinct=True)
-    ).order_by('-appointment_count')
+    )
     
     # Monthly appointment trends
     monthly_trends = []
@@ -622,8 +611,8 @@ def medical_analytics(request):
     
     # Hospital comparison
     hospital_stats = hospitals.annotate(
-        appointment_count=Count('appointments'),
-        patient_count=Count('patients'),
+        appointment_count=Count('doctors__appointments'),
+        patient_count=Count('doctors__appointments__patient', distinct=True),
         doctor_count=Count('doctors')
     ).order_by('-appointment_count')
     
@@ -653,9 +642,7 @@ def inventory_management(request):
     if user.is_admin:
         hospitals = Hospital.objects.all()
     else:
-        hospitals = Hospital.objects.filter(
-            Q(administrator=user) | Q(staff__user=user)
-        )
+        hospitals = Hospital.objects.filter(staff__user=user)
     
     inventory_items = InventoryItem.objects.filter(
         inventory__hospital__in=hospitals
@@ -666,8 +653,8 @@ def inventory_management(request):
         current_stock__lte=models.F('minimum_stock')
     )
     
-    # Recently updated items
-    recent_updates = inventory_items.order_by('-last_updated')[:10]
+    # Recently updated items  
+    recent_updates = inventory_items.order_by('-updated_at')[:10]
     
     # Inventory by hospital
     hospital_inventory = {}
@@ -707,9 +694,7 @@ def export_medical_data(request):
     if user.is_admin:
         hospitals = Hospital.objects.all()
     else:
-        hospitals = Hospital.objects.filter(
-            Q(administrator=user) | Q(staff__user=user)
-        )
+        hospitals = Hospital.objects.filter(staff__user=user)
     
     response = HttpResponse(content_type='text/csv')
     
@@ -721,16 +706,18 @@ def export_medical_data(request):
             'Type', 'Status', 'Notes'
         ])
         
+        # Get doctors from these hospitals first, then appointments
+        hospital_doctors = Doctor.objects.filter(hospital__in=hospitals)
         appointments = Appointment.objects.filter(
-            hospital__in=hospitals
-        ).select_related('patient__user', 'doctor__user', 'hospital')
+            doctor__in=hospital_doctors
+        ).select_related('patient__user_account', 'doctor__user', 'doctor__hospital')
         
         for appointment in appointments:
             writer.writerow([
                 appointment.id,
-                appointment.patient.user.get_full_name(),
+                appointment.patient.get_full_name(),
                 appointment.doctor.user.get_full_name(),
-                appointment.hospital.name,
+                appointment.doctor.hospital.name,
                 appointment.appointment_date,
                 appointment.appointment_time,
                 appointment.get_appointment_type_display(),
@@ -747,18 +734,18 @@ def export_medical_data(request):
         ])
         
         patients = Patient.objects.filter(
-            hospital__in=hospitals
-        ).select_related('user', 'hospital')
+            registered_moze__aamil__in=[u for h in hospitals for u in h.staff.values_list('user', flat=True)]
+        ).select_related('user_account', 'registered_moze')
         
         for patient in patients:
             writer.writerow([
-                patient.patient_id,
-                patient.user.get_full_name(),
-                patient.user.its_id,
-                patient.hospital.name,
+                patient.its_id,
+                patient.get_full_name(),
+                patient.its_id,
+                patient.registered_moze.location if patient.registered_moze else 'N/A',
                 patient.blood_group,
-                patient.user.phone_number,
-                patient.user.email,
+                patient.phone_number,
+                patient.email,
                 patient.created_at.strftime('%Y-%m-%d')
             ])
     

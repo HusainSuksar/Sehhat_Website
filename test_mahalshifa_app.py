@@ -34,7 +34,7 @@ from mahalshifa.models import (
 # Import related models
 from accounts.models import User
 from moze.models import Moze
-from doctordirectory.models import Doctor
+# Note: Using mahalshifa.models.Doctor instead of doctordirectory.models.Doctor
 
 class MahalshifaAppTester:
     def __init__(self):
@@ -213,16 +213,19 @@ class MahalshifaAppTester:
             )
             self.sample_data['department'] = department
             
-            # Create Doctor Profile (from doctordirectory app)
+            # Create Doctor Profile (from mahalshifa app)
             doctor_profile, created = Doctor.objects.get_or_create(
                 user=self.users['doctor'],
                 defaults={
-                    'specialization': 'Internal Medicine',
                     'license_number': 'MED-2024-001',
-                    'experience_years': 10,
+                    'specialization': 'Internal Medicine',
                     'qualification': 'MBBS, MD Internal Medicine',
-                    'consultation_fee': Decimal('150.00'),
-                    'is_available': True
+                    'experience_years': 10,
+                    'hospital': hospital,
+                    'department': department,
+                    'is_available': True,
+                    'is_emergency_doctor': False,
+                    'consultation_fee': Decimal('150.00')
                 }
             )
             self.sample_data['doctor'] = doctor_profile
