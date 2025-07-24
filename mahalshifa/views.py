@@ -28,7 +28,7 @@ def dashboard(request):
     user = request.user
     
     # Base queryset based on user role
-    if user.is_admin:
+    if user.role == 'admin':
         hospitals = Hospital.objects.all()
         appointments = Appointment.objects.all()
         patients = Patient.objects.all()
@@ -119,7 +119,7 @@ def dashboard(request):
     # Recent admissions
     recent_admissions = Admission.objects.filter(
         patient__in=patients
-    ).select_related('patient__user', 'room', 'hospital').order_by('-admission_date')[:5]
+    ).select_related('patient__user_account', 'room', 'hospital').order_by('-admission_date')[:5]
     
     context = {
         'todays_appointments': todays_appointments,
@@ -152,7 +152,7 @@ class HospitalListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == 'admin':
             queryset = Hospital.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
             queryset = Hospital.objects.filter(staff__user=user).distinct()
@@ -160,22 +160,23 @@ class HospitalListView(LoginRequiredMixin, ListView):
             # Public view for doctors and patients
             queryset = Hospital.objects.filter(is_active=True)
         
-        # Apply filters
-        location = self.request.GET.get('location')
-        if location:
-            queryset = queryset.filter(location__icontains=location)
-        
-        hospital_type = self.request.GET.get('type')
-        if hospital_type:
-            queryset = queryset.filter(hospital_type=hospital_type)
-        
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) |
-                Q(location__icontains=search) |
-                Q(contact_email__icontains=search)
-            )
+        # Apply filters (with safety checks)
+        if hasattr(self, 'request') and self.request:
+            location = self.request.GET.get('location')
+            if location:
+                queryset = queryset.filter(address__icontains=location)
+            
+            hospital_type = self.request.GET.get('type')
+            if hospital_type:
+                queryset = queryset.filter(hospital_type=hospital_type)
+            
+            search = self.request.GET.get('search')
+            if search:
+                queryset = queryset.filter(
+                    Q(name__icontains=search) |
+                    Q(address__icontains=search) |
+                    Q(email__icontains=search)
+                )
         
         return queryset.order_by('name')
     
@@ -231,7 +232,7 @@ class HospitalDetailView(LoginRequiredMixin, DetailView):
         
         # Permission checks
         context['can_manage'] = (
-            user.is_admin or
+            user.role == 'admin' or
             hospital.staff.filter(user=user).exists()
         )
         
@@ -249,7 +250,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == 'admin':
             queryset = Patient.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
             # Filter by patients registered under their moze
@@ -267,25 +268,26 @@ class PatientListView(LoginRequiredMixin, ListView):
             # Patients can only see themselves
             queryset = Patient.objects.filter(user_account=user)
         
-        # Apply filters
-        hospital = self.request.GET.get('hospital')
-        if hospital:
-            queryset = queryset.filter(hospital_id=hospital)
-        
-        status = self.request.GET.get('status')
-        if status == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status == 'inactive':
-            queryset = queryset.filter(is_active=False)
-        
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=search) |
-                Q(user__last_name__icontains=search) |
-                Q(user__its_id__icontains=search) |
-                Q(patient_id__icontains=search)
-            )
+        # Apply filters (with safety checks)
+        if hasattr(self, 'request') and self.request:
+            hospital = self.request.GET.get('hospital')
+            if hospital:
+                # Filter patients by appointments in specific hospital
+                queryset = queryset.filter(appointments__doctor__hospital_id=hospital).distinct()
+            
+            status = self.request.GET.get('status')
+            if status == 'active':
+                queryset = queryset.filter(is_active=True)
+            elif status == 'inactive':
+                queryset = queryset.filter(is_active=False)
+            
+            search = self.request.GET.get('search')
+            if search:
+                queryset = queryset.filter(
+                    Q(first_name__icontains=search) |
+                    Q(last_name__icontains=search) |
+                    Q(its_id__icontains=search)
+                )
         
         return queryset.select_related('user_account', 'registered_moze').order_by('-created_at')
     
@@ -293,7 +295,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
+        if user.role == 'admin' or user.is_aamil or user.is_moze_coordinator:
             context['hospitals'] = Hospital.objects.filter(is_active=True)
         
         context['current_filters'] = {
@@ -315,7 +317,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == 'admin':
             queryset = Appointment.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
             # Filter by appointments in hospitals where user is staff
@@ -336,22 +338,23 @@ class AppointmentListView(LoginRequiredMixin, ListView):
             except:
                 queryset = Appointment.objects.none()
         
-        # Apply filters
-        status = self.request.GET.get('status')
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        date_filter = self.request.GET.get('date')
-        if date_filter == 'today':
-            queryset = queryset.filter(appointment_date=timezone.now().date())
-        elif date_filter == 'week':
-            week_start = timezone.now().date() - timedelta(days=timezone.now().weekday())
-            week_end = week_start + timedelta(days=6)
-            queryset = queryset.filter(appointment_date__range=[week_start, week_end])
-        
-        doctor_filter = self.request.GET.get('doctor')
-        if doctor_filter:
-            queryset = queryset.filter(doctor_id=doctor_filter)
+        # Apply filters (with safety checks)
+        if hasattr(self, 'request') and self.request:
+            status = self.request.GET.get('status')
+            if status:
+                queryset = queryset.filter(status=status)
+            
+            date_filter = self.request.GET.get('date')
+            if date_filter == 'today':
+                queryset = queryset.filter(appointment_date=timezone.now().date())
+            elif date_filter == 'week':
+                week_start = timezone.now().date() - timedelta(days=timezone.now().weekday())
+                week_end = week_start + timedelta(days=6)
+                queryset = queryset.filter(appointment_date__range=[week_start, week_end])
+            
+            doctor_filter = self.request.GET.get('doctor')
+            if doctor_filter:
+                queryset = queryset.filter(doctor_id=doctor_filter)
         
         return queryset.select_related(
             'patient__user_account', 'doctor__user', 'doctor__hospital'
@@ -363,7 +366,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
         
         context['status_choices'] = Appointment.STATUS_CHOICES
         
-        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
+        if user.role == 'admin' or user.is_aamil or user.is_moze_coordinator:
             context['doctors'] = Doctor.objects.filter(is_available=True).select_related('user')
         
         context['current_filters'] = {
@@ -382,7 +385,7 @@ def appointment_detail(request, pk):
     
     # Check permissions
     can_view = (
-        user.is_admin or
+        user.role == 'admin' or
         user == appointment.patient.user_account or
         user == appointment.doctor.user or
         appointment.doctor.hospital.staff.filter(user=user).exists()
@@ -404,7 +407,7 @@ def appointment_detail(request, pk):
         'prescriptions': prescriptions,
         'lab_tests': lab_tests,
         'vital_signs': vital_signs,
-        'can_edit': user == appointment.doctor.user or user.is_admin,
+        'can_edit': user == appointment.doctor.user or user.role == 'admin',
     }
     
     return render(request, 'mahalshifa/appointment_detail.html', context)
@@ -418,7 +421,7 @@ def patient_detail(request, pk):
     
     # Check permissions
     can_view = (
-        user.is_admin or
+        user.role == 'admin' or
         user == patient.user_account or
         patient.appointments.filter(doctor__user=user).exists()
     )
@@ -452,7 +455,7 @@ def patient_detail(request, pk):
         'insurance_info': insurance_info,
         'recent_vitals': recent_vitals,
         'can_edit': (
-            user.is_admin or
+            user.role == 'admin' or
             patient.appointments.filter(doctor__user=user).exists()
         ),
     }
@@ -482,7 +485,7 @@ def create_appointment(request):
             
             # Check permissions
             can_create = (
-                user.is_admin or
+                user.role == 'admin' or
                 user == patient.user_account or
                 hospital.staff.filter(user=user).exists()
             )
@@ -517,7 +520,7 @@ def create_appointment(request):
     # GET request - show form
     user = request.user
     
-    if user.is_admin:
+    if user.role == 'admin':
         patients = Patient.objects.filter(is_active=True)
         doctors = Doctor.objects.filter(is_available=True)
         hospitals = Hospital.objects.filter(is_active=True)
@@ -556,12 +559,12 @@ def medical_analytics(request):
     user = request.user
     
     # Check permissions
-    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to view analytics.")
         return redirect('mahalshifa:dashboard')
     
     # Base queryset
-    if user.is_admin:
+    if user.role == 'admin':
         hospitals = Hospital.objects.all()
         appointments = Appointment.objects.all()
         patients = Patient.objects.all()
@@ -602,7 +605,7 @@ def medical_analytics(request):
             'count': month_appointments
         })
     
-    # Top doctors by appointments
+    # Top doctors by appointments - use the correct related name
     top_doctors = Doctor.objects.filter(
         hospital__in=hospitals
     ).annotate(
@@ -634,12 +637,12 @@ def inventory_management(request):
     user = request.user
     
     # Check permissions
-    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to manage inventory.")
         return redirect('mahalshifa:dashboard')
     
     # Base queryset
-    if user.is_admin:
+    if user.role == 'admin':
         hospitals = Hospital.objects.all()
     else:
         hospitals = Hospital.objects.filter(staff__user=user)
@@ -684,14 +687,14 @@ def export_medical_data(request):
     user = request.user
     
     # Check permissions
-    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to export data.")
         return redirect('mahalshifa:dashboard')
     
     data_type = request.GET.get('type', 'appointments')
     
     # Base queryset
-    if user.is_admin:
+    if user.role == 'admin':
         hospitals = Hospital.objects.all()
     else:
         hospitals = Hospital.objects.filter(staff__user=user)

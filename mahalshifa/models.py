@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 from moze.models import Moze
-from doctordirectory.models import Doctor
 
 
 class MedicalService(models.Model):
@@ -136,7 +135,7 @@ class Patient(models.Model):
 class Appointment(models.Model):
     """Medical appointments"""
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='appointments')
     moze = models.ForeignKey(Moze, on_delete=models.CASCADE, related_name='appointments')
     service = models.ForeignKey(MedicalService, on_delete=models.SET_NULL, null=True, blank=True)
     
@@ -207,7 +206,7 @@ class Appointment(models.Model):
         verbose_name_plural = 'Appointments'
     
     def __str__(self):
-        return f"{self.patient.get_full_name()} with Dr. {self.doctor.name} on {self.appointment_date} at {self.appointment_time}"
+        return f"{self.patient.get_full_name()} with Dr. {self.doctor.user.get_full_name()} on {self.appointment_date} at {self.appointment_time}"
     
     def is_today(self):
         from django.utils import timezone
@@ -224,7 +223,7 @@ class Appointment(models.Model):
 class MedicalRecord(models.Model):
     """Medical consultation records"""
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='medical_records')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='medical_records')
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='medical_records')
     appointment = models.OneToOneField(
         Appointment,
         on_delete=models.SET_NULL,
@@ -282,7 +281,7 @@ class Prescription(models.Model):
     """Prescription records"""
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='prescriptions')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescriptions')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='prescriptions')
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='prescriptions')
     
     # Prescription details
     prescription_date = models.DateField(auto_now_add=True)
@@ -317,7 +316,7 @@ class LabTest(models.Model):
     """Laboratory test orders and results"""
     medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='lab_tests')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='lab_tests')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='ordered_lab_tests')
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='ordered_lab_tests')
     
     # Test details
     test_name = models.CharField(max_length=200)
@@ -705,7 +704,7 @@ class Admission(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions')
     hospital = models.ForeignKey(Hospital, on_delete=models.CASCADE, related_name='admissions')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='admissions')
-    admitting_doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='admitted_patients')
+    admitting_doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='admitted_patients')
     
     # Admission details
     admission_type = models.CharField(
@@ -755,7 +754,7 @@ class Admission(models.Model):
 class Discharge(models.Model):
     """Patient discharge records"""
     admission = models.OneToOneField(Admission, on_delete=models.CASCADE, related_name='discharge')
-    discharging_doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='discharged_patients')
+    discharging_doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='discharged_patients')
     
     # Discharge details
     discharge_date = models.DateTimeField()
@@ -803,7 +802,7 @@ class Discharge(models.Model):
 class TreatmentPlan(models.Model):
     """Patient treatment plans"""
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='treatment_plans')
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='treatment_plans')
+    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='treatment_plans')
     medical_record = models.ForeignKey(
         MedicalRecord,
         on_delete=models.CASCADE,

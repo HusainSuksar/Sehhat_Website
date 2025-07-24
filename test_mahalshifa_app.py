@@ -214,7 +214,8 @@ class MahalshifaAppTester:
             self.sample_data['department'] = department
             
             # Create Doctor Profile (from mahalshifa app)
-            doctor_profile, created = Doctor.objects.get_or_create(
+            from mahalshifa.models import Doctor as MahalshifaDoctor
+            doctor_profile, created = MahalshifaDoctor.objects.get_or_create(
                 user=self.users['doctor'],
                 defaults={
                     'license_number': 'MED-2024-001',
