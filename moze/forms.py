@@ -77,9 +77,9 @@ class MozeForm(forms.ModelForm):
         self.fields['team_members'].queryset = team_queryset
         
         # If user is Aamil, set themselves as default and make field readonly
-        if user and user.is_aamil:
+        if user and user.role == 'aamil':
             self.fields['aamil'].initial = user
-            if not user.is_admin:
+            if not user.role == 'admin':
                 self.fields['aamil'].widget.attrs['readonly'] = True
                 self.fields['aamil'].disabled = True
         

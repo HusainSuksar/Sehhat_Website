@@ -13,7 +13,7 @@
                         {% csrf_token %}
                         {{ form.as_p }}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'moze:moze_list' %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'moze:list' %}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">{% if object %}Update{% else %}Create{% endif %} Moze</button>
                         </div>
                     </form>

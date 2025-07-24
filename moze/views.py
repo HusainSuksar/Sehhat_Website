@@ -20,9 +20,9 @@ from accounts.models import User
 class MozeAccessMixin(UserPassesTestMixin):
     """Mixin to check if user has access to Moze management"""
     def test_func(self):
-        return (self.request.user.is_admin or 
-                self.request.user.is_aamil or 
-                self.request.user.is_moze_coordinator)
+        return (self.request.user.role == 'admin' or 
+                self.request.user.role == 'aamil' or 
+                self.request.user.role == 'moze_coordinator')
 
 
 @login_required
@@ -31,11 +31,11 @@ def dashboard(request):
     user = request.user
     
     # Get user's accessible mozes
-    if user.is_admin:
+    if user.role == 'admin':
         mozes = Moze.objects.all()
-    elif user.is_aamil:
+    elif user.role == 'aamil':
         mozes = user.managed_mozes.all()
-    elif user.is_moze_coordinator:
+    elif user.role == 'moze_coordinator':
         mozes = user.coordinated_mozes.all()
     else:
         mozes = Moze.objects.none()
@@ -85,11 +85,11 @@ class MozeListView(LoginRequiredMixin, MozeAccessMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == 'admin':
             queryset = Moze.objects.all()
-        elif user.is_aamil:
+        elif user.role == 'aamil':
             queryset = user.managed_mozes.all()
-        elif user.is_moze_coordinator:
+        elif user.role == 'moze_coordinator':
             queryset = user.coordinated_mozes.all()
         else:
             queryset = Moze.objects.none()
@@ -141,11 +141,11 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_admin:
+        if user.role == 'admin':
             return Moze.objects.all()
-        elif user.is_aamil:
+        elif user.role == 'aamil':
             return user.managed_mozes.all()
-        elif user.is_moze_coordinator:
+        elif user.role == 'moze_coordinator':
             return user.coordinated_mozes.all()
         return Moze.objects.none()
     
@@ -184,9 +184,9 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
         # Check if user can edit
         user = self.request.user
         context['can_edit'] = (
-            user.is_admin or 
-            (user.is_aamil and moze.aamil == user) or
-            (user.is_moze_coordinator and moze.moze_coordinator == user)
+            user.role == 'admin' or 
+            (user.role == 'aamil' and moze.aamil == user) or
+            (user.role == 'moze_coordinator' and moze.moze_coordinator == user)
         )
         
         return context
@@ -238,7 +238,7 @@ class MozeCreateView(LoginRequiredMixin, MozeAccessMixin, CreateView):
     
     def form_valid(self, form):
         # Set the creator as aamil if they are aamil role
-        if self.request.user.is_aamil and not form.cleaned_data.get('aamil'):
+        if self.request.user.role == 'aamil' and not form.cleaned_data.get('aamil'):
             form.instance.aamil = self.request.user
         
         messages.success(self.request, f'Moze "{form.instance.name}" created successfully!')
@@ -261,11 +261,11 @@ class MozeEditView(LoginRequiredMixin, MozeAccessMixin, UpdateView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_admin:
+        if user.role == 'admin':
             return Moze.objects.all()
-        elif user.is_aamil:
+        elif user.role == 'aamil':
             return user.managed_mozes.all()
-        elif user.is_moze_coordinator:
+        elif user.role == 'moze_coordinator':
             return user.coordinated_mozes.all()
         return Moze.objects.none()
     
@@ -288,7 +288,7 @@ moze_edit = MozeEditView.as_view()
 @login_required
 def moze_delete(request, pk):
     """Delete a Moze (admin only)"""
-    if not request.user.is_admin:
+    if not request.user.role == 'admin':
         messages.error(request, "You don't have permission to delete Mozes.")
         return redirect('moze:list')
     
@@ -309,7 +309,7 @@ def comment_delete(request, pk):
     comment = get_object_or_404(MozeComment, pk=pk)
     
     # Check permissions
-    if not (request.user.is_admin or comment.author == request.user):
+    if not (request.user.role == 'admin' or comment.author == request.user):
         messages.error(request, "You don't have permission to delete this comment.")
         return redirect('moze:detail', pk=comment.moze.pk)
     
@@ -331,14 +331,14 @@ def comment_delete(request, pk):
 @login_required
 def moze_analytics(request):
     """Analytics dashboard for Moze management"""
-    if not (request.user.is_admin or request.user.is_moze_coordinator):
+    if not (request.user.role == 'admin' or request.user.role == 'moze_coordinator'):
         messages.error(request, "You don't have permission to view analytics.")
         return redirect('moze:dashboard')
     
     user = request.user
     
     # Get accessible mozes
-    if user.is_admin:
+    if user.role == 'admin':
         mozes = Moze.objects.all()
     else:
         mozes = user.coordinated_mozes.all()
