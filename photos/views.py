@@ -25,11 +25,11 @@ def dashboard(request):
     user = request.user
     
     # Base queryset based on user role
-    if user.is_admin:
+    if user.role == 'admin':
         albums = PhotoAlbum.objects.all()
         photos = Photo.objects.all()
         can_manage = True
-    elif user.is_aamil or user.is_moze_coordinator:
+    elif user.role == 'aamil' or user.role == 'moze_coordinator':
         # Can see albums for their moze and albums they created
         albums = PhotoAlbum.objects.filter(
             Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(created_by=user)
@@ -44,7 +44,7 @@ def dashboard(request):
             Q(is_public=True) | Q(created_by=user)
         )
         photos = Photo.objects.filter(
-            Q(album__is_public=True) | Q(uploaded_by=user)
+            Q(is_public=True) | Q(uploaded_by=user)
         )
         can_manage = False
     
@@ -53,7 +53,7 @@ def dashboard(request):
     total_photos = photos.count()
     public_albums = albums.filter(is_public=True).count()
     recent_uploads = photos.filter(
-        uploaded_at__gte=timezone.now() - timedelta(days=7)
+        created_at__gte=timezone.now() - timedelta(days=7)
     ).count()
     
     # Recent albums
@@ -63,8 +63,8 @@ def dashboard(request):
     
     # Recent photos
     recent_photos = photos.select_related(
-        'uploaded_by', 'album', 'moze'
-    ).order_by('-uploaded_at')[:12]
+        'uploaded_by', 'moze'
+    ).order_by('-created_at')[:12]
     
     # Popular albums (by photo count)
     popular_albums = albums.annotate(
@@ -76,8 +76,8 @@ def dashboard(request):
     for i in range(6):
         month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
         month_photos = photos.filter(
-            uploaded_at__year=month_start.year,
-            uploaded_at__month=month_start.month
+            created_at__year=month_start.year,
+            created_at__month=month_start.month
         ).count()
         monthly_stats.append({
             'month': month_start.strftime('%b %Y'),
@@ -90,11 +90,9 @@ def dashboard(request):
     ).order_by('-usage_count')[:10]
     
     # User's favorites
-    my_favorites = []
-    if hasattr(user, 'liked_photos'):
-        my_favorites = Photo.objects.filter(
-            likes__user=user
-        ).select_related('album')[:6]
+    my_favorites = Photo.objects.filter(
+        likes__user=user
+    )[:6]
     
     context = {
         'total_albums': total_albums,
@@ -125,9 +123,9 @@ class PhotoAlbumListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == 'admin':
             queryset = PhotoAlbum.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             queryset = PhotoAlbum.objects.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(created_by=user)
             )
@@ -164,7 +162,7 @@ class PhotoAlbumListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
+        if user.role == 'admin' or user.role == 'aamil' or user.role == 'moze_coordinator':
             context['moze_options'] = Moze.objects.filter(is_active=True)
         
         context['current_filters'] = {
@@ -183,9 +181,9 @@ class PhotoAlbumDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_admin:
+        if user.role == 'admin':
             return PhotoAlbum.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             return PhotoAlbum.objects.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(created_by=user)
             )
@@ -202,7 +200,7 @@ class PhotoAlbumDetailView(LoginRequiredMixin, DetailView):
         # Photos in album
         photos = album.photos.select_related('uploaded_by').prefetch_related(
             'tags', 'comments__user', 'likes__user'
-        ).order_by('-uploaded_at')
+        ).order_by('-created_at')
         
         # Pagination for photos
         paginator = Paginator(photos, 20)
@@ -218,9 +216,9 @@ class PhotoAlbumDetailView(LoginRequiredMixin, DetailView):
         # Permission checks
         context['can_edit'] = (
             user == album.created_by or 
-            user.is_admin or 
-            (user.is_aamil and album.moze and album.moze.aamil == user) or
-            (user.is_moze_coordinator and album.moze and album.moze.moze_coordinator == user)
+            user.role == 'admin' or 
+            (user.role == 'aamil' and album.moze and album.moze.aamil == user) or
+            (user.role == 'moze_coordinator' and album.moze and album.moze.moze_coordinator == user)
         )
         
         context['can_upload'] = context['can_edit'] or album.allow_uploads
@@ -252,9 +250,9 @@ class PhotoAlbumCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.is_admin:
+        if user.role == 'admin':
             context['moze_options'] = Moze.objects.filter(is_active=True)
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             context['moze_options'] = Moze.objects.filter(
                 Q(aamil=user) | Q(moze_coordinator=user)
             )
@@ -272,15 +270,15 @@ class PhotoDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.is_admin:
+        if user.role == 'admin':
             return Photo.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             return Photo.objects.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(uploaded_by=user)
             )
         else:
             return Photo.objects.filter(
-                Q(album__is_public=True) | Q(uploaded_by=user)
+                Q(is_public=True) | Q(uploaded_by=user)
             )
     
     def get_context_data(self, **kwargs):
@@ -295,25 +293,25 @@ class PhotoDetailView(LoginRequiredMixin, DetailView):
         context['likes_count'] = photo.likes.count()
         context['user_liked'] = photo.likes.filter(user=user).exists()
         
-        # Related photos from same album
+        # Related photos with same tags
         context['related_photos'] = Photo.objects.filter(
-            album=photo.album
-        ).exclude(id=photo.id).order_by('?')[:6]
+            tags__in=photo.tags.all()
+        ).exclude(id=photo.id).distinct().order_by('?')[:6]
         
         # Permission checks
         context['can_edit'] = (
             user == photo.uploaded_by or 
-            user.is_admin or 
-            (user.is_aamil and photo.moze and photo.moze.aamil == user) or
-            (user.is_moze_coordinator and photo.moze and photo.moze.moze_coordinator == user)
+            user.role == 'admin' or 
+            (user.role == 'aamil' and photo.moze and photo.moze.aamil == user) or
+            (user.role == 'moze_coordinator' and photo.moze and photo.moze.moze_coordinator == user)
         )
         
-        # Navigation within album
-        album_photos = list(photo.album.photos.values_list('id', flat=True).order_by('uploaded_at'))
+        # Navigation within related photos by moze
+        moze_photos = list(Photo.objects.filter(moze=photo.moze).values_list('id', flat=True).order_by('created_at'))
         try:
-            current_index = album_photos.index(photo.id)
-            context['prev_photo_id'] = album_photos[current_index - 1] if current_index > 0 else None
-            context['next_photo_id'] = album_photos[current_index + 1] if current_index < len(album_photos) - 1 else None
+            current_index = moze_photos.index(photo.id)
+            context['prev_photo_id'] = moze_photos[current_index - 1] if current_index > 0 else None
+            context['next_photo_id'] = moze_photos[current_index + 1] if current_index < len(moze_photos) - 1 else None
         except (ValueError, IndexError):
             context['prev_photo_id'] = None
             context['next_photo_id'] = None
@@ -330,10 +328,10 @@ def upload_photos(request, album_id):
     # Check permissions
     can_upload = (
         user == album.created_by or 
-        user.is_admin or 
+        user.role == 'admin' or 
         album.allow_uploads or
-        (user.is_aamil and album.moze and album.moze.aamil == user) or
-        (user.is_moze_coordinator and album.moze and album.moze.moze_coordinator == user)
+        (user.role == 'aamil' and album.moze and album.moze.aamil == user) or
+        (user.role == 'moze_coordinator' and album.moze and album.moze.moze_coordinator == user)
     )
     
     if not can_upload:
@@ -353,10 +351,10 @@ def upload_photos(request, album_id):
                 try:
                     # Create photo
                     photo = Photo.objects.create(
-                        album=album,
                         image=uploaded_file,
                         title=titles[i] if i < len(titles) else f'Photo {i+1}',
                         description=descriptions[i] if i < len(descriptions) else '',
+                        subject_tag=f'album_{album.id}',
                         uploaded_by=user,
                         moze=album.moze
                     )
@@ -395,12 +393,12 @@ def add_photo_comment(request, photo_id):
         
         # Check if user can view this photo
         can_view = (
-            photo.album.is_public or
+            photo.is_public or
             user == photo.uploaded_by or
-            user.is_admin or
+            user.role == 'admin' or
             (photo.moze and (
-                (user.is_aamil and photo.moze.aamil == user) or
-                (user.is_moze_coordinator and photo.moze.moze_coordinator == user)
+                (user.role == 'aamil' and photo.moze.aamil == user) or
+                (user.role == 'moze_coordinator' and photo.moze.moze_coordinator == user)
             ))
         )
         
@@ -439,12 +437,12 @@ def toggle_photo_like(request, photo_id):
         
         # Check if user can view this photo
         can_view = (
-            photo.album.is_public or
+            photo.is_public or
             user == photo.uploaded_by or
-            user.is_admin or
+            user.role == 'admin' or
             (photo.moze and (
-                (user.is_aamil and photo.moze.aamil == user) or
-                (user.is_moze_coordinator and photo.moze.moze_coordinator == user)
+                (user.role == 'aamil' and photo.moze.aamil == user) or
+                (user.role == 'moze_coordinator' and photo.moze.moze_coordinator == user)
             ))
         )
         
@@ -484,10 +482,10 @@ def search_photos(request):
     
     if query:
         # Base queryset based on user permissions
-        if user.is_admin:
+        if user.role == 'admin':
             albums_qs = PhotoAlbum.objects.all()
             photos_qs = Photo.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             albums_qs = PhotoAlbum.objects.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(created_by=user)
             )
@@ -499,7 +497,7 @@ def search_photos(request):
                 Q(is_public=True) | Q(created_by=user)
             )
             photos_qs = Photo.objects.filter(
-                Q(album__is_public=True) | Q(uploaded_by=user)
+                Q(is_public=True) | Q(uploaded_by=user)
             )
         
         # Search albums
@@ -522,7 +520,7 @@ def search_photos(request):
                 Q(tags__name__icontains=query) |
                 Q(uploaded_by__first_name__icontains=query) |
                 Q(uploaded_by__last_name__icontains=query)
-            ).select_related('uploaded_by', 'album').distinct()[:20]
+            ).select_related('uploaded_by').distinct()[:20]
             results['photos'] = list(photos)
     
     context = {
@@ -542,18 +540,18 @@ def photos_by_tag(request, tag_name):
     user = request.user
     
     # Base queryset based on user permissions
-    if user.is_admin:
+    if user.role == 'admin':
         photos = tag.photos.all()
-    elif user.is_aamil or user.is_moze_coordinator:
+    elif user.role == 'aamil' or user.role == 'moze_coordinator':
         photos = tag.photos.filter(
             Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(uploaded_by=user)
         )
     else:
         photos = tag.photos.filter(
-            Q(album__is_public=True) | Q(uploaded_by=user)
+            Q(is_public=True) | Q(uploaded_by=user)
         )
     
-    photos = photos.select_related('uploaded_by', 'album').order_by('-uploaded_at')
+    photos = photos.select_related('uploaded_by').order_by('-created_at')
     
     # Pagination
     paginator = Paginator(photos, 20)
@@ -580,17 +578,17 @@ def user_photos(request, user_id=None):
     user = request.user
     
     # Check permissions to view this user's photos
-    if photo_user != user and not user.is_admin:
+    if photo_user != user and not user.role == 'admin':
         # Can only see public photos of other users
         photos = Photo.objects.filter(
             uploaded_by=photo_user,
-            album__is_public=True
+            is_public=True
         )
     else:
         # Can see all photos if it's your own or you're admin
         photos = Photo.objects.filter(uploaded_by=photo_user)
     
-    photos = photos.select_related('album').order_by('-uploaded_at')
+    photos = photos.select_related('album').order_by('-created_at')
     
     # Pagination
     paginator = Paginator(photos, 20)
@@ -625,9 +623,9 @@ def export_album_data(request, album_id):
     # Check permissions
     can_export = (
         user == album.created_by or 
-        user.is_admin or 
-        (user.is_aamil and album.moze and album.moze.aamil == user) or
-        (user.is_moze_coordinator and album.moze and album.moze.moze_coordinator == user)
+        user.role == 'admin' or 
+        (user.role == 'aamil' and album.moze and album.moze.aamil == user) or
+        (user.role == 'moze_coordinator' and album.moze and album.moze.moze_coordinator == user)
     )
     
     if not can_export:
@@ -639,7 +637,7 @@ def export_album_data(request, album_id):
     
     writer = csv.writer(response)
     writer.writerow([
-        'Photo ID', 'Title', 'Description', 'Uploaded By', 'Upload Date',
+        'Photo ID', 'Title', 'Description', 'Subject Tag', 'Uploaded By', 'Upload Date',
         'Tags', 'Comments Count', 'Likes Count', 'File Size', 'Image URL'
     ])
     
@@ -650,8 +648,9 @@ def export_album_data(request, album_id):
             photo.id,
             photo.title,
             photo.description,
+            photo.subject_tag,
             photo.uploaded_by.get_full_name(),
-            photo.uploaded_at.strftime('%Y-%m-%d %H:%M'),
+            photo.created_at.strftime('%Y-%m-%d %H:%M'),
             tags,
             photo.comments.count(),
             photo.likes.count(),
@@ -673,7 +672,7 @@ def bulk_delete_photos(request):
             return JsonResponse({'error': 'No photos selected'}, status=400)
         
         # Get photos user can delete
-        if user.is_admin:
+        if user.role == 'admin':
             photos = Photo.objects.filter(id__in=photo_ids)
         else:
             photos = Photo.objects.filter(

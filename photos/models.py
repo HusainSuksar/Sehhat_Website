@@ -80,6 +80,7 @@ class PhotoAlbum(models.Model):
     )
     
     is_public = models.BooleanField(default=False)
+    allow_uploads = models.BooleanField(default=True, help_text='Allow team members to upload photos')
     event_date = models.DateField(blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
