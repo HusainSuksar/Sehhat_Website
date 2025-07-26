@@ -32,7 +32,7 @@
                             </div>
                         {% endfor %}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'surveys:survey_detail' survey.pk %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'surveys:detail' survey.pk %}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">Submit Response</button>
                         </div>
                     </form>

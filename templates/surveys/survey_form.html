@@ -13,7 +13,7 @@
                         {% csrf_token %}
                         {{ form.as_p }}
                         <div class="d-flex justify-content-between">
-                            <a href="{% url 'surveys:survey_list' %}" class="btn btn-secondary">Cancel</a>
+                            <a href="{% url 'surveys:list' %}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">Save Survey</button>
                         </div>
                     </form>
