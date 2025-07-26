@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3-journal
+
+# Media files (optional - uncomment if you don't want to track uploaded files)
+# media/
+
+# Static files collected
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+test_*.py
+*_test.py
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Documentation (temporary files)
+*TESTING_GUIDE.md
+*MACBOOK_TESTING_GUIDE.md
+TEMPLATE_TESTING_REPORT.md
+PHASE*.md
+TEMPLATE_COMPLETION_SUMMARY.md
+*APP_ACTION_PLAN.md
+*MANUAL_TESTING_GUIDE.md
+*TESTING_STRATEGY.md
+TESTING_GUIDE.md
+MACBOOK_SETUP_AND_TESTING_GUIDE.md
+
+# Temporary files
+*.txt
+!requirements.txt
+cookies.txt
+csrf_token.txt
+login_result.txt
+api_testing_system.py
+quick_test_data.py
+
+# Security
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
