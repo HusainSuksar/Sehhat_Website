@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Student management (only existing views)
     path('students/', views.StudentListView.as_view(), name='student_list'),
+    path('students/<int:pk>/', views.StudentDetailView.as_view(), name='student_detail'),
     
     # Course management (only existing views)
     path('courses/', views.CourseListView.as_view(), name='course_list'),

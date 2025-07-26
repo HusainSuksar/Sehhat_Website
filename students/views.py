@@ -33,12 +33,12 @@ def dashboard(request):
         student_profile = Student.objects.filter(user=user).first()
     
     # Base queryset based on user role
-    if user.is_admin:
+    if user.role == 'admin':
         students = Student.objects.all()
         enrollments = Enrollment.objects.all()
         courses = Course.objects.all()
         can_manage = True
-    elif user.is_aamil or user.is_moze_coordinator:
+    elif user.role == 'aamil' or user.role == 'moze_coordinator':
         # Can see students from their moze
         students = Student.objects.filter(
             Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
@@ -66,7 +66,7 @@ def dashboard(request):
     
     # Statistics
     total_students = students.count()
-    active_students = students.filter(is_active=True).count()
+    active_students = students.filter(enrollment_status='active').count()
     total_courses = courses.count()
     total_enrollments = enrollments.count()
     
@@ -81,7 +81,7 @@ def dashboard(request):
     
     recent_announcements = Announcement.objects.filter(
         course__in=courses
-    ).select_related('course', 'created_by').order_by('-created_at')[:5]
+            ).select_related('course', 'author').order_by('-created_at')[:5]
     
     # Student-specific data
     my_data = {}
@@ -106,8 +106,8 @@ def dashboard(request):
     for i in range(6):
         month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
         month_enrollments = enrollments.filter(
-            enrollment_date__year=month_start.year,
-            enrollment_date__month=month_start.month
+            enrolled_date__year=month_start.year,
+            enrolled_date__month=month_start.month
         ).count()
         monthly_stats.append({
             'month': month_start.strftime('%b %Y'),
@@ -116,13 +116,13 @@ def dashboard(request):
     
     # Course statistics
     course_stats = courses.annotate(
-        enrollment_count=Count('enrollments')
-    ).order_by('-enrollment_count')[:5]
+        student_count=Count('enrollments')
+    ).order_by('-student_count')[:5]
     
     # Upcoming events
     upcoming_events = Event.objects.filter(
-        date__gte=timezone.now().date()
-    ).order_by('date')[:5]
+        start_date__gte=timezone.now().date()
+    ).order_by('start_date')[:5]
     
     context = {
         'total_students': total_students,
@@ -155,9 +155,9 @@ class StudentListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == "admin":
             queryset = Student.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Student.objects.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
             )
@@ -199,16 +199,21 @@ class StudentListView(LoginRequiredMixin, ListView):
                 Q(student_id__icontains=search)
             )
         
-        return queryset.select_related('user', 'moze').order_by('user__first_name')
+        return queryset.select_related('user').order_by('user__first_name')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
+        if user.role == "admin" or user.role == "aamil" or user.role == "moze_coordinator":
             context['moze_options'] = Moze.objects.filter(is_active=True)
         
-        context['year_choices'] = Student.YEAR_CHOICES
+        context['year_choices'] = [
+            ('undergraduate', 'Undergraduate'),
+            ('postgraduate', 'Postgraduate'),
+            ('doctoral', 'Doctoral'),
+            ('diploma', 'Diploma'),
+        ]
         context['current_filters'] = {
             'moze': self.request.GET.get('moze', ''),
             'status': self.request.GET.get('status', ''),
@@ -229,9 +234,9 @@ class CourseListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.is_admin:
+        if user.role == "admin":
             queryset = Course.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
+        elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Course.objects.filter(
                 Q(instructor=user) | Q(enrollments__student__moze__aamil=user)
             ).distinct()
@@ -270,13 +275,21 @@ class CourseListView(LoginRequiredMixin, ListView):
             )
         
         return queryset.select_related('instructor').annotate(
-            enrollment_count=Count('enrollments')
+            student_count=Count('enrollments')
         ).order_by('name')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Course.CATEGORY_CHOICES
-        context['levels'] = Course.LEVEL_CHOICES
+        context['categories'] = [
+            ('beginner', 'Beginner'),
+            ('intermediate', 'Intermediate'),
+            ('advanced', 'Advanced'),
+        ]
+        context['levels'] = [
+            ('beginner', 'Beginner'),
+            ('intermediate', 'Intermediate'),
+            ('advanced', 'Advanced'),
+        ]
         context['current_filters'] = {
             'category': self.request.GET.get('category', ''),
             'level': self.request.GET.get('level', ''),
@@ -298,7 +311,7 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         
         # Enrollments
-        enrollments = course.enrollments.select_related('student__user').order_by('enrollment_date')
+        enrollments = course.enrollments.select_related('student__user').order_by('enrolled_date')
         context['enrollments'] = enrollments
         context['total_enrollments'] = enrollments.count()
         
@@ -312,7 +325,7 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         context['assignments'] = assignments
         
         # Announcements
-        context['announcements'] = course.announcements.select_related('created_by').order_by('-created_at')
+        context['announcements'] = course.announcements.select_related('author').order_by('-created_at')
         
         # Schedule
         context['schedules'] = course.schedules.order_by('day_of_week', 'start_time')
@@ -320,8 +333,8 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         # Permission checks
         context['can_manage'] = (
             user == course.instructor or 
-            user.is_admin or 
-            (user.is_aamil or user.is_moze_coordinator)
+            user.role == "admin" or 
+            (user.role == "aamil" or user.role == "moze_coordinator")
         )
         
         context['can_enroll'] = (
@@ -368,7 +381,7 @@ def enroll_in_course(request, course_id):
         enrollment = Enrollment.objects.create(
             student=student_profile,
             course=course,
-            enrollment_date=timezone.now().date(),
+            enrolled_date=timezone.now().date(),
             status='enrolled'
         )
         
@@ -390,7 +403,7 @@ def assignment_detail(request, assignment_id):
     student_profile = Student.objects.filter(user=user).first()
     can_view = (
         user == assignment.course.instructor or
-        user.is_admin or
+        user.role == "admin" or
         (student_profile and assignment.course.enrollments.filter(student=student_profile).exists())
     )
     
@@ -592,12 +605,12 @@ def student_analytics(request):
     user = request.user
     
     # Check permissions
-    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+    if not (user.role == "admin" or user.role == "aamil" or user.role == "moze_coordinator"):
         messages.error(request, "You don't have permission to view analytics.")
         return redirect('students:dashboard')
     
     # Base queryset
-    if user.is_admin:
+    if user.role == "admin":
         students = Student.objects.all()
         enrollments = Enrollment.objects.all()
         courses = Course.objects.all()
@@ -619,9 +632,9 @@ def student_analytics(request):
     
     stats = {
         'total_students': students.count(),
-        'active_students': students.filter(is_active=True).count(),
-        'new_this_week': students.filter(created_at__date__gte=week_ago).count(),
-        'new_this_month': students.filter(created_at__date__gte=month_ago).count(),
+        'active_students': students.filter(enrollment_status='active').count(),
+        'new_this_week': students.filter(enrollment_date__gte=week_ago).count(),
+        'new_this_month': students.filter(enrollment_date__gte=month_ago).count(),
         'total_enrollments': enrollments.count(),
         'active_enrollments': enrollments.filter(status='enrolled').count(),
         'total_courses': courses.count(),
@@ -633,8 +646,8 @@ def student_analytics(request):
     for i in range(12):
         month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
         month_count = enrollments.filter(
-            enrollment_date__year=month_start.year,
-            enrollment_date__month=month_start.month
+            enrolled_date__year=month_start.year,
+            enrolled_date__month=month_start.month
         ).count()
         monthly_enrollments.append({
             'month': month_start.strftime('%b %Y'),
@@ -643,27 +656,27 @@ def student_analytics(request):
     
     # Course popularity
     popular_courses = courses.annotate(
-        enrollment_count=Count('enrollments')
-    ).order_by('-enrollment_count')[:10]
+        student_count=Count('enrollments')
+    ).order_by('-student_count')[:10]
     
     # Grade distribution
     grade_distribution = Grade.objects.filter(
         student__in=students
-    ).values('grade').annotate(count=Count('id')).order_by('grade')
+    ).values('letter_grade').annotate(count=Count('id')).order_by('letter_grade')
     
     # Attendance statistics
     attendance_stats = Attendance.objects.filter(
         student__in=students
     ).aggregate(
         total_classes=Count('id'),
-        present_count=Count('id', filter=models.Q(status='present')),
-        absent_count=Count('id', filter=models.Q(status='absent'))
+        present_count=Count('id', filter=Q(status='present')),
+        absent_count=Count('id', filter=Q(status='absent'))
     )
     
     # Year of study distribution
-    year_distribution = students.values('year_of_study').annotate(
+    year_distribution = students.values('academic_level').annotate(
         count=Count('id')
-    ).order_by('year_of_study')
+    ).order_by('academic_level')
     
     context = {
         'stats': stats,
@@ -686,14 +699,14 @@ def export_student_data(request):
     user = request.user
     
     # Check permissions
-    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+    if not (user.role == "admin" or user.role == "aamil" or user.role == "moze_coordinator"):
         messages.error(request, "You don't have permission to export data.")
         return redirect('students:dashboard')
     
     data_type = request.GET.get('type', 'students')
     
     # Base queryset
-    if user.is_admin:
+    if user.role == "admin":
         students = Student.objects.all()
         enrollments = Enrollment.objects.all()
     else:
@@ -712,17 +725,17 @@ def export_student_data(request):
             'Year of Study', 'Moze', 'Active', 'Enrollment Date'
         ])
         
-        for student in students.select_related('user', 'moze'):
+        for student in students.select_related('user'):
             writer.writerow([
                 student.student_id,
                 student.user.get_full_name(),
                 student.user.its_id,
                 student.user.email,
                 student.user.phone_number,
-                student.get_year_of_study_display(),
-                student.moze.name if student.moze else '',
-                'Yes' if student.is_active else 'No',
-                student.created_at.strftime('%Y-%m-%d')
+                student.get_academic_level_display(),
+                '',  # Moze field removed from Student model
+                'Yes' if student.enrollment_status == 'active' else 'No',
+                student.enrollment_date.strftime('%Y-%m-%d')
             ])
     
     elif data_type == 'enrollments':
@@ -741,9 +754,31 @@ def export_student_data(request):
             writer.writerow([
                 enrollment.student.user.get_full_name(),
                 enrollment.course.name,
-                enrollment.enrollment_date,
+                enrollment.enrolled_date,
                 enrollment.get_status_display(),
                 f"{avg_grade:.2f}" if avg_grade else 'N/A'
             ])
     
     return response
+
+
+class StudentDetailView(LoginRequiredMixin, DetailView):
+    """Detailed view of a single student"""
+    model = Student
+    template_name = 'students/student_detail.html'
+    context_object_name = 'student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.object
+        
+        # Get student's enrollments
+        context['enrollments'] = student.enrollments.select_related('course').order_by('-enrolled_date')
+        
+        # Get student's grades
+        try:
+            context['grades'] = student.grades.select_related('course').order_by('-created_at')
+        except:
+            context['grades'] = []
+        
+        return context
