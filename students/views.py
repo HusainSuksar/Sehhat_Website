@@ -41,15 +41,15 @@ def dashboard(request):
     elif user.role == 'aamil' or user.role == 'moze_coordinator':
         # Can see students from their moze
         students = Student.objects.filter(
-            Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
+            Q(user__role="aamil") | Q(user__role="moze_coordinator")
         )
         enrollments = Enrollment.objects.filter(
-            student__moze__aamil=user
+            student__user__role="aamil"
         ) | Enrollment.objects.filter(
-            student__moze__moze_coordinator=user
+            student__user__role="moze_coordinator"
         )
         courses = Course.objects.filter(
-            Q(instructor=user) | Q(enrollments__student__moze__aamil=user)
+            Q(instructor=user) | Q(enrollments__student__user__role="aamil")
         ).distinct()
         can_manage = True
     else:
@@ -159,7 +159,7 @@ class StudentListView(LoginRequiredMixin, ListView):
             queryset = Student.objects.all()
         elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Student.objects.filter(
-                Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
+                Q(user__role="aamil") | Q(user__role="moze_coordinator")
             )
         else:
             # Students can see classmates in same courses
@@ -238,7 +238,7 @@ class CourseListView(LoginRequiredMixin, ListView):
             queryset = Course.objects.all()
         elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Course.objects.filter(
-                Q(instructor=user) | Q(enrollments__student__moze__aamil=user)
+                Q(instructor=user) | Q(enrollments__student__user__role="aamil")
             ).distinct()
         else:
             # Students can see courses they're enrolled in or available courses
@@ -616,7 +616,7 @@ def student_analytics(request):
         courses = Course.objects.all()
     else:
         students = Student.objects.filter(
-            Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
+            Q(user__role="aamil") | Q(user__role="moze_coordinator")
         )
         enrollments = Enrollment.objects.filter(
             student__in=students
@@ -711,7 +711,7 @@ def export_student_data(request):
         enrollments = Enrollment.objects.all()
     else:
         students = Student.objects.filter(
-            Q(moze__aamil=user) | Q(moze__moze_coordinator=user)
+            Q(user__role="aamil") | Q(user__role="moze_coordinator")
         )
         enrollments = Enrollment.objects.filter(student__in=students)
     

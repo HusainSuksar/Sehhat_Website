@@ -391,7 +391,7 @@ def evaluation_analytics(request):
         submissions = EvaluationSubmission.objects.all()
     else:
         submissions = EvaluationSubmission.objects.filter(
-            Q(form__moze__aamil=user) | Q(form__moze__moze_coordinator=user)
+            Q(form__created_by=user) | Q(form__target_role="moze_coordinator")
         )
     
     # Time-based statistics
@@ -474,7 +474,7 @@ def export_evaluations(request):
         submissions = EvaluationSubmission.objects.all()
     else:
         submissions = EvaluationSubmission.objects.filter(
-            Q(form__moze__aamil=user) | Q(form__moze__moze_coordinator=user)
+            Q(form__created_by=user) | Q(form__target_role="moze_coordinator")
         )
     
     response = HttpResponse(content_type='text/csv')

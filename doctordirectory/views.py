@@ -46,7 +46,12 @@ def dashboard(request):
             doctor = Doctor.objects.get(user=user)
         except Doctor.DoesNotExist:
             # Create doctor profile if doesn't exist
-            doctor = Doctor.objects.create(user=user)
+            doctor = Doctor.objects.create(
+                user=user,
+                name=user.get_full_name(),
+                its_id=user.its_id if user.its_id else '00000000',
+                specialty='General Medicine'
+            )
     else:
         doctor = None
     

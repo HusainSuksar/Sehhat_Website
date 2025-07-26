@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Q, Count, Sum, Avg
+from django.db.models import Q, Count, Sum, Avg, F
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -653,7 +653,7 @@ def inventory_management(request):
     
     # Low stock items
     low_stock_items = inventory_items.filter(
-        current_stock__lte=models.F('minimum_stock')
+        current_stock__lte=F('minimum_stock')
     )
     
     # Recently updated items  

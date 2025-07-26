@@ -116,12 +116,12 @@ class SurveyListView(LoginRequiredMixin, ListView):
         elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Survey.objects.filter(
                 Q(created_by=user) | 
-                Q(target_role==user.role) |
+                Q(target_role=user.role) |
                 Q(target_role="all")
             )
         else:
             queryset = Survey.objects.filter(
-                Q(target_role==user.role) |
+                Q(target_role=user.role) |
                 Q(target_role="all"),
                 is_active=True
             )
@@ -181,12 +181,12 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         elif user.role == "aamil" or user.role == "moze_coordinator":
             return Survey.objects.filter(
                 Q(created_by=user) | 
-                Q(target_role==user.role) |
+                Q(target_role=user.role) |
                 Q(target_role="all")
             )
         else:
             return Survey.objects.filter(
-                Q(target_role==user.role) |
+                Q(target_role=user.role) |
                 Q(target_role="all"),
                 is_active=True
             )

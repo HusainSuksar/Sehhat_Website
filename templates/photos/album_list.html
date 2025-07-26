@@ -28,7 +28,7 @@
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100">
                                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    {% if album.photos.first %}
+                                    {% if album.photos.first and album.photos.first.image %}
                                         <img src="{{ album.photos.first.image.url }}" class="img-fluid" style="max-height: 190px; object-fit: cover;">
                                     {% else %}
                                         <i class="fas fa-images fa-4x text-gray-300"></i>
