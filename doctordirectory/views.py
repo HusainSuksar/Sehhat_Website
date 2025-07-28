@@ -203,7 +203,7 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
         # Get upcoming availability
         upcoming_availability = DoctorAvailability.objects.filter(
             doctor=doctor,
-            date__gte=today,
+            date=today,
             is_available=True
         ).order_by('date', 'start_time')[:7]  # Next 7 available slots
         

@@ -13,6 +13,8 @@ import json
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 
+from accounts import models
+
 from .models import (
     Student, StudentProfile, Course, Enrollment, Assignment, Submission,
     Grade, Attendance, Schedule, Announcement, StudentGroup, Event,
@@ -473,7 +475,7 @@ def my_grades(request):
     # Get grades
     grades = Grade.objects.filter(
         student=student_profile
-    ).select_related('assignment__course', 'graded_by').order_by('-graded_at')
+    ).select_related('assignment__course', 'graded_by').order_by('-date_graded')
     
     # Calculate statistics
     total_grades = grades.count()

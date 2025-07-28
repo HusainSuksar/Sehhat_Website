@@ -100,29 +100,29 @@
                                 </td>
                                 <td>
                                     {% if petition.category %}
-                                        <span class="badge badge-secondary">{{ petition.category.name }}</span>
+                                        <span class="badge badge-secondary" style="background-color: rgb(4, 145, 11);" >{{ petition.category.name }}</span>
                                     {% else %}
                                         <span class="text-muted">No category</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if petition.priority == 'high' %}
-                                        <span class="badge badge-danger">High</span>
+                                        <span class="badge badge-danger" style="background-color: rgb(235, 76, 2);">High</span>
                                     {% elif petition.priority == 'medium' %}
-                                        <span class="badge badge-warning">Medium</span>
+                                        <span class="badge badge-warning" style="background-color: rgb(176, 165, 5);">Medium</span>
                                     {% else %}
-                                        <span class="badge badge-info">Low</span>
+                                        <span class="badge badge-info" style="background-color: rgb(98, 20, 223);">Low</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if petition.status == 'pending' %}
-                                        <span class="badge badge-warning">Pending</span>
+                                        <span class="badge badge-warning" style="background-color: rgb(192, 215, 19);">Pending</span>
                                     {% elif petition.status == 'in_progress' %}
-                                        <span class="badge badge-info">In Progress</span>
+                                        <span class="badge badge-info" style="background-color: aquamarine;">In Progress</span>
                                     {% elif petition.status == 'resolved' %}
-                                        <span class="badge badge-success">Resolved</span>
+                                        <span class="badge badge-success" style="background-color: rgb(65, 248, 4);">Resolved</span>
                                     {% else %}
-                                        <span class="badge badge-danger">Rejected</span>
+                                        <span class="badge badge-danger" style="background-color: rgb(229, 9, 9);">Rejected</span>
                                     {% endif %}
                                 </td>
                                 <td>

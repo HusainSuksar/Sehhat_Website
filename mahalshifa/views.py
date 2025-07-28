@@ -214,7 +214,7 @@ class HospitalDetailView(LoginRequiredMixin, DetailView):
         # Doctors
         context['doctors'] = Doctor.objects.filter(
             hospital=hospital,
-            is_active=True
+            is_available=True
         ).select_related('user')
         
         # Rooms

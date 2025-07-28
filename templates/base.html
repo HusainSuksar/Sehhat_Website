@@ -72,7 +72,7 @@
         
         .dashboard-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            color: rgb(255, 255, 255);
             border-radius: 15px;
             padding: 1.5rem;
             margin-bottom: 1rem;
@@ -208,7 +208,7 @@
                         {% endif %}
                         
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{% url 'surveys:list' %}" class="text-decoration-none">
                                 <i class="fas fa-poll me-1"></i>Surveys
                             </a>
                         </li>
@@ -229,9 +229,11 @@
                                     <i class="fas fa-key me-2"></i>Change Password
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
+                                <li>       <form method="POST" action="{% url 'accounts:logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+</li>
                             </ul>
                         </li>
                     </ul>

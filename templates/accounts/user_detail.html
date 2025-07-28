@@ -11,14 +11,14 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-6"><strong>ITS ID:</strong> {{ user.its_id }}</div>
-                <div class="col-md-6"><strong>Role:</strong> <span class="badge badge-info">{{ user.get_role_display }}</span></div>
+                <div class="col-md-6"><strong>Role:</strong> <span class="badge badge-info" style="background-color: rgb(4, 159, 35);">{{ user.get_role_display }}</span></div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6"><strong>Email:</strong> {{ user.email }}</div>
                 <div class="col-md-6"><strong>Phone:</strong> {{ user.phone_number }}</div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6"><strong>Status:</strong> {% if user.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</div>
+                <div class="col-md-6"><strong>Status:</strong> {% if user.is_active %}<span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>{% else %}<span class="badge badge-danger" style="background-color: rgb(137, 90, 2);">Inactive</span>{% endif %}</div>
                 <div class="col-md-6"><strong>Joined:</strong> {{ user.date_joined|date:"F d, Y" }}</div>
             </div>
         </div>

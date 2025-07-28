@@ -20,8 +20,8 @@
                             <tr>
                                 <td><a href="{% url 'accounts:user_detail' user.pk %}">{{ user.get_full_name }}</a></td>
                                 <td>{{ user.its_id }}</td>
-                                <td><span class="badge badge-info">{{ user.get_role_display }}</span></td>
-                                <td>{% if user.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
+                                <td><span class="badge badge-info" style="background-color: rgb(45, 3, 252);">{{ user.get_role_display }}</span></td>
+                                <td>{% if user.is_active %}<span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
                                 <td><a href="{% url 'accounts:user_detail' user.pk %}" class="btn btn-sm btn-primary">View</a></td>
                             </tr>
                             {% endfor %}

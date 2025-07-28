@@ -135,7 +135,7 @@
             <!-- Sidebar -->
             <nav class="col-md-2 d-md-block sidebar p-0">
                 <div class="p-3">
-                    <h4 class="text-white text-center">
+                    <h4 class="text-white text-center"  style="background-color: rgb(246, 248, 246);">
                         <i class="fas fa-heartbeat"></i> Umoor Sehhat
                     </h4>
                 </div>
@@ -189,9 +189,11 @@
                         <a class="nav-link" href="{% url 'accounts:profile' %}">
                             <i class="fas fa-user me-2"></i> Profile
                         </a>
-                        <a class="nav-link" href="{% url 'accounts:logout' %}">
-                            <i class="fas fa-sign-out-alt me-2"></i> Logout
-                        </a>
+                        <form method="POST" action="{% url 'accounts:logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+
                     {% else %}
                         <a class="nav-link" href="{% url 'accounts:login' %}">
                             <i class="fas fa-sign-in-alt me-2"></i> Login
