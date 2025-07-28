@@ -9,6 +9,11 @@ from django.views.generic import (
 )
 from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django import forms
+from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 import json
 
 from .models import User, UserProfile, AuditLog
@@ -24,12 +29,6 @@ from doctordirectory.models import Doctor as DirDoctor
 from surveys.models import Survey
 from araz.models import Petition
 from photos.models import PhotoAlbum
-
-from django.core.paginator import Paginator
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django import forms
-from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 
 
 class CustomLoginView(LoginView):
@@ -369,45 +368,50 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
         form = ObjectPermissionForm(request.POST)
         result = None
         if form.is_valid():
-            user = form.cleaned_data['user']
-            model = form.cleaned_data['model']
-            object_id = form.cleaned_data['object_id']
-            permission = form.cleaned_data['permission']
-            action = form.cleaned_data['action']
-            obj = None
-            if model == 'doctor':
-                from doctordirectory.models import Doctor
-                obj = Doctor.objects.filter(pk=object_id).first()
-            elif model == 'student':
-                from students.models import Student
-                obj = Student.objects.filter(pk=object_id).first()
-            elif model == 'hospital':
-                from mahalshifa.models import Hospital
-                obj = Hospital.objects.filter(pk=object_id).first()
-            if obj:
-                if action == 'assign':
-                    assign_perm(permission, user, obj)
-                    result = f"Assigned '{permission}' to {user} for {model} {object_id}."
+            try:
+                user = form.cleaned_data['user']
+                model = form.cleaned_data['model']
+                object_id = form.cleaned_data['object_id']
+                permission = form.cleaned_data['permission']
+                action = form.cleaned_data['action']
+                
+                # Get the object based on model type
+                obj = None
+                if model == 'doctor':
+                    obj = DirDoctor.objects.filter(pk=object_id).first()
+                elif model == 'student':
+                    obj = Student.objects.filter(pk=object_id).first()
+                elif model == 'hospital':
+                    obj = Hospital.objects.filter(pk=object_id).first()
+                
+                if obj:
+                    if action == 'assign':
+                        assign_perm(permission, user, obj)
+                        result = f"Assigned '{permission}' to {user} for {model} {object_id}."
+                    else:
+                        remove_perm(permission, user, obj)
+                        result = f"Removed '{permission}' from {user} for {model} {object_id}."
+                    
+                    # Audit log
+                    AuditLog.objects.create(
+                        user=request.user,
+                        action='permission_change',
+                        object_type=model.title(),
+                        object_id=str(object_id),
+                        object_repr=str(obj),
+                        extra_data={
+                            'target_user': str(user),
+                            'permission': permission,
+                            'action': action
+                        }
+                    )
                 else:
-                    remove_perm(permission, user, obj)
-                    result = f"Removed '{permission}' from {user} for {model} {object_id}."
-                # Audit log
-                AuditLog.objects.create(
-                    user=request.user,
-                    action='permission_change',
-                    object_type=model.title(),
-                    object_id=str(object_id),
-                    object_repr=str(obj),
-                    extra_data={
-                        'target_user': str(user),
-                        'permission': permission,
-                        'action': action
-                    }
-                )
-            else:
-                result = f"Object not found."
+                    result = f"Object not found for {model} with ID {object_id}."
+            except Exception as e:
+                result = f"Error: {str(e)}"
         else:
             result = "Invalid form submission."
+        
         context = self.get_context_data()
         context['form'] = form
         context['result'] = result
