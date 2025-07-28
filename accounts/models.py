@@ -1,9 +1,10 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, m2m_changed
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
+from django.contrib.auth.models import Group, Permission
 
 
 class User(AbstractUser):
@@ -169,3 +170,33 @@ def log_user_delete(sender, instance, **kwargs):
         object_repr=str(instance),
         extra_data={}
     )
+
+@receiver(m2m_changed, sender=User.groups.through)
+def log_group_membership_change(sender, instance, action, pk_set, **kwargs):
+    if action in ['post_add', 'post_remove', 'post_clear']:
+        AuditLog.objects.create(
+            user=instance,
+            action='permission_change',
+            object_type='User',
+            object_id=str(instance.pk),
+            object_repr=str(instance),
+            extra_data={
+                'groups': [Group.objects.get(pk=pk).name for pk in pk_set] if pk_set else [],
+                'action': action
+            }
+        )
+
+@receiver(m2m_changed, sender=User.user_permissions.through)
+def log_user_permission_change(sender, instance, action, pk_set, **kwargs):
+    if action in ['post_add', 'post_remove', 'post_clear']:
+        AuditLog.objects.create(
+            user=instance,
+            action='permission_change',
+            object_type='User',
+            object_id=str(instance.pk),
+            object_repr=str(instance),
+            extra_data={
+                'permissions': [Permission.objects.get(pk=pk).codename for pk in pk_set] if pk_set else [],
+                'action': action
+            }
+        )

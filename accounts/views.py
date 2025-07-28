@@ -26,6 +26,9 @@ from araz.models import Petition
 from photos.models import PhotoAlbum
 
 from django.core.paginator import Paginator
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django import forms
 
 
 class CustomLoginView(LoginView):
@@ -258,6 +261,88 @@ class AuditLogListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         page_obj = paginator.get_page(page_number)
         context['page_obj'] = page_obj
         return context
+
+
+class UserPermissionForm(forms.ModelForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+    role = forms.ChoiceField(
+        choices=User.ROLE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['role', 'groups', 'user_permissions']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['groups'].initial = self.instance.groups.all()
+            self.fields['user_permissions'].initial = self.instance.user_permissions.all()
+            self.fields['role'].initial = self.instance.role
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = self.cleaned_data['role']
+        if commit:
+            user.save()
+            user.groups.set(self.cleaned_data['groups'])
+            user.user_permissions.set(self.cleaned_data['user_permissions'])
+        return user
+
+class PermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/permission_management.html'
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        users = User.objects.all().select_related('profile').prefetch_related('groups', 'user_permissions')
+        context['users'] = users
+        context['groups'] = Group.objects.all()
+        context['permissions'] = Permission.objects.all()
+        context['form'] = None
+        user_id = self.request.GET.get('edit_user')
+        if user_id:
+            user = User.objects.get(pk=user_id)
+            context['form'] = UserPermissionForm(instance=user)
+            context['edit_user'] = user
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.POST.get('user_id')
+        user = User.objects.get(pk=user_id)
+        form = UserPermissionForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Permissions updated for {user.get_full_name()}.")
+            # Audit log for permission change
+            AuditLog.objects.create(
+                user=request.user,
+                action='permission_change',
+                object_type='User',
+                object_id=str(user.pk),
+                object_repr=str(user),
+                extra_data={
+                    'role': form.cleaned_data['role'],
+                    'groups': [g.name for g in form.cleaned_data['groups']],
+                    'permissions': [p.codename for p in form.cleaned_data['user_permissions']]
+                }
+            )
+        else:
+            messages.error(request, "Failed to update permissions.")
+        return redirect('accounts:permission_management')
 
 
 @login_required
