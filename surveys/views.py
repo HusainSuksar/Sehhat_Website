@@ -53,8 +53,9 @@ def survey_dashboard(request):
     active_surveys = surveys.filter(is_active=True).count()
     my_responses = SurveyResponse.objects.filter(respondent=user).count()
     pending_surveys = surveys.filter(
-        is_active=True,
-        end_date__gte=timezone.now()
+        is_active=True
+    ).filter(
+        Q(end_date__isnull=True) | Q(end_date__gte=timezone.now())
     ).exclude(
         id__in=SurveyResponse.objects.filter(respondent=user).values('survey_id')
     ).count()
@@ -139,7 +140,9 @@ class SurveyListView(LoginRequiredMixin, ListView):
         if status == 'active':
             queryset = queryset.filter(is_active=True)
         elif status == 'completed':
-            queryset = queryset.filter(end_date__lt=timezone.now())
+            queryset = queryset.filter(
+                Q(end_date__isnull=False) & Q(end_date__lt=timezone.now())
+            )
         elif status == 'pending':
             queryset = queryset.exclude(
                 id__in=SurveyResponse.objects.filter(respondent=user).values('survey_id')
@@ -206,7 +209,7 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         context['can_respond'] = (
             not user_response and 
             survey.is_active and 
-            survey.end_date >= timezone.now() and
+            (survey.end_date is None or survey.end_date >= timezone.now()) and
             (user.role == survey.target_role or survey.target_role == "all")
         )
         
