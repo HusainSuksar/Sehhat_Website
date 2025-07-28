@@ -32,11 +32,12 @@ from django.db import connection
 from accounts.models import User, UserProfile
 from students.models import Student, Course, Enrollment, Assignment, Grade, Event, Announcement
 from surveys.models import Survey, SurveyResponse
-from mahalshifa.models import Hospital, Patient, Appointment, Doctor
+from mahalshifa.models import Hospital, Patient, Appointment
+from mahalshifa.models import Doctor as MahalshifaDoctor
 from moze.models import Moze, MozeComment
 from doctordirectory.models import Doctor, Patient as DirPatient, MedicalRecord
 from evaluation.models import EvaluationForm, EvaluationSubmission
-from araz.models import Petition, PetitionComment
+from araz.models import Petition, PetitionComment, PetitionCategory
 from photos.models import PhotoAlbum, Photo, PhotoTag
 
 # Initialize Faker
@@ -214,7 +215,7 @@ def create_students_data(users):
             student_id=f'STD{i:04d}',
             academic_level=random.choice(['undergraduate', 'postgraduate', 'doctoral', 'diploma']),
             enrollment_status='active',
-            enrollment_date=fake.date_between(start_date='-4y', end_date='today'),
+            enrollment_date=fake.date_between(start_date='-4y', end_date='now'),
             expected_graduation=fake.date_between(start_date='today', end_date='+2y')
         )
         students.append(student)
@@ -269,8 +270,7 @@ def create_students_data(users):
             start_date=fake.date_time_between(start_date='-30d', end_date='+30d'),
             end_date=fake.date_time_between(start_date='+30d', end_date='+60d'),
             location=fake.address()[:100],
-            organizer=random.choice(users['admin'] + users['staff']),
-            capacity=random.randint(20, 200)
+            organizer=random.choice(users['admin'] + users['staff'])
         )
         events.append(event)
     
@@ -282,7 +282,7 @@ def create_students_data(users):
                 content=fake.text(max_nb_chars=300),
                 course=course,
                 author=random.choice(users['admin'] + users['staff']),
-                created_at=fake.date_time_between(start_date='-30d', end_date='today')
+                created_at=fake.date_time_between(start_date='-30d', end_date='now')
             )
     
     print_progress(f"✅ Created student data: {len(students)} students, {len(courses)} courses, {len(enrollments)} enrollments, {len(events)} events")
@@ -315,7 +315,7 @@ def create_surveys_data(users):
             created_by=random.choice(users['admin']),
             created_at=fake.date_time_between(start_date='-60d', end_date='-30d'),
             is_active=True,
-            anonymous_allowed=random.choice([True, False])
+            is_anonymous=random.choice([True, False])
         )
         surveys.append(survey)
         
@@ -346,13 +346,30 @@ def create_surveys_data(users):
         survey_users = random.sample(all_users, min(response_count, len(all_users)))
         
         for user in survey_users:
+            # Generate answers for each question
+            answers = {}
+            for q in survey.questions:
+                if q["type"] == "text":
+                    answers[str(q["id"])] = fake.sentence()
+                elif q["type"] == "multiple_choice":
+                    answers[str(q["id"])] = random.choice(q["options"]) if q["options"] else ""
+                elif q["type"] == "rating":
+                    answers[str(q["id"])] = random.choice(q["options"]) if q["options"] else "3"
+                elif q["type"] == "checkbox":
+                    answers[str(q["id"])] = random.sample(q["options"], k=random.randint(1, len(q["options"])) if q["options"] else 0)
+                elif q["type"] == "yes_no":
+                    answers[str(q["id"])] = random.choice(["yes", "no"])
+                else:
+                    answers[str(q["id"])] = ""
             response = SurveyResponse.objects.create(
                 survey=survey,
-                user=user if not survey.anonymous_allowed else None,
-                submitted_at=fake.date_time_between(
+                respondent=user if not survey.is_anonymous else None,
+                answers=answers,
+                created_at=fake.date_time_between(
                     start_date=survey.created_at,
                     end_date='now'
-                )
+                ),
+                is_complete=True
             )
             total_responses += 1
     
@@ -375,14 +392,16 @@ def create_moze_data(users):
     for i in range(72):
         city = random.choice(pakistani_cities)
         moze = Moze.objects.create(
-            name=f'Moze {city} {random.randint(1, 5)}',
-            city=city,
+            name=f'Moze {city} {i+1}',
+            location=city,
             address=fake.address(),
-            established_date=fake.date_between(start_date='-20y', end_date='-1y'),
-            coordinator=random.choice(users['coordinator']),
             aamil=random.choice(users['aamil']),
+            moze_coordinator=random.choice(users['coordinator']),
+            established_date=fake.date_between(start_date='-20y', end_date='-1y'),
+            is_active=True,
             capacity=random.randint(50, 500),
-            active=True
+            contact_phone=fake.phone_number()[:15],
+            contact_email=f'moze{i+1}@umoor-sehhat.org'
         )
         moze_centers.append(moze)
     
@@ -395,13 +414,14 @@ def create_moze_data(users):
                 moze=moze,
                 author=random.choice(all_users),
                 content=fake.text(max_nb_chars=200),
-                created_at=fake.date_time_between(start_date='-30d', end_date='today')
+                created_at=fake.date_time_between(start_date='-30d', end_date='now')
             )
             comments_count += 1
     
     print_progress(f"✅ Created {len(moze_centers)} Moze centers with {comments_count} comments")
+    return moze_centers
 
-def create_hospital_data(users):
+def create_hospital_data(users, moze_centers):
     """Create hospital management data"""
     print_progress("🏥 Creating hospital data...")
     
@@ -412,50 +432,86 @@ def create_hospital_data(users):
     for i in range(1, 21):
         hospital = Hospital.objects.create(
             name=f'Mahal Shifa Hospital {i}',
-            hospital_type=random.choice(hospital_types),
+            description=fake.text(max_nb_chars=100),
             address=fake.address(),
-            city=random.choice(['Karachi', 'Lahore', 'Islamabad', 'Rawalpindi', 'Faisalabad']),
-            phone_number=fake.phone_number()[:15],
+            phone=fake.phone_number()[:20],
             email=f'hospital{i}@mahalshifa.org',
-            established_date=fake.date_between(start_date='-30y', end_date='-1y'),
-            bed_capacity=random.randint(50, 500),
-            active=True
+            hospital_type=random.choice(hospital_types),
+            total_beds=random.randint(50, 500),
+            available_beds=random.randint(10, 100),
+            emergency_beds=random.randint(5, 20),
+            icu_beds=random.randint(2, 10),
+            is_active=True,
+            is_emergency_capable=random.choice([True, False]),
+            has_pharmacy=random.choice([True, False]),
+            has_laboratory=random.choice([True, False])
         )
         hospitals.append(hospital)
     
     # Create Hospital Doctors (link doctors to hospitals)
     hospital_doctors = []
+    assigned_doctor_users = set()
+    used_license_numbers = set()
     for hospital in hospitals:
         # Each hospital has 3-8 doctors
-        hospital_doctor_users = random.sample(users['doctor'], random.randint(3, 8))
+        hospital_doctor_users = random.sample([u for u in users['doctor'] if u not in assigned_doctor_users], min(random.randint(3, 8), len(users['doctor']) - len(assigned_doctor_users)))
         for doctor_user in hospital_doctor_users:
-            hospital_doctor = HospitalDoctor.objects.create(
-                hospital=hospital,
-                doctor=doctor_user,
-                department=random.choice([
+            assigned_doctor_users.add(doctor_user)
+            # Ensure the hospital has at least one department
+            departments = list(hospital.departments.all())
+            if not departments:
+                dept = hospital.departments.create(
+                    name=f"Department {random.randint(1, 10)}",
+                    description=fake.text(max_nb_chars=50)
+                )
+                departments = [dept]
+            department = random.choice(departments)
+            # Generate a unique license number
+            while True:
+                license_number = f"LIC-{random.randint(10000, 99999)}"
+                if license_number not in used_license_numbers:
+                    used_license_numbers.add(license_number)
+                    break
+            doctor = MahalshifaDoctor.objects.create(
+                user=doctor_user,
+                license_number=license_number,
+                specialization=random.choice([
                     'Emergency', 'Surgery', 'Internal Medicine', 'Pediatrics',
                     'Cardiology', 'Neurology', 'Orthopedics', 'Radiology'
                 ]),
-                start_date=fake.date_between(start_date='-5y', end_date='today'),
-                active=True
+                qualification=random.choice([
+                    'MBBS', 'FCPS', 'MD', 'MS', 'MRCP', 'FRCS', 'Diploma'
+                ]),
+                experience_years=random.randint(1, 30),
+                hospital=hospital,
+                department=department,
+                is_available=random.choice([True, False]),
+                consultation_fee=random.randint(500, 5000)
             )
-            hospital_doctors.append(hospital_doctor)
+            hospital_doctors.append(doctor)
     
     # Create 200 Patients
     patients = []
     for i in range(200):
         patient = Patient.objects.create(
-            patient_id=f'PAT{i+1:04d}',
+            its_id=f'{random.randint(10000000, 99999999)}',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
+            arabic_name=fake.first_name(),
             date_of_birth=fake.date_of_birth(minimum_age=1, maximum_age=90),
+            gender=random.choice(['male', 'female', 'other']),
             phone_number=fake.phone_number()[:15],
             email=fake.email(),
             address=fake.address(),
-            emergency_contact=fake.name(),
-            emergency_phone=fake.phone_number()[:15],
-            hospital=random.choice(hospitals),
-            created_at=fake.date_time_between(start_date='-2y', end_date='today')
+            emergency_contact_name=fake.name(),
+            emergency_contact_phone=fake.phone_number()[:15],
+            emergency_contact_relationship=random.choice(['Father', 'Mother', 'Sibling', 'Spouse', 'Friend']),
+            blood_group=random.choice(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
+            allergies=fake.text(max_nb_chars=20),
+            chronic_conditions=fake.text(max_nb_chars=20),
+            current_medications=fake.text(max_nb_chars=20),
+            registered_moze=None,
+            is_active=True
         )
         patients.append(patient)
     
@@ -466,80 +522,88 @@ def create_hospital_data(users):
     for i in range(300):
         appointment = Appointment.objects.create(
             patient=random.choice(patients),
-            doctor=random.choice(users['doctor']),
-            hospital=random.choice(hospitals),
-            appointment_date=fake.date_time_between(start_date='-30d', end_date='+30d'),
+            doctor=random.choice(hospital_doctors),
+            moze=random.choice(moze_centers),
+            service=None,
+            appointment_date=fake.date_between(start_date='-1y', end_date='now'),
+            appointment_time=fake.time_object(),
+            duration_minutes=random.randint(15, 120),
             reason=fake.sentence(),
-            status=random.choice(appointment_statuses),
+            symptoms=fake.text(max_nb_chars=50),
             notes=fake.text(max_nb_chars=200)
         )
         appointments.append(appointment)
     
     print_progress(f"✅ Created hospital data: {len(hospitals)} hospitals, {len(patients)} patients, {len(appointments)} appointments")
 
-def create_doctor_directory_data(users):
+def create_doctor_directory_data(users, moze_centers):
     """Create doctor directory data"""
     print_progress("👨‍⚕️ Creating doctor directory...")
     
     # Create 100 Doctor Profiles
     doctors = []
-    specializations = [
-        'Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Dermatology',
-        'Psychiatry', 'Radiology', 'Surgery', 'Internal Medicine', 'Emergency Medicine',
-        'Oncology', 'Endocrinology', 'Gastroenterology', 'Pulmonology', 'Nephrology'
-    ]
-    
-    for doctor_user in users['doctor'][:50]:  # Create profiles for first 50 doctors
+    for doctor_user in users['doctor']:
         doctor = Doctor.objects.create(
             user=doctor_user,
-            license_number=f'LIC{random.randint(100000, 999999)}',
-            specialization=random.choice(specializations),
+            name=fake.name(),
+            its_id=f'{random.randint(10000000, 99999999)}',
+            specialty=random.choice(['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'General Medicine']),
+            qualification=random.choice(['MBBS', 'FCPS', 'MD', 'MS', 'MRCP', 'FRCS', 'Diploma']),
             experience_years=random.randint(1, 30),
-            qualification=random.choice([
-                'MBBS', 'MD', 'MS', 'FCPS', 'FRCS', 'PhD',
-                'MBBS, MD', 'MBBS, MS', 'MBBS, FCPS'
-            ]),
-            consultation_fee=random.randint(1000, 10000),
-            available_days='Monday,Tuesday,Wednesday,Thursday,Friday',
-            available_time_start='09:00',
-            available_time_end='17:00',
-            bio=fake.text(max_nb_chars=300),
-            verified=True
+            assigned_moze=random.choice(moze_centers),
+            is_verified=random.choice([True, False]),
+            is_available=random.choice([True, False]),
+            license_number=f"LIC-{random.randint(10000, 99999)}",
+            consultation_fee=random.randint(500, 5000),
+            phone=fake.phone_number()[:15],
+            email=fake.email(),
+            address=fake.address(),
+            languages_spoken=", ".join(fake.words(nb=3)),
+            bio=fake.text(max_nb_chars=100)
         )
         doctors.append(doctor)
     
     # Create 150 Directory Patients
     dir_patients = []
     for i in range(150):
-        patient = DirPatient.objects.create(
-            patient_id=f'DIR{i+1:04d}',
+        user = User.objects.create_user(
+            username=f'dir_patient_{i+1}',
+            password='test123',
+            email=f'dir_patient_{i+1}@example.com',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
+            role='patient'
+        )
+        patient = DirPatient.objects.create(
+            user=user,
             date_of_birth=fake.date_of_birth(minimum_age=1, maximum_age=90),
-            phone_number=fake.phone_number()[:15],
-            email=fake.email(),
-            address=fake.address(),
-            emergency_contact=fake.name(),
-            emergency_phone=fake.phone_number()[:15]
+            gender=random.choice(['M', 'F', 'O']),
+            blood_group=random.choice(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
+            emergency_contact=fake.phone_number()[:15],
+            medical_history=fake.text(max_nb_chars=50),
+            allergies=fake.text(max_nb_chars=20),
+            current_medications=fake.text(max_nb_chars=20)
         )
         dir_patients.append(patient)
     
     # Create 200 Medical Records
-    records = []
-    for i in range(200):
+    medical_records = []
+    for i in range(300):
         record = MedicalRecord.objects.create(
             patient=random.choice(dir_patients),
             doctor=random.choice(doctors),
-            visit_date=fake.date_between(start_date='-1y', end_date='today'),
+            appointment=None,
             diagnosis=fake.sentence(),
-            treatment=fake.text(max_nb_chars=200),
-            prescription=fake.text(max_nb_chars=150),
-            follow_up_date=fake.date_between(start_date='today', end_date='+30d'),
+            symptoms=fake.text(max_nb_chars=50),
+            treatment_plan=fake.text(max_nb_chars=100),
+            medications=fake.text(max_nb_chars=50),
+            follow_up_required=random.choice([True, False]),
+            follow_up_date=fake.date_between(start_date='today', end_date='+1y'),
             notes=fake.text(max_nb_chars=200)
         )
-        records.append(record)
+        medical_records.append(record)
     
-    print_progress(f"✅ Created doctor directory: {len(doctors)} profiles, {len(dir_patients)} patients, {len(records)} records")
+    print_progress(f"✅ Created doctor directory: {len(doctors)} profiles, {len(dir_patients)} patients, {len(medical_records)} records")
 
 def create_evaluation_data(users):
     """Create evaluation system data"""
@@ -551,13 +615,12 @@ def create_evaluation_data(users):
     
     for i in range(20):
         form = EvaluationForm.objects.create(
-            title=f'{fake.catch_phrase()} Evaluation {i+1}',
-            description=fake.text(max_nb_chars=200),
-            evaluation_type=random.choice(evaluation_types),
+            title=fake.sentence(nb_words=4),
+            description=fake.text(max_nb_chars=100),
             created_by=random.choice(users['admin']),
-            created_at=fake.date_time_between(start_date='-60d', end_date='-10d'),
-            deadline=fake.date_time_between(start_date='today', end_date='+30d'),
-            active=True
+            created_at=fake.date_time_between(start_date='-60d', end_date='-30d'),
+            is_active=True,
+            is_anonymous=random.choice([True, False])
         )
         evaluation_forms.append(form)
     
@@ -566,17 +629,21 @@ def create_evaluation_data(users):
     all_users = users['doctor'] + users['student'] + users['staff']
     
     for form in evaluation_forms:
-        # Each form gets 5-15 submissions
+        evaluators_used = set()
         for _ in range(random.randint(5, 15)):
+            possible_evaluators = [u for u in users['admin'] + users['doctor'] + users['staff'] if u not in evaluators_used]
+            if not possible_evaluators:
+                break
+            evaluator = random.choice(possible_evaluators)
+            evaluators_used.add(evaluator)
             submission = EvaluationSubmission.objects.create(
-                evaluation_form=form,
-                submitted_by=random.choice(all_users),
-                submission_data=fake.json(),
-                submitted_at=fake.date_time_between(
-                    start_date=form.created_at,
-                    end_date='now'
-                ),
-                score=random.randint(60, 100)
+                form=form,
+                evaluator=evaluator,
+                target_user=None,
+                target_moze=None,
+                total_score=random.uniform(60, 100),
+                comments=fake.text(max_nb_chars=100),
+                is_complete=True
             )
             submissions.append(submission)
     
@@ -586,6 +653,11 @@ def create_petition_data(users):
     """Create petition management data"""
     print_progress("📄 Creating petition data...")
     
+    # Ensure at least one PetitionCategory exists
+    categories = list(PetitionCategory.objects.all())
+    if not categories:
+        default_category = PetitionCategory.objects.create(name='General', description='General petitions')
+        categories = [default_category]
     # Create 100 Petitions
     petitions = []
     petition_categories = ['medical', 'administrative', 'academic', 'facility', 'other']
@@ -594,14 +666,15 @@ def create_petition_data(users):
     for i in range(100):
         petition = Petition.objects.create(
             title=f'Petition #{i+1}: {fake.sentence(nb_words=6)}',
-            description=fake.text(max_nb_chars=500),
-            category=random.choice(petition_categories),
-            submitted_by=random.choice(users['student'] + users['doctor'] + users['staff']),
-            assigned_to=random.choice(users['admin'] + users['aamil']),
-            status=random.choice(petition_statuses),
-            priority=random.choice(['low', 'medium', 'high', 'urgent']),
-            created_at=fake.date_time_between(start_date='-90d', end_date='today'),
-            updated_at=fake.date_time_between(start_date='-30d', end_date='today')
+            description=fake.text(max_nb_chars=200),
+            category=random.choice(categories),
+            created_by=random.choice(users['admin'] + users['doctor'] + users['staff']),
+            is_anonymous=random.choice([True, False]),
+            status=random.choice(['pending', 'in_progress', 'resolved', 'rejected']),
+            priority=random.choice(['low', 'medium', 'high']),
+            moze=None,
+            created_at=fake.date_time_between(start_date='-90d', end_date='now'),
+            updated_at=fake.date_time_between(start_date='-30d', end_date='now')
         )
         petitions.append(petition)
     
@@ -610,21 +683,16 @@ def create_petition_data(users):
     for petition in petitions:
         # Each petition gets 0-5 comments
         for _ in range(random.randint(0, 5)):
-            comment = PetitionComment.objects.create(
+            PetitionComment.objects.create(
                 petition=petition,
-                author=random.choice([petition.submitted_by, petition.assigned_to] + users['admin']),
-                content=fake.text(max_nb_chars=200),
-                is_internal=random.choice([True, False]),
-                created_at=fake.date_time_between(
-                    start_date=petition.created_at,
-                    end_date='now'
-                )
+                user=random.choice([petition.created_by] + users['admin']),
+                content=fake.text(max_nb_chars=100),
+                is_internal=random.choice([True, False])
             )
-            comments.append(comment)
     
     print_progress(f"✅ Created {len(petitions)} petitions with {len(comments)} comments")
 
-def create_photo_data(users):
+def create_photo_data(users, moze_centers):
     """Create photo gallery data"""
     print_progress("📸 Creating photo gallery data...")
     
@@ -638,11 +706,13 @@ def create_photo_data(users):
     albums = []
     for name in album_names:
         album = PhotoAlbum.objects.create(
-            title=name,
+            name=name,
             description=fake.text(max_nb_chars=200),
+            moze=random.choice(moze_centers),
             created_by=random.choice(users['admin'] + users['staff']),
-            created_at=fake.date_time_between(start_date='-1y', end_date='today'),
-            is_public=True
+            is_public=True,
+            allow_uploads=True,
+            event_date=fake.date_between(start_date='-1y', end_date='now')
         )
         albums.append(album)
     
@@ -663,19 +733,21 @@ def create_photo_data(users):
         # Each album gets 5-15 photos
         for i in range(random.randint(5, 15)):
             photo = Photo.objects.create(
-                album=album,
-                title=f'{fake.sentence(nb_words=3)} - Photo {i+1}',
+                title=fake.sentence(nb_words=3),
                 description=fake.text(max_nb_chars=100),
+                subject_tag=fake.word(),
+                moze=album.moze,
                 uploaded_by=album.created_by,
-                uploaded_at=fake.date_time_between(
-                    start_date=album.created_at,
-                    end_date='now'
-                )
+                location=fake.city(),
+                event_date=album.event_date,
+                photographer=fake.name(),
+                category=random.choice(['event', 'medical', 'infrastructure', 'team', 'other']),
+                is_public=True,
+                is_featured=random.choice([True, False]),
+                requires_permission=False
                 # Note: Not setting 'image' field as we don't have actual image files
             )
-            # Add random tags to photos
-            photo_tags = random.sample(tags, random.randint(1, 3))
-            photo.tags.set(photo_tags)
+            album.photos.add(photo)
             photos.append(photo)
     
     print_progress(f"✅ Created photo gallery: {len(albums)} albums, {len(photos)} photos, {len(tags)} tags")
@@ -698,12 +770,12 @@ def populate_database():
         users = create_users()
         create_students_data(users)
         create_surveys_data(users)
-        create_moze_data(users)
-        create_hospital_data(users)
-        create_doctor_directory_data(users)
+        moze_centers = create_moze_data(users)
+        create_hospital_data(users, moze_centers)
+        create_doctor_directory_data(users, moze_centers)
         create_evaluation_data(users)
         create_petition_data(users)
-        create_photo_data(users)
+        create_photo_data(users, moze_centers)
         
         # Calculate totals for summary
         total_users = User.objects.count()

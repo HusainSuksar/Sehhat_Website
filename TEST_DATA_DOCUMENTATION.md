@@ -1,6 +1,6 @@
 # 🏥 Umoor Sehhat - Test Data Documentation
 
-**Generated on:** 2025-07-26 08:28:36
+**Generated on:** 2025-07-28 08:21:35
 
 ## 📊 Test Data Summary
 
@@ -15,13 +15,13 @@ This database contains comprehensive test data for all 9 Django applications in 
 - **20 Aamil Users** (aamil_1 to aamil_20) - Password: `aamil123`
 - **15 Moze Coordinator Users** (coordinator_1 to coordinator_15) - Password: `coord123`
 
-**Total Users: 647**
+**Total Users: 797**
 
 ### 📚 Students App Data
 
 - **500 Student Profiles** with complete academic information
 - **10 Medical Courses** (ANAT101, PHYS102, BIOC103, etc.)
-- **Student Enrollments** for 300 students across multiple courses
+- **Student Enrollments** for students across multiple courses
 - **50 Academic Events** (lectures, workshops, seminars, etc.)
 - **Course Announcements** for each course
 
@@ -38,7 +38,7 @@ This database contains comprehensive test data for all 9 Django applications in 
   - Community Engagement Survey
   - Safety and Security Review
   - Future Improvement Suggestions
-- **Survey Responses** from multiple users (20-100 responses per survey)
+- **Survey Responses** from multiple users
 
 ### 🕌 Moze App Data
 
@@ -58,7 +58,7 @@ This database contains comprehensive test data for all 9 Django applications in 
 
 - **100 Doctor Profiles** with specializations and qualifications
 - **150 Directory Patients** 
-- **200 Medical Records** with treatment history
+- **300 Medical Records** with treatment history
 - Complete consultation and appointment system
 
 ### 📝 Evaluation App Data
@@ -136,7 +136,7 @@ python3 populate_test_data.py
 
 ## 📈 Performance Notes
 
-- Database size: ~1.6MB with full test data
+- Database size: Optimized with full test data
 - All relationships properly configured
 - Foreign key constraints maintained
 - Realistic data distribution for testing
@@ -144,4 +144,4 @@ python3 populate_test_data.py
 ---
 
 **System Status**: ✅ Ready for Testing  
-**Last Updated**: 2025-07-26 08:28:36
+**Last Updated**: 2025-07-28 08:21:35
