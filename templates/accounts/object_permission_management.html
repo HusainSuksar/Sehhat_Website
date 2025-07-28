@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Object Permission Management{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-4">
+    <h1 class="h3 mb-4">Object Permission Management</h1>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-2">
+                        <label for="id_user" class="form-label">User</label>
+                        {{ form.user }}
+                    </div>
+                    <div class="col-md-2">
+                        <label for="id_model" class="form-label">Model</label>
+                        {{ form.model }}
+                    </div>
+                    <div class="col-md-2">
+                        <label for="id_object_id" class="form-label">Object ID</label>
+                        {{ form.object_id }}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_permission" class="form-label">Permission (codename)</label>
+                        {{ form.permission }}
+                        <div class="form-text">e.g. change_doctor, view_student</div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="id_action" class="form-label">Action</label>
+                        {{ form.action }}
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-success">Apply</button>
+                    </div>
+                </div>
+            </form>
+            {% if result %}
+            <div class="alert alert-info mt-3">{{ result }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="alert alert-warning">
+        <strong>Note:</strong> You must know the correct permission codename (e.g. <code>change_doctor</code>, <code>view_student</code>, <code>delete_hospital</code>). You can find these in the Django admin or permissions list.
+    </div>
+</div>
+{% endblock %}

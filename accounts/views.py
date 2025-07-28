@@ -29,6 +29,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django import forms
+from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 
 
 class CustomLoginView(LoginView):
@@ -343,6 +344,74 @@ class PermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Template
         else:
             messages.error(request, "Failed to update permissions.")
         return redirect('accounts:permission_management')
+
+
+class ObjectPermissionForm(forms.Form):
+    user = forms.ModelChoiceField(queryset=User.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+    model = forms.ChoiceField(choices=[('doctor', 'Doctor'), ('student', 'Student'), ('hospital', 'Hospital')], widget=forms.Select(attrs={'class': 'form-control'}))
+    object_id = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    permission = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    action = forms.ChoiceField(choices=[('assign', 'Assign'), ('remove', 'Remove')], widget=forms.Select(attrs={'class': 'form-control'}))
+
+class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/object_permission_management.html'
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = ObjectPermissionForm()
+        context['result'] = None
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ObjectPermissionForm(request.POST)
+        result = None
+        if form.is_valid():
+            user = form.cleaned_data['user']
+            model = form.cleaned_data['model']
+            object_id = form.cleaned_data['object_id']
+            permission = form.cleaned_data['permission']
+            action = form.cleaned_data['action']
+            obj = None
+            if model == 'doctor':
+                from doctordirectory.models import Doctor
+                obj = Doctor.objects.filter(pk=object_id).first()
+            elif model == 'student':
+                from students.models import Student
+                obj = Student.objects.filter(pk=object_id).first()
+            elif model == 'hospital':
+                from mahalshifa.models import Hospital
+                obj = Hospital.objects.filter(pk=object_id).first()
+            if obj:
+                if action == 'assign':
+                    assign_perm(permission, user, obj)
+                    result = f"Assigned '{permission}' to {user} for {model} {object_id}."
+                else:
+                    remove_perm(permission, user, obj)
+                    result = f"Removed '{permission}' from {user} for {model} {object_id}."
+                # Audit log
+                AuditLog.objects.create(
+                    user=request.user,
+                    action='permission_change',
+                    object_type=model.title(),
+                    object_id=str(object_id),
+                    object_repr=str(obj),
+                    extra_data={
+                        'target_user': str(user),
+                        'permission': permission,
+                        'action': action
+                    }
+                )
+            else:
+                result = f"Object not found."
+        else:
+            result = "Invalid form submission."
+        context = self.get_context_data()
+        context['form'] = form
+        context['result'] = result
+        return self.render_to_response(context)
 
 
 @login_required
