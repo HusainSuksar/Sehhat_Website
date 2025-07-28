@@ -97,8 +97,7 @@
                     <h5 class="mb-3"><i class="fas fa-link me-2"></i>Quick Links</h5>
                     <div class="d-flex flex-wrap gap-2">
                         {% if user.is_admin %}
-                            <a href="{% url 'admin:index' %}" class="btn btn-outline-primary"><i class="fas fa-cogs me-1"></i> Admin Panel</a>
-                            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary"><i class="fas fa-users me-1"></i> Manage Users</a>
+                            <a href="{% url 'accounts:audit_log_list' %}" class="btn btn-outline-danger"><i class="fas fa-clipboard-list me-1"></i> Audit Logs</a>
                         {% endif %}
                         {% if user.is_aamil or user.is_moze_coordinator %}
                             <a href="{% url 'moze:list' %}" class="btn btn-outline-success"><i class="fas fa-mosque me-1"></i> Moze Centers</a>

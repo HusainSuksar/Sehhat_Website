@@ -11,7 +11,7 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse
 import json
 
-from .models import User, UserProfile
+from .models import User, UserProfile, AuditLog
 from .forms import (
     CustomLoginForm, UserRegistrationForm, UserProfileForm, 
     UserEditForm, ITSVerificationForm
@@ -24,6 +24,8 @@ from doctordirectory.models import Doctor as DirDoctor
 from surveys.models import Survey
 from araz.models import Petition
 from photos.models import PhotoAlbum
+
+from django.core.paginator import Paginator
 
 
 class CustomLoginView(LoginView):
@@ -241,6 +243,23 @@ class VerifyITSView(LoginRequiredMixin, TemplateView):
         return mock_database.get(its_id)
 
 
+class AuditLogListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/audit_log_list.html'
+    paginate_by = 30
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        logs = AuditLog.objects.select_related('user').all()
+        paginator = Paginator(logs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
+
+
 @login_required
 def dashboard_view(request):
     """Simple dashboard view"""
@@ -255,5 +274,6 @@ def dashboard_view(request):
         'total_surveys': Survey.objects.count(),
         'total_petitions': Petition.objects.count(),
         'total_albums': PhotoAlbum.objects.count(),
+        'show_audit_log_link': request.user.is_admin,
     }
     return render(request, 'accounts/dashboard.html', context)
