@@ -34,7 +34,7 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         user = self.request.user
         if user.is_admin:
-            return reverse_lazy('admin:index')
+            return reverse_lazy('accounts:dashboard')
         elif user.is_aamil:
             return reverse_lazy('moze:dashboard')
         elif user.is_moze_coordinator:
