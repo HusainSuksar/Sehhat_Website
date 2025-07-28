@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'evaluation',
     'araz',
     'students',
+    'guardian',
 ]
 
 MIDDLEWARE = [
@@ -209,3 +210,10 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 3600
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+]
+
+ANONYMOUS_USER_NAME = 'anonymous'

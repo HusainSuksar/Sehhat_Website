@@ -9,9 +9,14 @@ from django.views.generic import (
 )
 from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django import forms
+from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 import json
 
-from .models import User, UserProfile
+from .models import User, UserProfile, AuditLog
 from .forms import (
     CustomLoginForm, UserRegistrationForm, UserProfileForm, 
     UserEditForm, ITSVerificationForm
@@ -241,6 +246,178 @@ class VerifyITSView(LoginRequiredMixin, TemplateView):
         return mock_database.get(its_id)
 
 
+class AuditLogListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/audit_log_list.html'
+    paginate_by = 30
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        logs = AuditLog.objects.select_related('user').all()
+        paginator = Paginator(logs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
+
+
+class UserPermissionForm(forms.ModelForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+    role = forms.ChoiceField(
+        choices=User.ROLE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['role', 'groups', 'user_permissions']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['groups'].initial = self.instance.groups.all()
+            self.fields['user_permissions'].initial = self.instance.user_permissions.all()
+            self.fields['role'].initial = self.instance.role
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = self.cleaned_data['role']
+        if commit:
+            user.save()
+            user.groups.set(self.cleaned_data['groups'])
+            user.user_permissions.set(self.cleaned_data['user_permissions'])
+        return user
+
+class PermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/permission_management.html'
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        users = User.objects.all().select_related('profile').prefetch_related('groups', 'user_permissions')
+        context['users'] = users
+        context['groups'] = Group.objects.all()
+        context['permissions'] = Permission.objects.all()
+        context['form'] = None
+        user_id = self.request.GET.get('edit_user')
+        if user_id:
+            user = User.objects.get(pk=user_id)
+            context['form'] = UserPermissionForm(instance=user)
+            context['edit_user'] = user
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.POST.get('user_id')
+        user = User.objects.get(pk=user_id)
+        form = UserPermissionForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Permissions updated for {user.get_full_name()}.")
+            # Audit log for permission change
+            AuditLog.objects.create(
+                user=request.user,
+                action='permission_change',
+                object_type='User',
+                object_id=str(user.pk),
+                object_repr=str(user),
+                extra_data={
+                    'role': form.cleaned_data['role'],
+                    'groups': [g.name for g in form.cleaned_data['groups']],
+                    'permissions': [p.codename for p in form.cleaned_data['user_permissions']]
+                }
+            )
+        else:
+            messages.error(request, "Failed to update permissions.")
+        return redirect('accounts:permission_management')
+
+
+class ObjectPermissionForm(forms.Form):
+    user = forms.ModelChoiceField(queryset=User.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
+    model = forms.ChoiceField(choices=[('doctor', 'Doctor'), ('student', 'Student'), ('hospital', 'Hospital')], widget=forms.Select(attrs={'class': 'form-control'}))
+    object_id = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    permission = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    action = forms.ChoiceField(choices=[('assign', 'Assign'), ('remove', 'Remove')], widget=forms.Select(attrs={'class': 'form-control'}))
+
+class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'accounts/object_permission_management.html'
+
+    def test_func(self):
+        return self.request.user.is_admin
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = ObjectPermissionForm()
+        context['result'] = None
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = ObjectPermissionForm(request.POST)
+        result = None
+        if form.is_valid():
+            try:
+                user = form.cleaned_data['user']
+                model = form.cleaned_data['model']
+                object_id = form.cleaned_data['object_id']
+                permission = form.cleaned_data['permission']
+                action = form.cleaned_data['action']
+                
+                # Get the object based on model type
+                obj = None
+                if model == 'doctor':
+                    obj = DirDoctor.objects.filter(pk=object_id).first()
+                elif model == 'student':
+                    obj = Student.objects.filter(pk=object_id).first()
+                elif model == 'hospital':
+                    obj = Hospital.objects.filter(pk=object_id).first()
+                
+                if obj:
+                    if action == 'assign':
+                        assign_perm(permission, user, obj)
+                        result = f"Assigned '{permission}' to {user} for {model} {object_id}."
+                    else:
+                        remove_perm(permission, user, obj)
+                        result = f"Removed '{permission}' from {user} for {model} {object_id}."
+                    
+                    # Audit log
+                    AuditLog.objects.create(
+                        user=request.user,
+                        action='permission_change',
+                        object_type=model.title(),
+                        object_id=str(object_id),
+                        object_repr=str(obj),
+                        extra_data={
+                            'target_user': str(user),
+                            'permission': permission,
+                            'action': action
+                        }
+                    )
+                else:
+                    result = f"Object not found for {model} with ID {object_id}."
+            except Exception as e:
+                result = f"Error: {str(e)}"
+        else:
+            result = "Invalid form submission."
+        
+        context = self.get_context_data()
+        context['form'] = form
+        context['result'] = result
+        return self.render_to_response(context)
+
+
 @login_required
 def dashboard_view(request):
     """Simple dashboard view"""
@@ -255,5 +432,6 @@ def dashboard_view(request):
         'total_surveys': Survey.objects.count(),
         'total_petitions': Petition.objects.count(),
         'total_albums': PhotoAlbum.objects.count(),
+        'show_audit_log_link': request.user.is_admin,
     }
     return render(request, 'accounts/dashboard.html', context)

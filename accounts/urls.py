@@ -33,4 +33,13 @@ urlpatterns = [
     
     # ITS ID verification
     path('verify-its/', views.VerifyITSView.as_view(), name='verify_its'),
+
+    # Audit log (admin only)
+    path('audit-logs/', views.AuditLogListView.as_view(), name='audit_log_list'),
+
+    # Permission management (admin only)
+    path('permissions/', views.PermissionManagementView.as_view(), name='permission_management'),
+
+    # Object permission management (admin only)
+    path('object-permissions/', views.ObjectPermissionManagementView.as_view(), name='object_permission_management'),
 ]

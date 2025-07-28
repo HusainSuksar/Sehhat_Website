@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Permission Management{% endblock %}
+{% block content %}
+<div class="container-fluid px-2 px-md-4">
+    <h1 class="h3 mb-4">Permission Management</h1>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Groups</th>
+                            <th>Permissions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.get_full_name|default:user.username }}</td>
+                            <td>{{ user.get_role_display }}</td>
+                            <td>{% for group in user.groups.all %}<span class="badge bg-info me-1">{{ group.name }}</span>{% empty %}-{% endfor %}</td>
+                            <td>
+                                {% for perm in user.user_permissions.all %}
+                                    <span class="badge bg-secondary me-1">{{ perm.codename }}</span>
+                                {% empty %}-{% endfor %}
+                            </td>
+                            <td>
+                                <a href="?edit_user={{ user.pk }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% if form and edit_user %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5>Edit Permissions for {{ edit_user.get_full_name|default:edit_user.username }}</h5>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" value="{{ edit_user.pk }}">
+                <div class="mb-3">
+                    <label for="id_role" class="form-label">Role</label>
+                    {{ form.role }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_groups" class="form-label">Groups</label>
+                    {{ form.groups }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_user_permissions" class="form-label">Permissions</label>
+                    {{ form.user_permissions }}
+                </div>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <a href="{% url 'accounts:permission_management' %}" class="btn btn-secondary ms-2">Cancel</a>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
