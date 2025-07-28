@@ -31,8 +31,8 @@ from django.db import connection
 # Import all models
 from accounts.models import User, UserProfile
 from students.models import Student, Course, Enrollment, Assignment, Grade, Event, Announcement
-from surveys.models import Survey, SurveyResponse, SurveyQuestion
-from mahalshifa.models import Hospital, Patient, Appointment, HospitalDoctor
+from surveys.models import Survey, SurveyResponse
+from mahalshifa.models import Hospital, Patient, Appointment, Doctor
 from moze.models import Moze, MozeComment
 from doctordirectory.models import Doctor, Patient as DirPatient, MedicalRecord
 from evaluation.models import EvaluationForm, EvaluationSubmission
@@ -59,8 +59,8 @@ def clear_database():
         MedicalRecord, DirPatient, Doctor,
         Photo, PhotoTag, PhotoAlbum,
         MozeComment, Moze,
-        Appointment, HospitalDoctor, Patient, Hospital,
-        SurveyResponse, SurveyQuestion, Survey,
+        Appointment, Patient, Hospital,
+        SurveyResponse, Survey,
         Grade, Assignment, Announcement, Event, Enrollment, Course, Student,
         UserProfile, User,
     ]
@@ -239,9 +239,7 @@ def create_students_data(users):
             code=code,
             name=name,
             description=description,
-            credits=random.randint(2, 6),
-            semester=random.choice(['fall', 'spring', 'summer']),
-            year=random.randint(2023, 2025)
+            credits=random.randint(2, 6)
         )
         courses.append(course)
     
@@ -255,9 +253,8 @@ def create_students_data(users):
             enrollment = Enrollment.objects.create(
                 student=student,
                 course=course,
-                enrollment_date=fake.date_between(start_date='-1y', end_date='today'),
                 status=random.choice(['enrolled', 'completed', 'dropped']),
-                grade=random.choice(['A', 'B', 'C', 'D', 'F', None])
+                grade=random.choice(['A', 'B', 'C', 'D', 'F', ''])
             )
             enrollments.append(enrollment)
     
@@ -322,16 +319,25 @@ def create_surveys_data(users):
         )
         surveys.append(survey)
         
-        # Create questions for each survey
+        # Create questions for each survey (stored as JSON in Survey model)
+        questions = []
         question_types = ['text', 'multiple_choice', 'rating', 'yes_no']
         for q in range(random.randint(3, 8)):
-            SurveyQuestion.objects.create(
-                survey=survey,
-                question_text=fake.sentence() + '?',
-                question_type=random.choice(question_types),
-                required=random.choice([True, False]),
-                order=q + 1
-            )
+            question = {
+                "id": q + 1,
+                "type": random.choice(question_types),
+                "question": fake.sentence() + '?',
+                "required": random.choice([True, False]),
+                "options": []
+            }
+            if question["type"] == "multiple_choice":
+                question["options"] = [fake.word() for _ in range(random.randint(2, 5))]
+            elif question["type"] == "rating":
+                question["options"] = ["1", "2", "3", "4", "5"]
+            questions.append(question)
+        
+        survey.questions = questions
+        survey.save()
     
     # Create Survey Responses (20-100 responses per survey)
     total_responses = 0
