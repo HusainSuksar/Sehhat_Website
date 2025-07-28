@@ -410,8 +410,8 @@ def schedule_management(request):
     
     availabilities = DoctorAvailability.objects.filter(
         doctor=doctor,
-        date__range=[month_start, month_end]
-    ).order_by('date', 'start_time')
+        is_active=True
+    ).order_by('day_of_week', 'start_time')
     
     context = {
         'doctor': doctor,
