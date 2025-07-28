@@ -61,7 +61,7 @@
                         <div class="mb-3 p-3 border-start border-primary">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <h6><a href="#" class="text-decoration-none">{{ survey.title }}</a></h6>
+                                    <h6><a href="{% url 'surveys:detail' survey.pk %}" class="text-decoration-none">{{ survey.title }}</a></h6>
                                     <p class="text-muted mb-2">{{ survey.description|truncatewords:15 }}</p>
                                     <small class="text-muted">
                                         <i class="fas fa-user"></i> {{ survey.created_by.get_full_name }} | 
@@ -97,15 +97,15 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         {% if pending_surveys > 0 %}
-                            <a href="#" class="btn btn-primary">
+                            <a href="#" class="btn btn-primary disabled">
                                 <i class="fas fa-clipboard-check"></i> Take Pending Surveys ({{ pending_surveys }})
-                            </a>
+                            </a> <!-- Not implemented: needs user-specific survey logic -->
                         {% endif %}
-                        <a href="#" class="btn btn-outline-info">
+                        <a href="{% url 'surveys:list' %}" class="btn btn-outline-info">
                             <i class="fas fa-chart-bar"></i> View Results
                         </a>
                         {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
-                            <a href="#" class="btn btn-outline-success">
+                            <a href="{% url 'surveys:create' %}" class="btn btn-outline-success">
                                 <i class="fas fa-plus"></i> Create New Survey
                             </a>
                         {% endif %}

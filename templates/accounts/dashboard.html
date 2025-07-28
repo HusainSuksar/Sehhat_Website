@@ -101,18 +101,18 @@
                             <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary"><i class="fas fa-users me-1"></i> Manage Users</a>
                         {% endif %}
                         {% if user.is_aamil or user.is_moze_coordinator %}
-                            <a href="#" class="btn btn-outline-success"><i class="fas fa-mosque me-1"></i> Moze Centers</a>
-                            <a href="#" class="btn btn-outline-info"><i class="fas fa-camera me-1"></i> Photos</a>
+                            <a href="{% url 'moze:list' %}" class="btn btn-outline-success"><i class="fas fa-mosque me-1"></i> Moze Centers</a>
+                            <a href="{% url 'photos:album_list' %}" class="btn btn-outline-info"><i class="fas fa-camera me-1"></i> Photos</a>
                         {% endif %}
                         {% if user.is_doctor %}
-                            <a href="#" class="btn btn-outline-warning"><i class="fas fa-user-md me-1"></i> Patients</a>
-                            <a href="#" class="btn btn-outline-primary"><i class="fas fa-calendar me-1"></i> Schedule</a>
+                            <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-outline-warning"><i class="fas fa-user-md me-1"></i> Patients</a>
+                            <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-outline-primary"><i class="fas fa-calendar me-1"></i> Schedule</a>
                         {% endif %}
                         {% if user.is_student %}
-                            <a href="#" class="btn btn-outline-success"><i class="fas fa-graduation-cap me-1"></i> Profile</a>
-                            <a href="#" class="btn btn-outline-info"><i class="fas fa-hands-helping me-1"></i> Aid Requests</a>
+                            <a href="{% url 'students:profile' %}" class="btn btn-outline-success"><i class="fas fa-graduation-cap me-1"></i> Profile</a>
+                            <a href="#" class="btn btn-outline-info disabled"><i class="fas fa-hands-helping me-1"></i> Aid Requests</a> <!-- Not implemented -->
                         {% endif %}
-                        <a href="#" class="btn btn-outline-secondary"><i class="fas fa-poll me-1"></i> Surveys</a>
+                        <a href="{% url 'surveys:survey_list' %}" class="btn btn-outline-secondary"><i class="fas fa-poll me-1"></i> Surveys</a>
                     </div>
                 </div>
             </div>
