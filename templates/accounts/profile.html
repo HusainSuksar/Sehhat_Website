@@ -102,7 +102,7 @@
                 {% endif %}
                 
                 <div class="col-md-3 mb-3">
-                    <a href="#" class="card text-decoration-none h-100">
+                    <a href="{% url 'surveys:dashboard' %}" class="card text-decoration-none h-100">
                         <div class="card-body text-center">
                             <i class="fas fa-poll fa-2x text-secondary mb-2"></i>
                             <h6 class="card-title">Surveys</h6>
@@ -319,12 +319,12 @@
                             <i class="fas fa-users me-2"></i>Manage Users
                         </a>
                         {% endif %}
-                        <a href="#" class="list-group-item list-group-item-action">
+                        <a href="#" class="list-group-item list-group-item-action disabled">
                             <i class="fas fa-bell me-2"></i>Notifications
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
+                        </a> <!-- Not implemented -->
+                        <a href="#" class="list-group-item list-group-item-action disabled">
                             <i class="fas fa-question-circle me-2"></i>Help & Support
-                        </a>
+                        </a> <!-- Not implemented -->
                         <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action text-danger">
                             <i class="fas fa-sign-out-alt me-2"></i>Logout
                         </a>

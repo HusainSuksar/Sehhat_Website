@@ -138,9 +138,15 @@
                         </a>
                         
                         {% if appointment.status == 'completed' %}
-                        <a href="#" class="btn btn-outline-success">
+                        <a href="{% url 'doctordirectory:add_medical_record' appointment.patient.pk %}" class="btn btn-outline-success">
                             <i class="fas fa-file-medical"></i> Add Medical Record
                         </a>
+                        <a href="#" class="btn btn-outline-info disabled">
+                            <i class="fas fa-prescription"></i> Create Prescription
+                        </a> <!-- Not implemented -->
+                        <a href="#" class="btn btn-outline-warning disabled">
+                            <i class="fas fa-flask"></i> Order Lab Tests
+                        </a> <!-- Not implemented -->
                         {% endif %}
                     </div>
                     {% endif %}
@@ -217,12 +223,12 @@
                         <a href="{% url 'doctordirectory:add_medical_record' appointment.patient.pk %}" class="btn btn-outline-success">
                             <i class="fas fa-plus"></i> Add Medical Record
                         </a>
-                        <a href="#" class="btn btn-outline-info">
+                        <a href="#" class="btn btn-outline-info disabled">
                             <i class="fas fa-prescription"></i> Create Prescription
-                        </a>
-                        <a href="#" class="btn btn-outline-warning">
+                        </a> <!-- Not implemented -->
+                        <a href="#" class="btn btn-outline-warning disabled">
                             <i class="fas fa-flask"></i> Order Lab Tests
-                        </a>
+                        </a> <!-- Not implemented -->
                         {% endif %}
                         
                         <a href="{% url 'doctordirectory:create_appointment' appointment.doctor.pk %}" class="btn btn-outline-secondary">
