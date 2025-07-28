@@ -16,60 +16,76 @@
     <!-- Stat Cards -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center">
-                <div class="mb-2"><i class="fas fa-users fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_users|default:'--' }}</h4>
-                <small>Users</small>
-            </div>
+            <a href="{% url 'accounts:user_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center h-100">
+                    <div class="mb-2"><i class="fas fa-users fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_users|default:'--' }}</h4>
+                    <small>Users</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-success">
-                <div class="mb-2"><i class="fas fa-user-graduate fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_students|default:'--' }}</h4>
-                <small>Students</small>
-            </div>
+            <a href="{% url 'students:student_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-success h-100">
+                    <div class="mb-2"><i class="fas fa-user-graduate fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_students|default:'--' }}</h4>
+                    <small>Students</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-info">
-                <div class="mb-2"><i class="fas fa-user-md fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_doctors|default:'--' }}</h4>
-                <small>Doctors</small>
-            </div>
+            <a href="{% url 'doctordirectory:doctor_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-info h-100">
+                    <div class="mb-2"><i class="fas fa-user-md fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_doctors|default:'--' }}</h4>
+                    <small>Doctors</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-warning">
-                <div class="mb-2"><i class="fas fa-hospital fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_hospitals|default:'--' }}</h4>
-                <small>Hospitals</small>
-            </div>
+            <a href="{% url 'mahalshifa:hospital_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-warning h-100">
+                    <div class="mb-2"><i class="fas fa-hospital fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_hospitals|default:'--' }}</h4>
+                    <small>Hospitals</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-primary">
-                <div class="mb-2"><i class="fas fa-mosque fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_moze|default:'--' }}</h4>
-                <small>Moze Centers</small>
-            </div>
+            <a href="{% url 'moze:moze_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-primary h-100">
+                    <div class="mb-2"><i class="fas fa-mosque fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_moze|default:'--' }}</h4>
+                    <small>Moze Centers</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-secondary">
-                <div class="mb-2"><i class="fas fa-poll fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_surveys|default:'--' }}</h4>
-                <small>Surveys</small>
-            </div>
+            <a href="{% url 'surveys:survey_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-secondary h-100">
+                    <div class="mb-2"><i class="fas fa-poll fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_surveys|default:'--' }}</h4>
+                    <small>Surveys</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-danger">
-                <div class="mb-2"><i class="fas fa-gavel fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_petitions|default:'--' }}</h4>
-                <small>Petitions</small>
-            </div>
+            <a href="{% url 'araz:petition_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-danger h-100">
+                    <div class="mb-2"><i class="fas fa-gavel fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_petitions|default:'--' }}</h4>
+                    <small>Petitions</small>
+                </div>
+            </a>
         </div>
         <div class="col-6 col-md-4 col-lg-3">
-            <div class="dashboard-card text-center bg-dark">
-                <div class="mb-2"><i class="fas fa-images fa-2x"></i></div>
-                <h4 class="mb-0">{{ total_albums|default:'--' }}</h4>
-                <small>Photo Albums</small>
-            </div>
+            <a href="{% url 'photos:album_list' %}" class="text-decoration-none">
+                <div class="dashboard-card text-center bg-dark h-100">
+                    <div class="mb-2"><i class="fas fa-images fa-2x"></i></div>
+                    <h4 class="mb-0">{{ total_albums|default:'--' }}</h4>
+                    <small>Photo Albums</small>
+                </div>
+            </a>
         </div>
     </div>
 
