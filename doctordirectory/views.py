@@ -200,13 +200,12 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
         doctor = self.object
         today = timezone.now().date()
         
-        # Get upcoming availability
-        upcoming_availability = DoctorAvailability.objects.filter(
+        # Get upcoming availability (use DoctorSchedule, not DoctorAvailability)
+        upcoming_availability = DoctorSchedule.objects.filter(
             doctor=doctor,
             date__gte=today,
             is_available=True
         ).order_by('date', 'start_time')[:7]  # Next 7 available slots
-        
         context['upcoming_availability'] = upcoming_availability
         
         # Recent patient feedback/reviews (if implemented)
