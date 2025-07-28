@@ -17,6 +17,14 @@ from .forms import (
     UserEditForm, ITSVerificationForm
 )
 
+from students.models import Student, Course
+from moze.models import Moze
+from mahalshifa.models import Hospital
+from doctordirectory.models import Doctor as DirDoctor
+from surveys.models import Survey
+from araz.models import Petition
+from photos.models import PhotoAlbum
+
 
 class CustomLoginView(LoginView):
     """Custom login view with role-based redirection"""
@@ -238,6 +246,14 @@ def dashboard_view(request):
     """Simple dashboard view"""
     context = {
         'user': request.user,
-        'role_display': request.user.get_role_display()
+        'role_display': request.user.get_role_display(),
+        'total_users': User.objects.count(),
+        'total_students': Student.objects.count(),
+        'total_doctors': DirDoctor.objects.count(),
+        'total_moze': Moze.objects.count(),
+        'total_hospitals': Hospital.objects.count(),
+        'total_surveys': Survey.objects.count(),
+        'total_petitions': Petition.objects.count(),
+        'total_albums': PhotoAlbum.objects.count(),
     }
     return render(request, 'accounts/dashboard.html', context)
