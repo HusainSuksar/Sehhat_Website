@@ -9,7 +9,65 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
-            <p>Schedule management features will be displayed here.</p>
+            <h5>Current Month's Schedules</h5>
+            {% if schedules %}
+            <table class="table table-bordered table-sm mb-4">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Moze</th>
+                        <th>Type</th>
+                        <th>Available?</th>
+                        <th>Max Patients</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in schedules %}
+                    <tr>
+                        <td>{{ s.date }}</td>
+                        <td>{{ s.start_time }}</td>
+                        <td>{{ s.end_time }}</td>
+                        <td>{{ s.moze }}</td>
+                        <td>{{ s.get_schedule_type_display }}</td>
+                        <td>{% if s.is_available %}Yes{% else %}No{% endif %}</td>
+                        <td>{{ s.max_patients }}</td>
+                        <td>{{ s.notes|default:'-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No schedules for this month.</p>
+            {% endif %}
+
+            <h5>Weekly Availabilities</h5>
+            {% if availabilities %}
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Day of Week</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Active?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in availabilities %}
+                    <tr>
+                        <td>{{ a.get_day_of_week_display }}</td>
+                        <td>{{ a.start_time }}</td>
+                        <td>{{ a.end_time }}</td>
+                        <td>{% if a.is_active %}Yes{% else %}No{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No weekly availabilities set.</p>
+            {% endif %}
         </div>
     </div>
 </div>
