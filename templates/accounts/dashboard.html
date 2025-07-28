@@ -1,15 +1,115 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">🏠 Admin Dashboard</h1>
+<div class="container-fluid px-2 px-md-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 col-md-8">
+            <h1 class="h3 mb-1 text-gray-800">🏠 Welcome, {{ user.get_full_name|default:user.username }}!</h1>
+            <span class="role-badge">{{ role_display }}</span>
+        </div>
+        <div class="col-12 col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'accounts:profile' %}" class="btn btn-primary me-2 mb-2 mb-md-0"><i class="fas fa-user me-1"></i> Profile</a>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary"><i class="fas fa-sign-out-alt me-1"></i> Logout</a>
         </div>
     </div>
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <p>Administrative dashboard content will be displayed here.</p>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center">
+                <div class="mb-2"><i class="fas fa-users fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_users|default:'--' }}</h4>
+                <small>Users</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-success">
+                <div class="mb-2"><i class="fas fa-user-graduate fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_students|default:'--' }}</h4>
+                <small>Students</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-info">
+                <div class="mb-2"><i class="fas fa-user-md fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_doctors|default:'--' }}</h4>
+                <small>Doctors</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-warning">
+                <div class="mb-2"><i class="fas fa-hospital fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_hospitals|default:'--' }}</h4>
+                <small>Hospitals</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-primary">
+                <div class="mb-2"><i class="fas fa-mosque fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_moze|default:'--' }}</h4>
+                <small>Moze Centers</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-secondary">
+                <div class="mb-2"><i class="fas fa-poll fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_surveys|default:'--' }}</h4>
+                <small>Surveys</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-danger">
+                <div class="mb-2"><i class="fas fa-gavel fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_petitions|default:'--' }}</h4>
+                <small>Petitions</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="dashboard-card text-center bg-dark">
+                <div class="mb-2"><i class="fas fa-images fa-2x"></i></div>
+                <h4 class="mb-0">{{ total_albums|default:'--' }}</h4>
+                <small>Photo Albums</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links (role-based) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-link me-2"></i>Quick Links</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if user.is_admin %}
+                            <a href="{% url 'admin:index' %}" class="btn btn-outline-primary"><i class="fas fa-cogs me-1"></i> Admin Panel</a>
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary"><i class="fas fa-users me-1"></i> Manage Users</a>
+                        {% endif %}
+                        {% if user.is_aamil or user.is_moze_coordinator %}
+                            <a href="#" class="btn btn-outline-success"><i class="fas fa-mosque me-1"></i> Moze Centers</a>
+                            <a href="#" class="btn btn-outline-info"><i class="fas fa-camera me-1"></i> Photos</a>
+                        {% endif %}
+                        {% if user.is_doctor %}
+                            <a href="#" class="btn btn-outline-warning"><i class="fas fa-user-md me-1"></i> Patients</a>
+                            <a href="#" class="btn btn-outline-primary"><i class="fas fa-calendar me-1"></i> Schedule</a>
+                        {% endif %}
+                        {% if user.is_student %}
+                            <a href="#" class="btn btn-outline-success"><i class="fas fa-graduation-cap me-1"></i> Profile</a>
+                            <a href="#" class="btn btn-outline-info"><i class="fas fa-hands-helping me-1"></i> Aid Requests</a>
+                        {% endif %}
+                        <a href="#" class="btn btn-outline-secondary"><i class="fas fa-poll me-1"></i> Surveys</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info shadow-sm">
+                <i class="fas fa-info-circle me-2"></i>
+                This dashboard provides a quick overview and access to all major modules of the Umoor Sehhat Digital System. Use the quick links above to navigate.
+            </div>
         </div>
     </div>
 </div>
