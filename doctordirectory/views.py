@@ -33,100 +33,68 @@ class DoctorAccessMixin(UserPassesTestMixin):
 
 @login_required
 def dashboard(request):
-    """Doctor dashboard with patient management and scheduling"""
+    """Doctor directory dashboard"""
     user = request.user
     
-    if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to access the doctor dashboard.")
-        return redirect('/')
-    
     # Get doctor profile
-    if user.is_doctor:
+    try:
+        from .models import Doctor
+        doctor_profile = Doctor.objects.get(user=user)
+    except Doctor.DoesNotExist:
+        # Create doctor profile if doesn't exist
         try:
-            doctor = Doctor.objects.get(user=user)
-        except Doctor.DoesNotExist:
-            # Create doctor profile if doesn't exist
-            doctor = Doctor.objects.create(
+            doctor_profile = Doctor.objects.create(
                 user=user,
                 name=user.get_full_name(),
-                its_id=user.its_id if user.its_id else '00000000',
-                specialty='General Medicine'
+                specialization="General Medicine"
             )
-    else:
-        doctor = None
+        except Exception as e:
+            print(f"Error creating doctor profile for user {user.username}: {e}")
+            doctor_profile = None
     
-    # Statistics
-    today = timezone.now().date()
-    week_start = today - timedelta(days=today.weekday())
-    week_end = week_start + timedelta(days=6)
+    # Get patient profile if user is also a patient
+    try:
+        patient_profile = user.patient_profile
+    except AttributeError:
+        patient_profile = None
+    except Exception as e:
+        print(f"Error loading patient profile for user {user.username}: {e}")
+        patient_profile = None
     
-    if doctor:
-        # Doctor-specific stats
-        todays_appointments = Appointment.objects.filter(
-            doctor=doctor,
-            appointment_date=today,
-            status__in=['scheduled', 'confirmed']
+    # Get statistics
+    if doctor_profile:
+        total_patients = Patient.objects.filter(appointments__doctor=doctor_profile).distinct().count()
+        total_appointments = Appointment.objects.filter(doctor=doctor_profile).count()
+        today_appointments = Appointment.objects.filter(
+            doctor=doctor_profile,
+            appointment_date=timezone.now().date()
         ).count()
-        
-        weekly_appointments = Appointment.objects.filter(
-            doctor=doctor,
-            appointment_date__range=[week_start, week_end]
-        ).count()
-        
-        total_patients = Patient.objects.filter(
-            appointments__doctor=doctor
-        ).distinct().count()
-        
         pending_appointments = Appointment.objects.filter(
-            doctor=doctor,
-            status='pending'
+            doctor=doctor_profile,
+            status='scheduled'
         ).count()
-        
-        # Recent appointments
-        recent_appointments = Appointment.objects.filter(
-            doctor=doctor
-        ).select_related('patient').order_by('-appointment_date', '-appointment_time')[:5]
-        
-        # Recent patient logs
-        recent_logs = PatientLog.objects.filter(
-            seen_by=doctor
-        ).select_related('seen_by').order_by('-timestamp')[:5]
-        
     else:
-        # Admin view - all doctors stats
-        todays_appointments = Appointment.objects.filter(
-            appointment_date=today,
-            status__in=['scheduled', 'confirmed']
-        ).count()
-        
-        weekly_appointments = Appointment.objects.filter(
-            appointment_date__range=[week_start, week_end]
-        ).count()
-        
-        total_patients = Patient.objects.count()
-        pending_appointments = Appointment.objects.filter(status='pending').count()
-        recent_appointments = Appointment.objects.select_related('patient', 'doctor').order_by('-appointment_date', '-appointment_time')[:5]
-        recent_logs = PatientLog.objects.select_related('seen_by', 'moze').order_by('-timestamp')[:5]
+        total_patients = 0
+        total_appointments = 0
+        today_appointments = 0
+        pending_appointments = 0
     
-    # Today's schedule
-    todays_schedule = []
-    if doctor:
-        todays_appointments_detailed = Appointment.objects.filter(
-            doctor=doctor,
-            appointment_date=today
-        ).select_related('patient').order_by('appointment_time')
-        todays_schedule = todays_appointments_detailed
+    # Get recent appointments
+    if doctor_profile:
+        recent_appointments = Appointment.objects.filter(
+            doctor=doctor_profile
+        ).select_related('patient__user_account').order_by('-appointment_date')[:5]
+    else:
+        recent_appointments = []
     
     context = {
-        'doctor': doctor,
-        'todays_appointments': todays_appointments,
-        'weekly_appointments': weekly_appointments,
+        'doctor_profile': doctor_profile,
+        'patient_profile': patient_profile,
         'total_patients': total_patients,
+        'total_appointments': total_appointments,
+        'today_appointments': today_appointments,
         'pending_appointments': pending_appointments,
         'recent_appointments': recent_appointments,
-        'recent_logs': recent_logs,
-        'todays_schedule': todays_schedule,
-        'today': today,
     }
     
     return render(request, 'doctordirectory/dashboard.html', context)
@@ -279,55 +247,60 @@ def patient_list(request):
 
 @login_required
 def patient_detail(request, pk):
-    """Detailed view of a patient with medical history"""
+    """Detailed view of a specific patient"""
+    try:
+        patient = Patient.objects.get(pk=pk)
+    except Patient.DoesNotExist:
+        messages.error(request, "Patient not found.")
+        return redirect('doctordirectory:patient_list')
+    
     user = request.user
     
-    if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to view patient details.")
-        return redirect('/')
-    
-    patient = get_object_or_404(Patient, pk=pk)
-    
-    # Check if doctor has access to this patient
-    if user.is_doctor:
+    # Check permissions
+    if user.role == 'admin':
+        pass  # Admin can see all patients
+    elif user.role == 'doctor':
         try:
-            doctor = Doctor.objects.get(user=user)
-            if not Appointment.objects.filter(doctor=doctor, patient=patient).exists():
-                messages.error(request, "You don't have access to this patient's records.")
+            from .models import Doctor
+            doctor_profile = Doctor.objects.get(user=user)
+            if not patient.appointments.filter(doctor=doctor_profile).exists():
+                messages.error(request, "You don't have permission to view this patient.")
                 return redirect('doctordirectory:patient_list')
         except Doctor.DoesNotExist:
             messages.error(request, "Doctor profile not found.")
-            return redirect('/')
+            return redirect('doctordirectory:patient_list')
+        except Exception as e:
+            print(f"Error checking doctor permissions for user {user.username}: {e}")
+            messages.error(request, "Error checking permissions.")
+            return redirect('doctordirectory:patient_list')
+    else:
+        # Patients can only see their own record
+        try:
+            if patient.user_account != user:
+                messages.error(request, "You don't have permission to view this patient.")
+                return redirect('doctordirectory:patient_list')
+        except AttributeError:
+            messages.error(request, "You don't have permission to view this patient.")
+            return redirect('doctordirectory:patient_list')
     
-    # Get patient's medical history
-    appointments = Appointment.objects.filter(
-        patient=patient
-    ).select_related('doctor').order_by('-appointment_date', '-appointment_time')
+    # Get patient's appointments
+    try:
+        appointments = patient.appointments.select_related('doctor__user').order_by('-appointment_date')
+    except Exception as e:
+        print(f"Error loading appointments for patient {patient.pk}: {e}")
+        appointments = []
     
-    medical_records = MedicalRecord.objects.filter(
-        patient=patient
-    ).select_related('doctor').order_by('-created_at')
-    
-    prescriptions = Prescription.objects.filter(
-        patient=patient
-    ).select_related('doctor').order_by('-created_at')
-    
-    lab_tests = LabTest.objects.filter(
-        patient=patient
-    ).select_related('doctor').order_by('-test_date')
-    
-    vital_signs = VitalSigns.objects.filter(
-        patient=patient
-    ).order_by('-recorded_at')[:10]  # Last 10 vitals
+    # Get patient's medical records
+    try:
+        medical_records = patient.medical_records.select_related('doctor__user').order_by('-created_at')
+    except Exception as e:
+        print(f"Error loading medical records for patient {patient.pk}: {e}")
+        medical_records = []
     
     context = {
         'patient': patient,
-        'appointments': appointments[:10],  # Recent 10
-        'medical_records': medical_records[:5],  # Recent 5
-        'prescriptions': prescriptions[:5],  # Recent 5
-        'lab_tests': lab_tests[:5],  # Recent 5
-        'vital_signs': vital_signs,
-        'can_edit': user.is_doctor or user.is_admin,
+        'appointments': appointments,
+        'medical_records': medical_records,
     }
     
     return render(request, 'doctordirectory/patient_detail.html', context)

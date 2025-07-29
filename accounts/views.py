@@ -90,13 +90,21 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             try:
                 student_profile = user.student_profile
                 context['student_profile'] = student_profile
-            except:
+            except AttributeError:
+                # User doesn't have a student profile
+                pass
+            except Exception as e:
+                print(f"Error loading student profile for user {user.username}: {e}")
                 pass
         elif user.is_doctor:
             try:
                 doctor_profile = user.doctor_profile
                 context['doctor_profile'] = doctor_profile
-            except:
+            except AttributeError:
+                # User doesn't have a doctor profile
+                pass
+            except Exception as e:
+                print(f"Error loading doctor profile for user {user.username}: {e}")
                 pass
         
         return context

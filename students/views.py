@@ -156,52 +156,17 @@ class StudentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        # Base queryset based on user role
-        if user.role == "admin":
-            queryset = Student.objects.all()
-        elif user.role == "aamil" or user.role == "moze_coordinator":
-            queryset = Student.objects.filter(
-                Q(user__role="aamil") | Q(user__role="moze_coordinator")
-            )
+        if user.role == 'admin':
+            return Student.objects.all()
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+            return Student.objects.all()
         else:
-            # Students can see classmates in same courses
-            student_profile = Student.objects.filter(user=user).first()
-            if student_profile:
-                # Get students enrolled in same courses
-                course_ids = Enrollment.objects.filter(
-                    student=student_profile
-                ).values_list('course_id', flat=True)
-                queryset = Student.objects.filter(
-                    enrollments__course_id__in=course_ids
-                ).distinct()
-            else:
-                queryset = Student.objects.none()
-        
-        # Apply filters
-        moze_filter = self.request.GET.get('moze')
-        if moze_filter:
-            queryset = queryset.filter(moze_id=moze_filter)
-        
-        status_filter = self.request.GET.get('status')
-        if status_filter == 'active':
-            queryset = queryset.filter(is_active=True)
-        elif status_filter == 'inactive':
-            queryset = queryset.filter(is_active=False)
-        
-        year_filter = self.request.GET.get('year')
-        if year_filter:
-            queryset = queryset.filter(year_of_study=year_filter)
-        
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=search) |
-                Q(user__last_name__icontains=search) |
-                Q(user__its_id__icontains=search) |
-                Q(student_id__icontains=search)
-            )
-        
-        return queryset.select_related('user').order_by('user__first_name')
+            # Students can only see their own profile
+            try:
+                return Student.objects.filter(user=user)
+            except Exception as e:
+                print(f"Error loading student profile for user {user.username}: {e}")
+                return Student.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

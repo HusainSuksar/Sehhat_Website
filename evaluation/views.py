@@ -164,15 +164,16 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         user = self.request.user
+        
         if user.role == 'admin':
             return EvaluationForm.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
-            return EvaluationForm.objects.filter(created_by=user)
-        else:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             return EvaluationForm.objects.filter(
-                Q(target_role=user.role) | Q(target_role='all'),
-                is_active=True
+                Q(created_by=user) | Q(target_role="moze_coordinator")
             )
+        else:
+            # Students can only see forms targeted to them
+            return EvaluationForm.objects.filter(target_role="student")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -245,97 +246,83 @@ class EvaluationFormCreateView(LoginRequiredMixin, CreateView):
 
 @login_required
 def evaluate_form(request, pk):
-    """Submit an evaluation for a specific form"""
-    form = get_object_or_404(EvaluationForm, pk=pk)
+    """Evaluate a specific form"""
+    try:
+        form = EvaluationForm.objects.get(pk=pk)
+    except EvaluationForm.DoesNotExist:
+        messages.error(request, "Evaluation form not found.")
+        return redirect('evaluation:form_list')
+    
     user = request.user
     
-    # Check permissions
-    if not (form.target_role == user.role or form.target_role == 'all'):
+    # Check if user can evaluate this form
+    if not (user.role == 'admin' or 
+            user.role == 'aamil' or 
+            user.role == 'moze_coordinator' or
+            (user.role == 'student' and form.target_role == 'student')):
         messages.error(request, "You don't have permission to evaluate this form.")
-        return redirect('evaluation:form_detail', pk=pk)
+        return redirect('evaluation:form_list')
     
-    # Check if already submitted
+    # Check if already evaluated
     existing_submission = EvaluationSubmission.objects.filter(
-        form=form,
-        evaluator=user
+        form=form, evaluator=user
     ).first()
     
     if existing_submission:
-        messages.info(request, "You have already submitted an evaluation for this form.")
-        return redirect('evaluation:form_detail', pk=pk)
+        messages.info(request, "You have already evaluated this form.")
+        return redirect('evaluation:submission_detail', pk=existing_submission.pk)
     
     if request.method == 'POST':
-        # Get evaluatee if specified
-        evaluatee_id = request.POST.get('evaluatee')
-        evaluatee = None
-        if evaluatee_id:
-            try:
-                evaluatee = User.objects.get(id=evaluatee_id)
-            except User.DoesNotExist:
-                pass
-        
-        # Create submission
-        submission = EvaluationSubmission.objects.create(
-            form=form,
-            evaluator=user,
-            target_user=evaluatee,
-            is_complete=True,
-            submitted_at=timezone.now()
-        )
-        
-        # Process criteria ratings
-        total_score = 0
-        criteria_count = 0
-        
-        for criteria in form.criteria.filter(is_active=True):
-            rating_value = request.POST.get(f'criteria_{criteria.id}')
-            comment = request.POST.get(f'comment_{criteria.id}', '')
+        # Process evaluation submission
+        try:
+            # Create submission
+            submission = EvaluationSubmission.objects.create(
+                form=form,
+                evaluator=user,
+                submitted_at=timezone.now()
+            )
             
-            if rating_value:
-                # Note: CriteriaRating is for Evaluation model, not EvaluationSubmission
-                # This would need an Evaluation instance to work properly
-                # rating = CriteriaRating.objects.create(
-                #     evaluation=evaluation,
-                #     criteria=criteria,
-                #     score=int(rating_value),
-                #     comment=comment
-                # )
-                total_score += int(rating_value)
-                criteria_count += 1
-        
-        # Calculate and save total score
-        if criteria_count > 0:
-            submission.total_score = Decimal(total_score) / Decimal(criteria_count)
-            submission.save()
-        
-        messages.success(request, 'Your evaluation has been submitted successfully.')
-        return redirect('evaluation:form_detail', pk=pk)
+            # Process criteria ratings
+            total_score = 0
+            criteria_count = 0
+            
+            for criteria in form.criteria.all():
+                rating_key = f'criteria_{criteria.id}'
+                rating_value = request.POST.get(rating_key)
+                
+                if rating_value:
+                    try:
+                        rating = int(rating_value)
+                        if 1 <= rating <= 5:
+                            CriteriaRating.objects.create(
+                                submission=submission,
+                                criteria=criteria,
+                                score=rating
+                            )
+                            total_score += rating
+                            criteria_count += 1
+                    except ValueError:
+                        continue
+            
+            # Calculate average score
+            if criteria_count > 0:
+                submission.total_score = total_score / criteria_count
+                submission.is_complete = True
+                submission.save()
+            
+            messages.success(request, "Evaluation submitted successfully!")
+            return redirect('evaluation:submission_detail', pk=submission.pk)
+            
+        except Exception as e:
+            messages.error(request, f"Error submitting evaluation: {str(e)}")
+            return redirect('evaluation:form_list')
     
-    # GET request - show evaluation form
-    criteria_by_category = {}
-    for criteria in form.criteria.filter(is_active=True):
-        category = criteria.category
-        if category not in criteria_by_category:
-            criteria_by_category[category] = []
-        criteria_by_category[category].append(criteria)
-    
-    # Get potential evaluatees for peer evaluation
-    evaluatees = []
-    if form.evaluation_type in ['peer', 'upward', 'downward']:
-        if user.role == 'admin':
-            evaluatees = User.objects.exclude(id=user.id)
-        elif user.is_aamil or user.is_moze_coordinator:
-            evaluatees = User.objects.filter(
-                Q(role='moze_coordinator') | Q(role='doctor') | Q(role='student')
-            ).exclude(id=user.id)
-        else:
-            evaluatees = User.objects.filter(role=user.role).exclude(id=user.id)
+    # Get form criteria
+    criteria = form.criteria.all().order_by('order')
     
     context = {
         'form': form,
-        'criteria_by_category': criteria_by_category,
-        'evaluatees': evaluatees,
-        'rating_choices': range(1, 6),  # 1-5 rating scale
+        'criteria': criteria,
     }
     
     return render(request, 'evaluation/evaluate_form.html', context)

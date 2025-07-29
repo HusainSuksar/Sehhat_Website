@@ -48,7 +48,13 @@ def dashboard(request):
             hospitals = Hospital.objects.filter(id=doctor_profile.hospital.id)
             appointments = Appointment.objects.filter(doctor=doctor_profile)
             patients = Patient.objects.filter(appointments__doctor=doctor_profile).distinct()
-        except:
+        except MahalshifaDoctor.DoesNotExist:
+            hospitals = Hospital.objects.none()
+            appointments = Appointment.objects.none()
+            patients = Patient.objects.none()
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error loading doctor profile for user {user.username}: {e}")
             hospitals = Hospital.objects.none()
             appointments = Appointment.objects.none()
             patients = Patient.objects.none()
@@ -60,7 +66,14 @@ def dashboard(request):
             hospitals = Hospital.objects.filter(doctors__appointments__patient=patient_profile).distinct()
             appointments = Appointment.objects.filter(patient=patient_profile)
             patients = Patient.objects.filter(id=patient_profile.id)
-        except:
+        except AttributeError:
+            # User doesn't have a patient record
+            hospitals = Hospital.objects.none()
+            appointments = Appointment.objects.none()
+            patients = Patient.objects.none()
+        except Exception as e:
+            # Log the error for debugging
+            print(f"Error loading patient profile for user {user.username}: {e}")
             hospitals = Hospital.objects.none()
             appointments = Appointment.objects.none()
             patients = Patient.objects.none()
@@ -151,34 +164,22 @@ class HospitalListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        # Base queryset based on user role
         if user.role == 'admin':
-            queryset = Hospital.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
-            queryset = Hospital.objects.filter(staff__user=user).distinct()
+            return Hospital.objects.all()
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+            return Hospital.objects.all()
+        elif user.role == 'doctor':
+            try:
+                from .models import Doctor as MahalshifaDoctor
+                doctor_profile = MahalshifaDoctor.objects.get(user=user)
+                return Hospital.objects.filter(id=doctor_profile.hospital.id)
+            except MahalshifaDoctor.DoesNotExist:
+                return Hospital.objects.none()
+            except Exception as e:
+                print(f"Error loading doctor hospitals for user {user.username}: {e}")
+                return Hospital.objects.none()
         else:
-            # Public view for doctors and patients
-            queryset = Hospital.objects.filter(is_active=True)
-        
-        # Apply filters (with safety checks)
-        if hasattr(self, 'request') and self.request:
-            location = self.request.GET.get('location')
-            if location:
-                queryset = queryset.filter(address__icontains=location)
-            
-            hospital_type = self.request.GET.get('type')
-            if hospital_type:
-                queryset = queryset.filter(hospital_type=hospital_type)
-            
-            search = self.request.GET.get('search')
-            if search:
-                queryset = queryset.filter(
-                    Q(name__icontains=search) |
-                    Q(address__icontains=search) |
-                    Q(email__icontains=search)
-                )
-        
-        return queryset.order_by('name')
+            return Hospital.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -249,47 +250,29 @@ class PatientListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        # Base queryset based on user role
         if user.role == 'admin':
-            queryset = Patient.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
-            # Filter by patients registered under their moze
-            queryset = Patient.objects.filter(registered_moze__aamil=user)
-        elif user.is_doctor:
+            return Patient.objects.all()
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+            return Patient.objects.all()
+        elif user.role == 'doctor':
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
-                queryset = Patient.objects.filter(
-                    appointments__doctor=doctor_profile
-                ).distinct()
-            except:
-                queryset = Patient.objects.none()
+                return Patient.objects.filter(appointments__doctor=doctor_profile).distinct()
+            except MahalshifaDoctor.DoesNotExist:
+                return Patient.objects.none()
+            except Exception as e:
+                print(f"Error loading doctor patients for user {user.username}: {e}")
+                return Patient.objects.none()
         else:
-            # Patients can only see themselves
-            queryset = Patient.objects.filter(user_account=user)
-        
-        # Apply filters (with safety checks)
-        if hasattr(self, 'request') and self.request:
-            hospital = self.request.GET.get('hospital')
-            if hospital:
-                # Filter patients by appointments in specific hospital
-                queryset = queryset.filter(appointments__doctor__hospital_id=hospital).distinct()
-            
-            status = self.request.GET.get('status')
-            if status == 'active':
-                queryset = queryset.filter(is_active=True)
-            elif status == 'inactive':
-                queryset = queryset.filter(is_active=False)
-            
-            search = self.request.GET.get('search')
-            if search:
-                queryset = queryset.filter(
-                    Q(first_name__icontains=search) |
-                    Q(last_name__icontains=search) |
-                    Q(its_id__icontains=search)
-                )
-        
-        return queryset.select_related('user_account', 'registered_moze').order_by('-created_at')
+            # Patients can only see their own record
+            try:
+                return Patient.objects.filter(id=user.patient_record.id)
+            except AttributeError:
+                return Patient.objects.none()
+            except Exception as e:
+                print(f"Error loading patient record for user {user.username}: {e}")
+                return Patient.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -316,49 +299,29 @@ class AppointmentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        # Base queryset based on user role
         if user.role == 'admin':
-            queryset = Appointment.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
-            # Filter by appointments in hospitals where user is staff
-            user_hospitals = Hospital.objects.filter(staff__user=user)
-            queryset = Appointment.objects.filter(doctor__hospital__in=user_hospitals)
-        elif user.is_doctor:
+            return Appointment.objects.all()
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+            return Appointment.objects.all()
+        elif user.role == 'doctor':
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
-                queryset = Appointment.objects.filter(doctor=doctor_profile)
-            except:
-                queryset = Appointment.objects.none()
+                return Appointment.objects.filter(doctor=doctor_profile)
+            except MahalshifaDoctor.DoesNotExist:
+                return Appointment.objects.none()
+            except Exception as e:
+                print(f"Error loading doctor appointments for user {user.username}: {e}")
+                return Appointment.objects.none()
         else:
-            # Patients can only see their appointments
+            # Patients can only see their own appointments
             try:
-                patient_profile = user.patient_record
-                queryset = Appointment.objects.filter(patient=patient_profile)
-            except:
-                queryset = Appointment.objects.none()
-        
-        # Apply filters (with safety checks)
-        if hasattr(self, 'request') and self.request:
-            status = self.request.GET.get('status')
-            if status:
-                queryset = queryset.filter(status=status)
-            
-            date_filter = self.request.GET.get('date')
-            if date_filter == 'today':
-                queryset = queryset.filter(appointment_date=timezone.now().date())
-            elif date_filter == 'week':
-                week_start = timezone.now().date() - timedelta(days=timezone.now().weekday())
-                week_end = week_start + timedelta(days=6)
-                queryset = queryset.filter(appointment_date__range=[week_start, week_end])
-            
-            doctor_filter = self.request.GET.get('doctor')
-            if doctor_filter:
-                queryset = queryset.filter(doctor_id=doctor_filter)
-        
-        return queryset.select_related(
-            'patient__user_account', 'doctor__user', 'doctor__hospital'
-        ).order_by('-appointment_date', '-appointment_time')
+                return Appointment.objects.filter(patient=user.patient_record)
+            except AttributeError:
+                return Appointment.objects.none()
+            except Exception as e:
+                print(f"Error loading patient appointments for user {user.username}: {e}")
+                return Appointment.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
