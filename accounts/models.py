@@ -31,7 +31,7 @@ class User(AbstractUser):
         help_text='8-digit ITS ID'
     )
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    profile_photo = models.URLField(blank=True, null=True)
     arabic_name = models.CharField(max_length=100, blank=True, null=True)
     age = models.PositiveIntegerField(blank=True, null=True)
     verified_certificate = models.FileField(upload_to='certificates/', blank=True, null=True)
