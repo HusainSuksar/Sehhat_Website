@@ -16,21 +16,23 @@
                         <label for="id_model" class="form-label">Model</label>
                         {{ form.model }}
                     </div>
-                    <div class="col-md-2">
-                        <label for="id_object_id" class="form-label">Object ID</label>
+                    <div class="col-md-3">
+                        <label for="id_object_id" class="form-label">Object</label>
                         {{ form.object_id }}
+                        <div class="form-text">Select a model first to see available objects</div>
                     </div>
                     <div class="col-md-3">
-                        <label for="id_permission" class="form-label">Permission (codename)</label>
+                        <label for="id_permission" class="form-label">Permission</label>
                         {{ form.permission }}
-                        <div class="form-text">e.g. change_doctor, view_student</div>
+                        <div class="form-text">Select a model first to see available permissions</div>
                     </div>
                     <div class="col-md-2">
                         <label for="id_action" class="form-label">Action</label>
                         {{ form.action }}
                     </div>
-                    <div class="col-md-1">
-                        <button type="submit" class="btn btn-success">Apply</button>
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-success">Apply Permission</button>
+                        <button type="button" class="btn btn-secondary ms-2" onclick="resetForm()">Reset</button>
                     </div>
                 </div>
             </form>
@@ -40,7 +42,76 @@
         </div>
     </div>
     <div class="alert alert-warning">
-        <strong>Note:</strong> You must know the correct permission codename (e.g. <code>change_doctor</code>, <code>view_student</code>, <code>delete_hospital</code>). You can find these in the Django admin or permissions list.
+        <strong>Note:</strong> This interface allows you to assign or remove object-level permissions. 
+        Select a user, model, object, and permission, then choose to assign or remove it.
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modelSelect = document.getElementById('id_model');
+    const objectSelect = document.getElementById('id_object_id');
+    const permissionSelect = document.getElementById('id_permission');
+    
+    // Handle model selection change
+    modelSelect.addEventListener('change', function() {
+        const selectedModel = this.value;
+        if (selectedModel) {
+            loadObjects(selectedModel);
+            loadPermissions(selectedModel);
+        } else {
+            clearDropdowns();
+        }
+    });
+    
+    function loadObjects(modelName) {
+        fetch(`?action=get_objects&model=${modelName}`)
+            .then(response => response.json())
+            .then(data => {
+                objectSelect.innerHTML = '<option value="">Select an object...</option>';
+                data.objects.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item[0];
+                    option.textContent = item[1];
+                    objectSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading objects:', error);
+                objectSelect.innerHTML = '<option value="">Error loading objects</option>';
+            });
+    }
+    
+    function loadPermissions(modelName) {
+        fetch(`?action=get_permissions&model=${modelName}`)
+            .then(response => response.json())
+            .then(data => {
+                permissionSelect.innerHTML = '<option value="">Select a permission...</option>';
+                data.permissions.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item[0];
+                    option.textContent = item[1];
+                    permissionSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading permissions:', error);
+                permissionSelect.innerHTML = '<option value="">Error loading permissions</option>';
+            });
+    }
+    
+    function clearDropdowns() {
+        objectSelect.innerHTML = '<option value="">Select a model first...</option>';
+        permissionSelect.innerHTML = '<option value="">Select a model first...</option>';
+    }
+});
+
+function resetForm() {
+    document.getElementById('id_user').value = '';
+    document.getElementById('id_model').value = '';
+    document.getElementById('id_object_id').innerHTML = '<option value="">Select a model first...</option>';
+    document.getElementById('id_permission').innerHTML = '<option value="">Select a model first...</option>';
+    document.getElementById('id_action').value = '';
+}
+</script>
 {% endblock %}

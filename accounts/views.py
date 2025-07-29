@@ -346,11 +346,65 @@ class PermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Template
 
 
 class ObjectPermissionForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.all(), widget=forms.Select(attrs={'class': 'form-control'}))
-    model = forms.ChoiceField(choices=[('doctor', 'Doctor'), ('student', 'Student'), ('hospital', 'Hospital')], widget=forms.Select(attrs={'class': 'form-control'}))
-    object_id = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    permission = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    action = forms.ChoiceField(choices=[('assign', 'Assign'), ('remove', 'Remove')], widget=forms.Select(attrs={'class': 'form-control'}))
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(), 
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_user'})
+    )
+    model = forms.ChoiceField(
+        choices=[('doctor', 'Doctor'), ('student', 'Student'), ('hospital', 'Hospital')], 
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_model'})
+    )
+    object_id = forms.ChoiceField(
+        choices=[], 
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_object_id'})
+    )
+    permission = forms.ChoiceField(
+        choices=[], 
+        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_permission'})
+    )
+    action = forms.ChoiceField(
+        choices=[('assign', 'Assign'), ('remove', 'Remove')], 
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize with empty choices, will be populated via AJAX
+        self.fields['object_id'].choices = []
+        self.fields['permission'].choices = []
+
+    def get_available_objects(self, model_name):
+        """Get available objects for the selected model"""
+        if model_name == 'doctor':
+            from doctordirectory.models import Doctor
+            objects = Doctor.objects.all()
+            return [(obj.pk, f"{obj.name} (ID: {obj.pk})") for obj in objects]
+        elif model_name == 'student':
+            from students.models import Student
+            objects = Student.objects.all()
+            return [(obj.pk, f"{obj.user.get_full_name()} (ID: {obj.pk})") for obj in objects]
+        elif model_name == 'hospital':
+            from mahalshifa.models import Hospital
+            objects = Hospital.objects.all()
+            return [(obj.pk, f"{obj.name} (ID: {obj.pk})") for obj in objects]
+        return []
+
+    def get_available_permissions(self, model_name):
+        """Get available permissions for the selected model"""
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+        
+        if model_name == 'doctor':
+            content_type = ContentType.objects.get(app_label='doctordirectory', model='doctor')
+        elif model_name == 'student':
+            content_type = ContentType.objects.get(app_label='students', model='student')
+        elif model_name == 'hospital':
+            content_type = ContentType.objects.get(app_label='mahalshifa', model='hospital')
+        else:
+            return []
+        
+        permissions = Permission.objects.filter(content_type=content_type)
+        return [(perm.codename, f"{perm.codename} - {perm.name}") for perm in permissions]
 
 class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'accounts/object_permission_management.html'
@@ -363,6 +417,22 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
         context['form'] = ObjectPermissionForm()
         context['result'] = None
         return context
+
+    def get(self, request, *args, **kwargs):
+        # Handle AJAX requests for dynamic dropdowns
+        if request.GET.get('action') == 'get_objects':
+            model_name = request.GET.get('model')
+            form = ObjectPermissionForm()
+            objects = form.get_available_objects(model_name)
+            return JsonResponse({'objects': objects})
+        
+        elif request.GET.get('action') == 'get_permissions':
+            model_name = request.GET.get('model')
+            form = ObjectPermissionForm()
+            permissions = form.get_available_permissions(model_name)
+            return JsonResponse({'permissions': permissions})
+        
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         form = ObjectPermissionForm(request.POST)
