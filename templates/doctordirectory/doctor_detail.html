@@ -4,25 +4,102 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">👨‍⚕️ Dr. {{ doctor.user.get_full_name }}</h1>
+            <h1 class="h3 mb-0 text-gray-800">🧑‍⚕️ Dr. {{ doctor.user.get_full_name }}</h1>
         </div>
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
             <div class="row mb-3">
-                <div class="col-md-6"><strong>Specialization:</strong> {{ doctor.specialization }}</div>
-                <div class="col-md-6"><strong>Experience:</strong> {{ doctor.years_of_experience }} years</div>
+                <div class="col-md-3 text-center">
+                    {% if doctor.user.profile_photo %}
+                        <img src="{{ doctor.user.profile_photo }}" alt="Profile Photo" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary mb-2 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user-md fa-2x text-white"></i>
+                        </div>
+                    {% endif %}
+                    {% if can_book_appointment %}
+                        <a href="{% url 'doctordirectory:create_appointment' doctor.pk %}" class="btn btn-success mt-2 w-100">
+                            <i class="fas fa-calendar-plus me-1"></i>Book Appointment
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <div class="row mb-2">
+                        <div class="col-md-6"><strong>Specialization:</strong> {{ doctor.specialization }}</div>
+                        <div class="col-md-6"><strong>Experience:</strong> {{ doctor.years_of_experience }} years</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
+                        <div class="col-md-6"><strong>Contact:</strong> {{ doctor.user.phone_number }}</div>
+                    </div>
+                    {% if doctor.bio %}
+                    <div class="mb-2">
+                        <h6 class="font-weight-bold">Bio:</h6>
+                        <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
-                <div class="col-md-6"><strong>Contact:</strong> {{ doctor.user.phone_number }}</div>
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" id="doctorDetailTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">Patients</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">Analytics</button>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="doctorDetailTabsContent">
+                <!-- Schedule Tab -->
+                <div class="tab-pane fade show active" id="schedule" role="tabpanel">
+                    <h6>Upcoming Availability</h6>
+                    {% if upcoming_availability %}
+                        <ul class="list-group">
+                            {% for slot in upcoming_availability %}
+                                <li class="list-group-item">
+                                    {{ slot.date }}: {{ slot.start_time }} - {{ slot.end_time }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No upcoming availability.</p>
+                    {% endif %}
+                </div>
+                <!-- Patients Tab -->
+                <div class="tab-pane fade" id="patients" role="tabpanel">
+                    <h6>Recent Patients</h6>
+                    {% if recent_appointments %}
+                        <ul class="list-group">
+                            {% for appt in recent_appointments %}
+                                <li class="list-group-item">
+                                    {{ appt.patient.user.get_full_name }} ({{ appt.appointment_date }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent patients.</p>
+                    {% endif %}
+                </div>
+                <!-- Analytics Tab -->
+                <div class="tab-pane fade" id="analytics" role="tabpanel">
+                    <h6>Doctor Analytics</h6>
+                    {% if services %}
+                        <ul class="list-group">
+                            {% for service in services %}
+                                <li class="list-group-item">
+                                    {{ service.name }} - {{ service.description }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No analytics data available.</p>
+                    {% endif %}
+                </div>
             </div>
-            {% if doctor.bio %}
-            <div class="mb-3">
-                <h6 class="font-weight-bold">Bio:</h6>
-                <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
