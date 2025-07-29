@@ -108,7 +108,7 @@ class DoctorListView(LoginRequiredMixin, ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        queryset = Doctor.objects.filter(is_verified=True).select_related('user', 'assigned_moze')
+        queryset = Doctor.objects.filter(is_verified=True).select_related('user', 'assigned_moze', 'user__profile')
         
         # Search functionality
         search = self.request.GET.get('search')
@@ -125,6 +125,11 @@ class DoctorListView(LoginRequiredMixin, ListView):
         if specialty:
             queryset = queryset.filter(user__specialty__icontains=specialty)
         
+        # Filter by location
+        location = self.request.GET.get('location')
+        if location:
+            queryset = queryset.filter(user__profile__location__icontains=location)
+        
         # Filter by availability
         available = self.request.GET.get('available')
         if available == 'true':
@@ -140,6 +145,7 @@ class DoctorListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['specialty_filter'] = self.request.GET.get('specialty', '')
+        context['location_filter'] = self.request.GET.get('location', '')
         context['available_filter'] = self.request.GET.get('available', '')
         
         # Get unique specialties for filter
@@ -147,7 +153,14 @@ class DoctorListView(LoginRequiredMixin, ListView):
             is_verified=True,
             user__specialty__isnull=False
         ).exclude(user__specialty='').values_list('user__specialty', flat=True).distinct()
-        
+        # Get unique locations for filter
+        context['locations'] = (
+            Doctor.objects.filter(is_verified=True)
+            .select_related('user__profile')
+            .exclude(user__profile__location__isnull=True)
+            .exclude(user__profile__location='')
+            .values_list('user__profile__location', flat=True).distinct()
+        )
         return context
 
 

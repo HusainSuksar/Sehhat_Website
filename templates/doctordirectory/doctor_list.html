@@ -9,19 +9,57 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
+            <!-- Search and Filter Form -->
+            <form method="get" class="mb-4">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search by name or specialty..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="specialty" class="form-select">
+                            <option value="">All Specialties</option>
+                            {% for spec in specialties %}
+                                <option value="{{ spec }}" {% if specialty_filter == spec %}selected{% endif %}>{{ spec }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="location" class="form-select">
+                            <option value="">All Locations</option>
+                            {% for loc in locations %}
+                                <option value="{{ loc }}" {% if location_filter == loc %}selected{% endif %}>{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="available" class="form-select">
+                            <option value="">Any Availability</option>
+                            <option value="true" {% if available_filter == 'true' %}selected{% endif %}>Available Today</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </div>
+            </form>
             {% if doctors %}
                 <div class="row">
                     {% for doctor in doctors %}
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card h-100">
-                            <div class="card-body">
+                            <div class="card-body d-flex flex-column align-items-center text-center">
+                                <img src="{{ doctor.user.profile_photo|default:'/static/img/default-profile.png' }}" alt="Profile Photo" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
                                 <h5 class="card-title">
                                     <a href="{% url 'doctordirectory:doctor_detail' doctor.pk %}">Dr. {{ doctor.user.get_full_name }}</a>
                                 </h5>
-                                <p class="card-text">
-                                    <strong>Specialization:</strong> {{ doctor.specialization }}<br>
-                                    <strong>Experience:</strong> {{ doctor.years_of_experience }} years<br>
-                                    <strong>Contact:</strong> {{ doctor.user.phone_number }}
+                                <p class="card-text mb-1">
+                                    <strong>Specialization:</strong> {{ doctor.specialty }}<br>
+                                    <strong>Experience:</strong> {{ doctor.experience_years }} years<br>
+                                    <strong>Location:</strong> {{ doctor.user.profile.location|default:'-' }}
+                                </p>
+                                <p class="card-text small text-muted mb-1">
+                                    <i class="fas fa-phone"></i> {{ doctor.phone|default:doctor.user.phone_number|default:'-' }}<br>
+                                    <i class="fas fa-envelope"></i> {{ doctor.email|default:doctor.user.email|default:'-' }}
                                 </p>
                             </div>
                         </div>

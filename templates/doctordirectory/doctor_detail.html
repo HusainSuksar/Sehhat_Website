@@ -9,21 +9,101 @@
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6"><strong>Specialization:</strong> {{ doctor.specialization }}</div>
-                <div class="col-md-6"><strong>Experience:</strong> {{ doctor.years_of_experience }} years</div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
-                <div class="col-md-6"><strong>Contact:</strong> {{ doctor.user.phone_number }}</div>
-            </div>
-            {% if doctor.bio %}
-            <div class="mb-3">
-                <h6 class="font-weight-bold">Bio:</h6>
-                <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
+            {% if can_book_appointment %}
+            <div class="mb-3 text-end">
+                <a href="{% url 'doctordirectory:create_appointment_for_doctor' doctor.pk %}" class="btn btn-success">
+                    <i class="fas fa-calendar-plus"></i> Book Appointment
+                </a>
             </div>
             {% endif %}
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="doctorTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">Patients</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">Analytics</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="doctorTabsContent">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Specialization:</strong> {{ doctor.specialty }}</div>
+                        <div class="col-md-6"><strong>Experience:</strong> {{ doctor.experience_years }} years</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
+                        <div class="col-md-6"><strong>Contact:</strong> {{ doctor.phone|default:doctor.user.phone_number|default:'-' }} | {{ doctor.email|default:doctor.user.email|default:'-' }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6"><strong>Location:</strong> {{ doctor.user.profile.location|default:'-' }}</div>
+                        <div class="col-md-6"><strong>Languages:</strong> {{ doctor.languages_spoken|default:'-' }}</div>
+                    </div>
+                    {% if doctor.bio %}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold">Bio:</h6>
+                        <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Schedule Tab -->
+                <div class="tab-pane fade" id="schedule" role="tabpanel">
+                    <h6>Upcoming Availability</h6>
+                    {% if upcoming_availability %}
+                        <ul class="list-group mb-3">
+                        {% for slot in upcoming_availability %}
+                            <li class="list-group-item">
+                                <strong>{{ slot.date }}</strong>: {{ slot.start_time }} - {{ slot.end_time }} ({{ slot.get_schedule_type_display }})
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No upcoming schedule available.</p>
+                    {% endif %}
+                </div>
+                <!-- Patients Tab -->
+                <div class="tab-pane fade" id="patients" role="tabpanel">
+                    <h6>Recent Patients</h6>
+                    {% if recent_appointments %}
+                        <ul class="list-group mb-3">
+                        {% for appt in recent_appointments %}
+                            <li class="list-group-item">
+                                {{ appt.patient.user.get_full_name }} ({{ appt.appointment_date }})
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent patients.</p>
+                    {% endif %}
+                </div>
+                <!-- Analytics Tab -->
+                <div class="tab-pane fade" id="analytics" role="tabpanel">
+                    <h6>Doctor Analytics</h6>
+                    <a href="{% url 'doctordirectory:analytics' %}?doctor_id={{ doctor.pk }}" class="btn btn-outline-info btn-sm mb-2">View Full Analytics</a>
+                    <!-- You can add summary analytics here if available in context -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<script>
+// Bootstrap 5 tab activation (if not already handled globally)
+document.addEventListener('DOMContentLoaded', function() {
+    var triggerTabList = [].slice.call(document.querySelectorAll('#doctorTabs button'));
+    triggerTabList.forEach(function(triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl);
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+        });
+    });
+});
+</script>
 {% endblock %}
