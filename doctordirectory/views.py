@@ -83,7 +83,7 @@ def dashboard(request):
     if doctor_profile:
         recent_appointments = Appointment.objects.filter(
             doctor=doctor_profile
-        ).select_related('patient__user_account').order_by('-appointment_date')[:5]
+        ).select_related('patient__user').order_by('-appointment_date')[:5]
     else:
         recent_appointments = []
     
