@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Petition Analytics Dashboard{% endblock %}
+{% block title %}Araiz Analytics Dashboard{% endblock %}
 
 {% block extra_css %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h4 id="total-petitions">{{ stats.total }}</h4>
-                            <p>Total Petitions</p>
+                            <p>Total Araiz</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-clipboard-list fa-2x"></i>
@@ -122,7 +122,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-chart-line"></i> Petition Trends</h5>
+                    <h5><i class="fas fa-chart-line"></i> Araiz Trends</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="trendsChart" height="100"></canvas>
