@@ -422,14 +422,18 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
         # Handle AJAX requests for dynamic dropdowns
         if request.GET.get('action') == 'get_objects':
             model_name = request.GET.get('model')
+            print(f"DEBUG: Getting objects for model: {model_name}")  # Debug
             form = ObjectPermissionForm()
             objects = form.get_available_objects(model_name)
+            print(f"DEBUG: Found {len(objects)} objects")  # Debug
             return JsonResponse({'objects': objects})
         
         elif request.GET.get('action') == 'get_permissions':
             model_name = request.GET.get('model')
+            print(f"DEBUG: Getting permissions for model: {model_name}")  # Debug
             form = ObjectPermissionForm()
             permissions = form.get_available_permissions(model_name)
+            print(f"DEBUG: Found {len(permissions)} permissions")  # Debug
             return JsonResponse({'permissions': permissions})
         
         return super().get(request, *args, **kwargs)

@@ -53,6 +53,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const objectSelect = document.getElementById('id_object_id');
     const permissionSelect = document.getElementById('id_permission');
     
+    // Get CSRF token
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
     // Handle model selection change
     modelSelect.addEventListener('change', function() {
         const selectedModel = this.value;
@@ -65,39 +82,71 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function loadObjects(modelName) {
-        fetch(`?action=get_objects&model=${modelName}`)
-            .then(response => response.json())
-            .then(data => {
-                objectSelect.innerHTML = '<option value="">Select an object...</option>';
+        const csrfToken = getCSRFToken();
+        fetch(`?action=get_objects&model=${modelName}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            objectSelect.innerHTML = '<option value="">Select an object...</option>';
+            if (data.objects && data.objects.length > 0) {
                 data.objects.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item[0];
                     option.textContent = item[1];
                     objectSelect.appendChild(option);
                 });
-            })
-            .catch(error => {
-                console.error('Error loading objects:', error);
-                objectSelect.innerHTML = '<option value="">Error loading objects</option>';
-            });
+            } else {
+                objectSelect.innerHTML = '<option value="">No objects found</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading objects:', error);
+            objectSelect.innerHTML = '<option value="">Error loading objects</option>';
+        });
     }
     
     function loadPermissions(modelName) {
-        fetch(`?action=get_permissions&model=${modelName}`)
-            .then(response => response.json())
-            .then(data => {
-                permissionSelect.innerHTML = '<option value="">Select a permission...</option>';
+        const csrfToken = getCSRFToken();
+        fetch(`?action=get_permissions&model=${modelName}`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            permissionSelect.innerHTML = '<option value="">Select a permission...</option>';
+            if (data.permissions && data.permissions.length > 0) {
                 data.permissions.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item[0];
                     option.textContent = item[1];
                     permissionSelect.appendChild(option);
                 });
-            })
-            .catch(error => {
-                console.error('Error loading permissions:', error);
-                permissionSelect.innerHTML = '<option value="">Error loading permissions</option>';
-            });
+            } else {
+                permissionSelect.innerHTML = '<option value="">No permissions found</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading permissions:', error);
+            permissionSelect.innerHTML = '<option value="">Error loading permissions</option>';
+        });
     }
     
     function clearDropdowns() {
