@@ -147,27 +147,18 @@ def dashboard(request):
 
 
 class StudentListView(LoginRequiredMixin, ListView):
-    """List students with role-based access"""
     model = Student
     template_name = 'students/student_list.html'
     context_object_name = 'students'
     paginate_by = 20
-    
+
     def get_queryset(self):
         user = self.request.user
-        
-        if user.role == 'admin':
-            return Student.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+        if user.role == 'admin' or user.role == 'aamil' or user.role == 'moze_coordinator':
             return Student.objects.all()
         else:
-            # Students can only see their own profile
-            try:
-                return Student.objects.filter(user=user)
-            except Exception as e:
-                print(f"Error loading student profile for user {user.username}: {e}")
-                return Student.objects.none()
-    
+            return Student.objects.filter(user=user)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user

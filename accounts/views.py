@@ -348,9 +348,14 @@ class PermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Template
                     'permissions': [p.codename for p in form.cleaned_data['user_permissions']]
                 }
             )
+            return redirect('accounts:permission_management')
         else:
             messages.error(request, "Failed to update permissions.")
-        return redirect('accounts:permission_management')
+            # Re-render the page with the form and edit_user context
+            context = self.get_context_data()
+            context['form'] = form
+            context['edit_user'] = user
+            return self.render_to_response(context)
 
 
 class ObjectPermissionForm(forms.Form):
@@ -427,23 +432,28 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
         return context
 
     def get(self, request, *args, **kwargs):
-        # Handle AJAX requests for dynamic dropdowns
-        if request.GET.get('action') == 'get_objects':
-            model_name = request.GET.get('model')
-            print(f"DEBUG: Getting objects for model: {model_name}")  # Debug
-            form = ObjectPermissionForm()
-            objects = form.get_available_objects(model_name)
-            print(f"DEBUG: Found {len(objects)} objects")  # Debug
-            return JsonResponse({'objects': objects})
-        
+        # AJAX: Get models/objects for a user
+        if request.GET.get('action') == 'get_user_objects':
+            user_id = request.GET.get('user_id')
+            result = {}
+            if user_id:
+                # For demo, show all models; in real app, could filter by user role
+                models = [('doctor', 'Doctor'), ('student', 'Student'), ('hospital', 'Hospital')]
+                result['models'] = models
+                # For each model, get objects
+                form = ObjectPermissionForm()
+                objects_by_model = {}
+                for model_key, model_label in models:
+                    objects = form.get_available_objects(model_key)
+                    objects_by_model[model_key] = objects
+                result['objects_by_model'] = objects_by_model
+            return JsonResponse(result)
+        # AJAX: Get permissions for a model
         elif request.GET.get('action') == 'get_permissions':
             model_name = request.GET.get('model')
-            print(f"DEBUG: Getting permissions for model: {model_name}")  # Debug
             form = ObjectPermissionForm()
             permissions = form.get_available_permissions(model_name)
-            print(f"DEBUG: Found {len(permissions)} permissions")  # Debug
             return JsonResponse({'permissions': permissions})
-        
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -456,7 +466,6 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
                 object_id = form.cleaned_data['object_id']
                 permission = form.cleaned_data['permission']
                 action = form.cleaned_data['action']
-                
                 # Get the object based on model type
                 obj = None
                 if model == 'doctor':
@@ -465,7 +474,6 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
                     obj = Student.objects.filter(pk=object_id).first()
                 elif model == 'hospital':
                     obj = Hospital.objects.filter(pk=object_id).first()
-                
                 if obj:
                     if action == 'assign':
                         assign_perm(permission, user, obj)
@@ -473,7 +481,6 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
                     else:
                         remove_perm(permission, user, obj)
                         result = f"Removed '{permission}' from {user} for {model} {object_id}."
-                    
                     # Audit log
                     AuditLog.objects.create(
                         user=request.user,
@@ -493,7 +500,6 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
                 result = f"Error: {str(e)}"
         else:
             result = "Invalid form submission."
-        
         context = self.get_context_data()
         context['form'] = form
         context['result'] = result
