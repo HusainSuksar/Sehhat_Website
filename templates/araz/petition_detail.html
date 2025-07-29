@@ -16,7 +16,7 @@
                             <li class="breadcrumb-item active">{{ petition.title|truncatechars:30 }}</li>
                         </ol>
                     </nav>
-                    <h1 class="h3 mb-0 text-gray-800">📋 Petition Details</h1>
+                    <h1 class="h3 mb-0 text-gray-800">📋 Araz Details</h1>
                 </div>
                 <div>
                     {% if can_edit %}
@@ -56,19 +56,19 @@
                         <div class="col-md-6">
                             <strong>Status:</strong>
                             {% if petition.status == 'pending' %}
-                                <span class="badge badge-warning ml-2">Pending</span>
+                                <span class="badge badge-warning ml-2" style="background-color: brown;">Pending</span>
                             {% elif petition.status == 'in_progress' %}
-                                <span class="badge badge-info ml-2">In Progress</span>
+                                <span class="badge badge-info ml-2" style="background-color: orange;">In Progress</span>
                             {% elif petition.status == 'resolved' %}
-                                <span class="badge badge-success ml-2">Resolved</span>
+                                <span class="badge badge-success ml-2" style="background-color: green;">Resolved</span>
                             {% else %}
-                                <span class="badge badge-danger ml-2">Rejected</span>
+                                <span class="badge badge-danger ml-2" style="background-color: red;">Rejected</span>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
                             <strong>Category:</strong>
                             {% if petition.category %}
-                                <span class="badge badge-secondary ml-2">{{ petition.category.name }}</span>
+                                <span class="badge badge-secondary ml-2" style="background-color: blue;">{{ petition.category.name }}</span>
                             {% else %}
                                 <span class="text-muted ml-2">No category</span>
                             {% endif %}
