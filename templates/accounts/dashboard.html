@@ -108,7 +108,7 @@
                             <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-outline-primary"><i class="fas fa-calendar me-1"></i> Schedule</a>
                         {% endif %}
                         {% if user.is_student %}
-                            <a href="{% url 'students:profile' %}" class="btn btn-outline-success"><i class="fas fa-graduation-cap me-1"></i> Profile</a>
+                            <a href="{% url 'students:dashboard' %}" class="btn btn-outline-success"><i class="fas fa-graduation-cap me-1"></i> Student Dashboard</a>
                             <a href="#" class="btn btn-outline-info disabled"><i class="fas fa-hands-helping me-1"></i> Aid Requests</a> <!-- Not implemented -->
                         {% endif %}
                         <a href="{% url 'surveys:list' %}" class="btn btn-outline-secondary"><i class="fas fa-poll me-1"></i> Surveys</a>
