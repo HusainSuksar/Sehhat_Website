@@ -153,6 +153,24 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
             'type': self.request.GET.get('type', ''),
             'search': self.request.GET.get('search', ''),
         }
+        # Add progress and analytics for each form
+        forms = context['forms']
+        form_stats = {}
+        for form in forms:
+            total_targets = form.submissions.count()  # fallback if no target count logic
+            total_submissions = form.submissions.filter(is_complete=True).count()
+            avg_score = form.submissions.filter(is_complete=True).aggregate(avg=Avg('total_score'))['avg']
+            # If you have a way to get total eligible users, use that for total_targets
+            # For now, use total_submissions as denominator for progress
+            progress = 0
+            if total_targets > 0:
+                progress = int((total_submissions / total_targets) * 100)
+            form_stats[form.pk] = {
+                'progress': progress,
+                'participation': total_submissions,
+                'avg_score': avg_score or 0,
+            }
+        context['form_stats'] = form_stats
         return context
 
 
