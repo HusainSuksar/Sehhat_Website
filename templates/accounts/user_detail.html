@@ -1,25 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}{{ user.get_full_name }}{% endblock %}
+{% block title %}{{ user_obj.get_full_name }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">👤 {{ user.get_full_name }}</h1>
+            <h1 class="h3 mb-0 text-gray-800">👤 {{ user_obj.get_full_name }}</h1>
         </div>
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
             <div class="row mb-3">
-                <div class="col-md-6"><strong>ITS ID:</strong> {{ user.its_id }}</div>
-                <div class="col-md-6"><strong>Role:</strong> <span class="badge badge-info" style="background-color: rgb(4, 159, 35);">{{ user.get_role_display }}</span></div>
+                <div class="col-md-6"><strong>ITS ID:</strong> {{ user_obj.its_id }}</div>
+                <div class="col-md-6"><strong>Role:</strong> <span class="badge badge-info" style="background-color: rgb(4, 159, 35);">{{ user_obj.get_role_display }}</span></div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6"><strong>Email:</strong> {{ user.email }}</div>
-                <div class="col-md-6"><strong>Phone:</strong> {{ user.phone_number }}</div>
+                <div class="col-md-6"><strong>Email:</strong> {{ user_obj.email }}</div>
+                <div class="col-md-6"><strong>Phone:</strong> {{ user_obj.phone_number }}</div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6"><strong>Status:</strong> {% if user.is_active %}<span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>{% else %}<span class="badge badge-danger" style="background-color: rgb(137, 90, 2);">Inactive</span>{% endif %}</div>
-                <div class="col-md-6"><strong>Joined:</strong> {{ user.date_joined|date:"F d, Y" }}</div>
+                <div class="col-md-6"><strong>Status:</strong> 
+                    {% if user_obj.is_active %}
+                        <span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>
+                    {% else %}
+                        <span class="badge badge-danger" style="background-color: rgb(137, 90, 2);">Inactive</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6"><strong>Joined:</strong> {{ user_obj.date_joined|date:"F d, Y" }}</div>
             </div>
         </div>
     </div>
