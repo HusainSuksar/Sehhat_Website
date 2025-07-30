@@ -21,7 +21,7 @@
                                 <td><a href="{% url 'students:student_detail' student.pk %}">{{ student.user.get_full_name }}</a></td>
                                 <td>{{ student.user.its_id }}</td>
                                 <td>{{ student.academic_level }}</td>
-                                <td><span class="badge badge-success">Active</span></td>
+                                <td><span class="badge badge-success" style="background-color: blue;">{{student.enrollment_status }}</span></td>
                                 <td><a href="{% url 'students:student_detail' student.pk %}" class="btn btn-sm btn-primary">View</a></td>
                             </tr>
                             {% endfor %}

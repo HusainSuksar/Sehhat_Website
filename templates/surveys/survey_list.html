@@ -37,11 +37,11 @@
                                 <td>{{ survey.created_at|date:"M d, Y" }}</td>
                                 <td>
                                     {% if survey.pk in user_responses %}
-                                        <span class="badge badge-success">Completed</span>
+                                        <span class="badge badge-success" style="background-color: green;">Completed</span>
                                     {% elif survey.is_active %}
-                                        <span class="badge badge-warning">Pending</span>
+                                        <span class="badge badge-warning" style="background-color: orange;">Pending</span>
                                     {% else %}
-                                        <span class="badge badge-secondary">Not Available</span>
+                                        <span class="badge badge-secondary" style="background-color:lightcoral;">Not Available</span>
                                     {% endif %}
                                 </td>
                                 <td>

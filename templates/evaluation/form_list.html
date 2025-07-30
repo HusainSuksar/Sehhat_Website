@@ -1,5 +1,5 @@
-{% load dict_extras %}
-{% extends 'base.html' %}
+{% extends 'base.html' %}{% load dict_extras %}
+
 
 {% block title %}Evaluation Forms{% endblock %}
 
@@ -41,12 +41,12 @@
                                 {% for form in forms %}
                                 <tr>
                                     <td><a href="{% url 'evaluation:form_detail' form.pk %}">{{ form.title }}</a></td>
-                                    <td><span class="badge badge-secondary">{{ form.get_evaluation_type_display }}</span></td>
+                                    <td><span class="badge badge-secondary" style="background-color: blue;">{{ form.get_evaluation_type_display }}</span></td>
                                     <td>
                                         {% if form.is_active %}
-                                            <span class="badge badge-success">Active</span>
+                                            <span class="badge badge-success" style="background-color: blue;">Active</span>
                                         {% else %}
-                                            <span class="badge badge-danger">Inactive</span>
+                                            <span class="badge badge-danger" style="background-color: orange;">Inactive</span>
                                         {% endif %}
                                     </td>
                                     <td style="min-width:120px;">

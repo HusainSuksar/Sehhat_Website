@@ -172,7 +172,7 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
                 progress = int((total_submissions / total_targets) * 100)
             form_stats[form.pk] = {
                 'progress': progress,
-                'participation': total_submissions,
+                'participation': total_submissions or 0,
                 'avg_score': avg_score or 0,
             }
         context['form_stats'] = form_stats
