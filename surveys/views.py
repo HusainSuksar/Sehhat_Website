@@ -302,8 +302,8 @@ def take_survey(request, pk):
             defaults={
                 'total_responses': survey.responses.count(),
                 'completion_rate': calculate_completion_rate(survey),
-                'average_time_taken': calculate_average_time(survey),
-                'last_updated': timezone.now()
+                'avg_completion_time': calculate_average_time(survey),
+                'last_calculated': timezone.now()
             }
         )
         
