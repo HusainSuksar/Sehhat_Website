@@ -137,6 +137,31 @@
             color: white;
             font-weight: 500;
         }
+        
+        /* Admin dropdown styling */
+        .dropdown-menu {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+            padding: 0.5rem 0;
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--bg-light);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+        
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -158,75 +183,54 @@
                 {% if user.is_authenticated %}
                     <ul class="navbar-nav me-auto">
                         {% if user.is_admin %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin:index' %}">
-                                    <i class="fas fa-cogs me-1"></i>Admin Panel
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cogs me-1"></i>Admin Links
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'accounts:user_list' %}">
-                                    <i class="fas fa-users me-1"></i>Users
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'accounts:permission_management' %}">
-                                    <i class="fas fa-user-shield me-1"></i>Permissions
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'accounts:object_permission_management' %}">
-                                    <i class="fas fa-key me-1"></i>Object Permissions
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'evaluation:form_list' %}">
-                                    <i class="fas fa-clipboard-check me-1"></i>Evaluations
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'evaluation:analytics' %}">
-                                    <i class="fas fa-chart-bar me-1"></i>Analytics
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'students:student_list' %}">
-                                    <i class="fas fa-user-graduate me-1"></i>Students
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'doctordirectory:doctor_list' %}">
-                                    <i class="fas fa-user-md me-1"></i>Doctors
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'mahalshifa:hospital_list' %}">
-                                    <i class="fas fa-hospital me-1"></i>Hospitals
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'moze:list' %}">
-                                    <i class="fas fa-mosque me-1"></i>Moze
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'surveys:list' %}">
-                                    <i class="fas fa-poll me-1"></i>Surveys
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'araz:petition_list' %}">
-                                    <i class="fas fa-gavel me-1"></i>Araiz
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'photos:album_list' %}">
-                                    <i class="fas fa-images me-1"></i>Albums
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'accounts:audit_log_list' %}">
-                                    <i class="fas fa-clipboard-list me-1"></i>Audit Logs
-                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="fas fa-cogs me-2"></i>Admin Panel
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:user_list' %}">
+                                        <i class="fas fa-users me-2"></i>Users
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:permission_management' %}">
+                                        <i class="fas fa-user-shield me-2"></i>Permissions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:object_permission_management' %}">
+                                        <i class="fas fa-key me-2"></i>Object Permissions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:analytics' %}">
+                                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:student_list' %}">
+                                        <i class="fas fa-user-graduate me-2"></i>Students
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:doctor_list' %}">
+                                        <i class="fas fa-user-md me-2"></i>Doctors
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'mahalshifa:hospital_list' %}">
+                                        <i class="fas fa-hospital me-2"></i>Hospitals
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'moze:list' %}">
+                                        <i class="fas fa-mosque me-2"></i>Moze
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'surveys:list' %}">
+                                        <i class="fas fa-poll me-2"></i>Surveys
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                        <i class="fas fa-gavel me-2"></i>Araiz
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
+                                        <i class="fas fa-images me-2"></i>Albums
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:audit_log_list' %}">
+                                        <i class="fas fa-clipboard-list me-2"></i>Audit Logs
+                                    </a></li>
+                                </ul>
                             </li>
                         {% endif %}
                         
