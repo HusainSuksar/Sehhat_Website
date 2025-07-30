@@ -1,15 +1,284 @@
 {% extends 'base.html' %}
-{% block title %}Survey Analytics{% endblock %}
+{% block title %}Survey Analytics - {{ survey.title }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">📊 Survey Analytics</h1>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-chart-bar me-2"></i>Survey Analytics
+                </h1>
+                <a href="{% url 'surveys:detail' survey.pk %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Survey
+                </a>
+            </div>
+            <p class="text-muted">{{ survey.title }}</p>
         </div>
     </div>
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <p>Survey analytics charts and statistics will be displayed here.</p>
+
+    <!-- Basic Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Responses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_responses }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Target Users
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ target_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Completion Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completion_rate }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Questions
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ survey.questions|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-question-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Analytics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i>Question Analysis
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if question_analytics %}
+                        {% for question_data in question_analytics %}
+                            <div class="mb-4">
+                                <h6 class="font-weight-bold">{{ question_data.question.question }}</h6>
+                                <small class="text-muted">Type: {{ question_data.question.type|title }} | Responses: {{ question_data.response_count }}</small>
+                                
+                                {% if question_data.analysis.type == 'multiple_choice' or question_data.analysis.type == 'checkbox' %}
+                                    <div class="mt-3">
+                                        {% for option in question_data.analysis.options %}
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>{{ option.text }}</span>
+                                                    <span class="font-weight-bold">{{ option.count }} ({{ option.percentage }}%)</span>
+                                                </div>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                                         style="width: {{ option.percentage }}%" 
+                                                         aria-valuenow="{{ option.percentage }}" 
+                                                         aria-valuemin="0" aria-valuemax="100">
+                                                        {{ option.percentage }}%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% elif question_data.analysis.type == 'rating' %}
+                                    <div class="mt-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>Average Rating: {{ question_data.analysis.average }}/5</h6>
+                                                <p>Total Responses: {{ question_data.analysis.total_responses }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>Rating Distribution:</h6>
+                                                {% for dist in question_data.analysis.distribution %}
+                                                    <div class="d-flex justify-content-between">
+                                                        <span>{{ dist.rating }} stars</span>
+                                                        <span>{{ dist.count }} ({{ dist.percentage }}%)</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% elif question_data.analysis.type == 'text' %}
+                                    <div class="mt-3">
+                                        <p><strong>Text Responses:</strong> {{ question_data.analysis.total_responses }}</p>
+                                        {% if question_data.analysis.responses %}
+                                            <h6>Sample Responses:</h6>
+                                            <div class="bg-light p-3 rounded">
+                                                {% for response in question_data.analysis.responses %}
+                                                    <p class="mb-1"><em>"{{ response }}"</em></p>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No responses yet for this survey.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Timeline -->
+    {% if response_timeline %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt me-1"></i>Response Timeline
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Responses</th>
+                                    <th>Visual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in response_timeline %}
+                                    <tr>
+                                        <td>{{ day.date }}</td>
+                                        <td>{{ day.responses }}</td>
+                                        <td>
+                                            {% if day.responses > 0 %}
+                                                <div class="progress" style="height: 15px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" 
+                                                         style="width: {% widthratio day.responses 10 100 %}%" 
+                                                         aria-valuenow="{{ day.responses }}" 
+                                                         aria-valuemin="0" aria-valuemax="10">
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">No responses</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Responses -->
+    {% if recent_responses %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock me-1"></i>Recent Responses
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Respondent</th>
+                                    <th>Role</th>
+                                    <th>Completed At</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for response in recent_responses %}
+                                    <tr>
+                                        <td>{{ response.respondent.get_full_name|default:response.respondent.username }}</td>
+                                        <td>
+                                            <span class="badge badge-info" style="background-color:blue;">{{ response.respondent.get_role_display }}</span>
+                                        </td>
+                                        <td>{{ response.created_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if response.is_complete %}
+                                                <span class="badge badge-success" style="background-color: green;">Complete</span>
+                                            {% else %}
+                                                <span class="badge badge-warning" style="background-color: orange;">Incomplete</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-download me-1"></i>Export Data
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'surveys:export_results' survey.pk %}" class="btn btn-success">
+                        <i class="fas fa-file-csv me-1"></i>Export to CSV
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
