@@ -28,7 +28,7 @@ def dashboard(request):
     user = request.user
     
     # Base queryset based on user role
-    if user.role == 'admin':
+    if user.is_admin:
         forms = EvaluationForm.objects.all()
         submissions = EvaluationSubmission.objects.all()
         can_manage = True
@@ -114,15 +114,20 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        # Base queryset based on user role
-        if user.role == 'admin':
+        # Filter based on user role
+        if user.is_admin:
             queryset = EvaluationForm.objects.all()
-        elif user.is_aamil or user.is_moze_coordinator:
-            queryset = EvaluationForm.objects.filter(created_by=user)
-        else:
+        elif user.role == 'aamil' or user.role == 'moze_coordinator':
             queryset = EvaluationForm.objects.filter(
-                Q(target_role=user.role) | Q(target_role='all'),
-                is_active=True
+                Q(created_by=user) | 
+                Q(target_role__in=['aamil', 'moze_coordinator', 'all'])
+            )
+        else:
+            # Students can only see forms targeted to them or forms they created
+            queryset = EvaluationForm.objects.filter(
+                Q(target_role='student') | 
+                Q(target_role='all') | 
+                Q(created_by=user)
             )
         
         # Apply filters
@@ -183,7 +188,7 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         user = self.request.user
         
-        if user.role == 'admin':
+        if user.is_admin:
             return EvaluationForm.objects.all()
         elif user.role == 'aamil' or user.role == 'moze_coordinator':
             return EvaluationForm.objects.filter(
@@ -210,7 +215,7 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
         # Permission checks
         context['can_edit'] = (
             user == form.created_by or 
-            user.role == 'admin' or 
+            user.is_admin or 
             user.is_aamil or
             user.is_moze_coordinator
         )
@@ -242,7 +247,7 @@ class EvaluationFormCreateView(LoginRequiredMixin, CreateView):
     
     def test_func(self):
         user = self.request.user
-        return user.role == 'admin' or user.is_aamil or user.is_moze_coordinator
+        return user.is_admin or user.is_aamil or user.is_moze_coordinator
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user
@@ -263,7 +268,7 @@ class EvaluationFormUpdateView(LoginRequiredMixin, UpdateView):
     def test_func(self):
         user = self.request.user
         form = self.get_object()
-        return (user.role == 'admin' or 
+        return (user.is_admin or 
                 user.is_aamil or 
                 user.is_moze_coordinator or
                 user == form.created_by)
@@ -289,7 +294,7 @@ def evaluate_form(request, pk):
     user = request.user
     
     # Check if user can evaluate this form
-    if not (user.role == 'admin' or 
+    if not (user.is_admin or 
             user.role == 'aamil' or 
             user.role == 'moze_coordinator' or
             (user.role == 'student' and form.target_role == 'student')):
@@ -374,7 +379,7 @@ def submission_detail(request, pk):
     can_view = (
         user == submission.evaluator or
         user == submission.target_user or
-        user.role == 'admin' or
+        user.is_admin or
         user.is_aamil or
         user.is_moze_coordinator
     )
@@ -396,12 +401,12 @@ def evaluation_analytics(request):
     user = request.user
     
     # Check permissions
-    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
+    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to view analytics.")
         return redirect('evaluation:dashboard')
     
     # Base queryset
-    if user.role == 'admin':
+    if user.is_admin:
         submissions = EvaluationSubmission.objects.all()
     else:
         submissions = EvaluationSubmission.objects.filter(
@@ -479,12 +484,12 @@ def export_evaluations(request):
     user = request.user
     
     # Check permissions
-    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
+    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to export data.")
         return redirect('evaluation:dashboard')
     
     # Base queryset
-    if user.role == 'admin':
+    if user.is_admin:
         submissions = EvaluationSubmission.objects.all()
     else:
         submissions = EvaluationSubmission.objects.filter(

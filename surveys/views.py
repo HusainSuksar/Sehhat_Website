@@ -399,12 +399,12 @@ def survey_analytics(request, pk):
     user = request.user
     
     # Check permissions
-    if not (user.role == "admin" or user == survey.created_by):
+    if not (user.is_admin or user == survey.created_by):
         messages.error(request, "You don't have permission to view survey analytics.")
         return redirect('surveys:detail', pk=pk)
     
     # Get all responses
-    responses = SurveyResponse.objects.filter(survey=survey).select_related('user')
+    responses = SurveyResponse.objects.filter(survey=survey).select_related('respondent')
     
     # Basic statistics
     total_responses = responses.count()
@@ -418,8 +418,8 @@ def survey_analytics(request, pk):
         question_responses = []
         
         for response in responses:
-            if question_id in response.responses:
-                question_responses.append(response.responses[question_id])
+            if question_id in response.answers:
+                question_responses.append(response.answers[question_id])
         
         # Analyze based on question type
         analysis = analyze_question_responses(question, question_responses)
@@ -466,7 +466,7 @@ def export_survey_results(request, pk):
     user = request.user
     
     # Check permissions
-    if not (user.role == "admin" or user == survey.created_by):
+    if not (user.is_admin or user == survey.created_by):
         messages.error(request, "You don't have permission to export survey results.")
         return redirect('surveys:detail', pk=pk)
     
