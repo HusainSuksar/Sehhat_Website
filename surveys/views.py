@@ -206,7 +206,7 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         ).first()
         
         context['user_response'] = user_response
-        context['can_respond'] = (
+        context['can_take_survey'] = (
             not user_response and 
             survey.is_active and 
             (survey.end_date is None or survey.end_date >= timezone.now()) and
