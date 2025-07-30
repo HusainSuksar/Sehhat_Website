@@ -155,7 +155,7 @@ class StudentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         print("Logged in as:", user.username, "| Role:", user.role)
-        if user.role == 'admin' or user.role == 'aamil' or user.role == 'moze_coordinator':
+        if user.role == 'admin' or user.role == 'aamil' or user.role == 'moze_coordinator' or user.role =='badri_mahal_admin':
             return Student.objects.all()
         else:
             return Student.objects.filter(user=user)
