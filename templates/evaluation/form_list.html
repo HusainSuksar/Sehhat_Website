@@ -49,15 +49,24 @@
                                         {% endif %}
                                     </td>
                                     <td style="min-width:120px;">
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ form_stats|get_item:form.pk|default:{}|dict_get:'progress'|default:0 }}%;" aria-valuenow="{{ form_stats|get_item:form.pk|default:{}|dict_get:'progress'|default:0 }}" aria-valuemin="0" aria-valuemax="100">
-                                                {{ form_stats|get_item:form.pk|default:{}|dict_get:'progress'|default:0 }}%
+                                        {% with form_data=form_stats|get_item:form.pk %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: {% if form_data %}{{ form_data|dict_get:'progress'|default:0 }}{% else %}0{% endif %}%;" aria-valuenow="{% if form_data %}{{ form_data|dict_get:'progress'|default:0 }}{% else %}0{% endif %}" aria-valuemin="0" aria-valuemax="100">
+                                                    {% if form_data %}{{ form_data|dict_get:'progress'|default:0 }}{% else %}0{% endif %}%
+                                                </div>
                                             </div>
-                                        </div>
+                                        {% endwith %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary">{{ form_stats|get_item:form.pk|default:{}|dict_get:'participation'|default:0 }} submissions</span><br>
-                                        <span class="badge bg-warning text-dark">Avg: {{ form_stats|get_item:form.pk|default:{}|dict_get:'avg_score'|floatformat:2 }}</span>
+                                        {% with form_data=form_stats|get_item:form.pk %}
+                                            {% if form_data %}
+                                                <span class="badge bg-primary">{{ form_data|dict_get:'participation'|default:0 }} submissions</span><br>
+                                                <span class="badge bg-warning text-dark">Avg: {{ form_data|dict_get:'avg_score'|floatformat:2 }}</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">0 submissions</span><br>
+                                                <span class="badge bg-warning text-dark">Avg: 0.00</span>
+                                            {% endif %}
+                                        {% endwith %}
                                     </td>
                                     <td>{{ form.created_at|date:"M d, Y" }}</td>
                                     <td><a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-sm btn-primary">View</a></td>
