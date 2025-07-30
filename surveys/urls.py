@@ -6,12 +6,12 @@ app_name = 'surveys'
 urlpatterns = [
     # Dashboard and main views
     path('', views.survey_dashboard, name='dashboard'),
-    path('list/', views.survey_list, name='list'),
-    path('<int:pk>/', views.survey_detail, name='detail'),
+    path('list/', views.SurveyListView.as_view(), name='list'),
+    path('<int:pk>/', views.SurveyDetailView.as_view(), name='detail'),
     
     # Survey management
-    path('create/', views.survey_create, name='create'),
-    path('<int:pk>/edit/', views.survey_edit, name='edit'),
+    path('create/', views.SurveyCreateView.as_view(), name='create'),
+    path('<int:pk>/edit/', views.SurveyEditView.as_view(), name='edit'),
     
     # Taking surveys
     path('<int:pk>/take/', views.take_survey, name='take_survey'),

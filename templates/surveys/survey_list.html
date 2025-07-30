@@ -13,16 +13,43 @@
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
-                            <tr><th>Title</th><th>Target Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+                            <tr>
+                                <th>Title</th>
+                                <th>Target Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>My Status</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
                             {% for survey in surveys %}
                             <tr>
                                 <td><a href="{% url 'surveys:detail' survey.pk %}">{{ survey.title }}</a></td>
                                 <td><span class="badge badge-info" style="background-color: rgb(4, 159, 35);">{{ survey.get_target_role_display }}</span></td>
-                                <td>{% if survey.is_active %}<span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>{% else %}<span class="badge badge-danger" style="background-color: rgb(237, 6, 6);">Inactive</span>{% endif %}</td>
+                                <td>
+                                    {% if survey.is_active %}
+                                        <span class="badge badge-success" style="background-color: rgb(4, 159, 35);">Active</span>
+                                    {% else %}
+                                        <span class="badge badge-danger" style="background-color: rgb(237, 6, 6);">Inactive</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ survey.created_at|date:"M d, Y" }}</td>
-                                <td><a href="{% url 'surveys:detail' survey.pk %}" class="btn btn-sm btn-primary">View</a></td>
+                                <td>
+                                    {% if survey.pk in user_responses %}
+                                        <span class="badge badge-success">Completed</span>
+                                    {% elif survey.is_active %}
+                                        <span class="badge badge-warning">Pending</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Not Available</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'surveys:detail' survey.pk %}" class="btn btn-sm btn-primary">View</a>
+                                    {% if survey.is_active and survey.pk not in user_responses %}
+                                        <a href="{% url 'surveys:take_survey' survey.pk %}" class="btn btn-sm btn-success">Take Survey</a>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
