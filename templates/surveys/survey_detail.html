@@ -4,7 +4,21 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">📋 {{ survey.title }}</h1>
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0 text-gray-800">📋 {{ survey.title }}</h1>
+                <div>
+                    {% if user.is_admin or user == survey.created_by %}
+                        <a href="{% url 'surveys:analytics' survey.pk %}" class="btn btn-info">
+                            <i class="fas fa-chart-bar me-1"></i>View Analytics
+                        </a>
+                    {% endif %}
+                    {% if user.is_admin or user == survey.created_by %}
+                        <a href="{% url 'surveys:edit' survey.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit me-1"></i>Edit Survey
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
     <div class="card shadow mb-4">
@@ -17,9 +31,56 @@
                 <h6 class="font-weight-bold">Description:</h6>
                 <div class="border-left-primary pl-3">{{ survey.description|linebreaks }}</div>
             </div>
-            {% if can_take_survey %}
-                <a href="{% url 'surveys:take_survey' survey.pk %}" class="btn btn-primary">Take Survey</a>
+            
+            <!-- Survey Statistics for Creators/Admins -->
+            {% if survey_stats %}
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h6 class="font-weight-bold">📊 Survey Statistics:</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-primary">{{ survey_stats.total_responses }}</h4>
+                                    <small class="text-muted">Total Responses</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-success">{{ survey_stats.target_users }}</h4>
+                                    <small class="text-muted">Target Users</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-info">{{ survey_stats.completion_rate }}%</h4>
+                                    <small class="text-muted">Completion Rate</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-warning">{{ survey.questions|length }}</h4>
+                                    <small class="text-muted">Questions</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2">
+                {% if can_take_survey %}
+                    <a href="{% url 'surveys:take_survey' survey.pk %}" class="btn btn-primary">
+                        <i class="fas fa-clipboard-check me-1"></i>Take Survey
+                    </a>
+                {% endif %}
+                
+                {% if user_response %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-check-circle me-1"></i>You have already completed this survey.
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
