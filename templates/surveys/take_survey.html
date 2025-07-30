@@ -16,18 +16,76 @@
                         {% csrf_token %}
                         {% for question in questions %}
                             <div class="form-group">
-                                <label class="font-weight-bold">{{ question.text }}</label>
-                                {% if question.question_type == 'text' %}
-                                    <input type="text" name="question_{{ question.id }}" class="form-control" required>
-                                {% elif question.question_type == 'textarea' %}
-                                    <textarea name="question_{{ question.id }}" class="form-control" rows="4" required></textarea>
-                                {% elif question.question_type == 'choice' %}
-                                    {% for choice in question.choices.all %}
+                                <label class="font-weight-bold">
+                                    {{ question.question }}
+                                    {% if question.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                
+                                {% if question.type == 'text' %}
+                                    <input type="text" name="question_{{ question.id }}" class="form-control" 
+                                           {% if question.required %}required{% endif %}>
+                                    
+                                {% elif question.type == 'textarea' %}
+                                    <textarea name="question_{{ question.id }}" class="form-control" rows="4" 
+                                              {% if question.required %}required{% endif %}></textarea>
+                                    
+                                {% elif question.type == 'email' %}
+                                    <input type="email" name="question_{{ question.id }}" class="form-control" 
+                                           {% if question.required %}required{% endif %}>
+                                    
+                                {% elif question.type == 'number' %}
+                                    <input type="number" name="question_{{ question.id }}" class="form-control" 
+                                           {% if question.required %}required{% endif %}>
+                                    
+                                {% elif question.type == 'multiple_choice' %}
+                                    {% for option in question.options %}
                                         <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" required>
-                                            <label class="form-check-label">{{ choice.text }}</label>
+                                            <input class="form-check-input" type="radio" 
+                                                   name="question_{{ question.id }}" value="{{ option }}" 
+                                                   {% if question.required %}required{% endif %}>
+                                            <label class="form-check-label">{{ option }}</label>
                                         </div>
                                     {% endfor %}
+                                    
+                                {% elif question.type == 'checkbox' %}
+                                    {% for option in question.options %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="question_{{ question.id }}" value="{{ option }}">
+                                            <label class="form-check-label">{{ option }}</label>
+                                        </div>
+                                    {% endfor %}
+                                    
+                                {% elif question.type == 'rating' %}
+                                    <div class="btn-group" role="group">
+                                        {% for option in question.options %}
+                                            <input type="radio" class="btn-check" 
+                                                   name="question_{{ question.id }}" value="{{ option }}" 
+                                                   id="rating_{{ question.id }}_{{ option }}" 
+                                                   {% if question.required %}required{% endif %}>
+                                            <label class="btn btn-outline-primary" for="rating_{{ question.id }}_{{ option }}">
+                                                {{ option }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elif question.type == 'yes_no' %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" value="Yes" 
+                                               id="yes_{{ question.id }}" 
+                                               {% if question.required %}required{% endif %}>
+                                        <label class="form-check-label" for="yes_{{ question.id }}">Yes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" value="No" 
+                                               id="no_{{ question.id }}" 
+                                               {% if question.required %}required{% endif %}>
+                                        <label class="form-check-label" for="no_{{ question.id }}">No</label>
+                                    </div>
                                 {% endif %}
                             </div>
                         {% endfor %}
