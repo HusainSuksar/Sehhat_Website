@@ -408,7 +408,13 @@ def survey_analytics(request, pk):
     
     # Basic statistics
     total_responses = responses.count()
-    target_users = User.objects.filter(role__in=survey.target_role).count()
+    
+    # Calculate target users based on survey target_role
+    if survey.target_role == 'all':
+        target_users = User.objects.count()
+    else:
+        target_users = User.objects.filter(role=survey.target_role).count()
+    
     completion_rate = round((total_responses / target_users) * 100, 1) if target_users > 0 else 0
     
     # Question-wise analysis
@@ -432,8 +438,8 @@ def survey_analytics(request, pk):
     # Response timeline
     response_timeline = []
     if responses.exists():
-        start_date = survey.start_date
-        end_date = min(survey.end_date, timezone.now())
+        start_date = survey.start_date or survey.created_at.date()
+        end_date = survey.end_date.date() if survey.end_date else timezone.now().date()
         
         current_date = start_date
         while current_date <= end_date:
@@ -479,21 +485,21 @@ def export_survey_results(request, pk):
     # Header row
     header = ['Response ID', 'User', 'Role', 'Completed At']
     for question in survey.questions:
-        header.append(f"Q{question['id']}: {question['text']}")
+        header.append(f"Q{question['id']}: {question['question']}")
     writer.writerow(header)
     
     # Data rows
-    for survey_response in survey.responses.select_related('user'):
+    for survey_response in survey.responses.select_related('respondent'):
         row = [
             survey_response.id,
-            survey_response.user.get_full_name(),
-            survey_response.user.get_role_display(),
+            survey_response.respondent.get_full_name() if survey_response.respondent else 'Anonymous',
+            survey_response.respondent.get_role_display() if survey_response.respondent else 'Anonymous',
             survey_response.created_at.strftime('%Y-%m-%d %H:%M')
         ]
         
         for question in survey.questions:
             question_id = str(question['id'])
-            response_value = survey_response.responses.get(question_id, '')
+            response_value = survey_response.answers.get(question_id, '')
             if isinstance(response_value, list):
                 response_value = ', '.join(response_value)
             row.append(response_value)
