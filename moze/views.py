@@ -21,6 +21,7 @@ class MozeAccessMixin(UserPassesTestMixin):
     """Mixin to check if user has access to Moze management"""
     def test_func(self):
         return (self.request.user.role == 'admin' or 
+                self.request.user.role == 'badri_mahal_admin' or
                 self.request.user.role == 'aamil' or 
                 self.request.user.role == 'moze_coordinator')
 
@@ -87,6 +88,8 @@ class MozeListView(LoginRequiredMixin, MozeAccessMixin, ListView):
         # Base queryset based on user role
         if user.role == 'admin':
             queryset = Moze.objects.all()
+        elif user.role == 'badri_mahal_admin':
+            queryset = Moze.objects.all()
         elif user.role == 'aamil':
             queryset = user.managed_mozes.all()
         elif user.role == 'moze_coordinator':
@@ -143,6 +146,8 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
         user = self.request.user
         if user.role == 'admin':
             return Moze.objects.all()
+        elif user.role == 'badri_mahal_admin':
+            queryset = Moze.objects.all()
         elif user.role == 'aamil':
             return user.managed_mozes.all()
         elif user.role == 'moze_coordinator':
@@ -263,6 +268,8 @@ class MozeEditView(LoginRequiredMixin, MozeAccessMixin, UpdateView):
         user = self.request.user
         if user.role == 'admin':
             return Moze.objects.all()
+        elif user.role == 'badri_mahal_admin':
+            queryset = Moze.objects.all()
         elif user.role == 'aamil':
             return user.managed_mozes.all()
         elif user.role == 'moze_coordinator':
@@ -288,7 +295,7 @@ moze_edit = MozeEditView.as_view()
 @login_required
 def moze_delete(request, pk):
     """Delete a Moze (admin only)"""
-    if not request.user.role == 'admin':
+    if not request.user.role == 'admin' or request.user.role == 'badri_mahal_admin':
         messages.error(request, "You don't have permission to delete Mozes.")
         return redirect('moze:list')
     
@@ -339,6 +346,8 @@ def moze_analytics(request):
     
     # Get accessible mozes
     if user.role == 'admin':
+        mozes = Moze.objects.all()
+    elif user.role == 'badri_mahal_admin':
         mozes = Moze.objects.all()
     else:
         mozes = user.coordinated_mozes.all()
