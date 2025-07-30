@@ -274,10 +274,12 @@ def take_survey(request, pk):
                 response_value = request.POST.get(f'question_{question_id}')
             elif question['type'] == 'rating':
                 response_value = request.POST.get(f'question_{question_id}')
+            elif question['type'] == 'yes_no':
+                response_value = request.POST.get(f'question_{question_id}')
             
             # Validate required questions
             if question.get('required', False) and not response_value:
-                messages.error(request, f"Please answer the required question: {question['text']}")
+                messages.error(request, f"Please answer the required question: {question['question']}")
                 return render(request, 'surveys/take_survey.html', {
                     'survey': survey,
                     'questions': questions

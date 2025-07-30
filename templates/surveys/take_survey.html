@@ -70,6 +70,22 @@
                                             </label>
                                         {% endfor %}
                                     </div>
+                                    
+                                {% elif question.type == 'yes_no' %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" value="Yes" 
+                                               id="yes_{{ question.id }}" 
+                                               {% if question.required %}required{% endif %}>
+                                        <label class="form-check-label" for="yes_{{ question.id }}">Yes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" value="No" 
+                                               id="no_{{ question.id }}" 
+                                               {% if question.required %}required{% endif %}>
+                                        <label class="form-check-label" for="no_{{ question.id }}">No</label>
+                                    </div>
                                 {% endif %}
                             </div>
                         {% endfor %}
