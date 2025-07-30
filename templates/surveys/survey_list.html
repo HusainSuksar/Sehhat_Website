@@ -49,6 +49,11 @@
                                     {% if survey.is_active and survey.pk not in user_responses %}
                                         <a href="{% url 'surveys:take_survey' survey.pk %}" class="btn btn-sm btn-success">Take Survey</a>
                                     {% endif %}
+                                     {% if user.is_admin or user == survey.created_by %}
+                                        <a href="{% url 'surveys:analytics' survey.pk %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-chart-bar"></i> Analytics
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
