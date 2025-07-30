@@ -11,6 +11,7 @@ urlpatterns = [
     path('forms/', views.EvaluationFormListView.as_view(), name='form_list'),
     path('forms/<int:pk>/', views.EvaluationFormDetailView.as_view(), name='form_detail'),
     path('forms/create/', views.EvaluationFormCreateView.as_view(), name='form_create'),
+    path('forms/<int:pk>/update/', views.EvaluationFormUpdateView.as_view(), name='form_update'),
     
     # Evaluation actions (only existing views)
     path('forms/<int:pk>/evaluate/', views.evaluate_form, name='evaluate_form'),

@@ -187,11 +187,13 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
             return EvaluationForm.objects.all()
         elif user.role == 'aamil' or user.role == 'moze_coordinator':
             return EvaluationForm.objects.filter(
-                Q(created_by=user) | Q(target_role="moze_coordinator")
+                Q(created_by=user) | Q(target_role="moze_coordinator") | Q(target_role="aamil")
             )
         else:
-            # Students can only see forms targeted to them
-            return EvaluationForm.objects.filter(target_role="student")
+            # Students can only see forms targeted to them or forms they created
+            return EvaluationForm.objects.filter(
+                Q(target_role="student") | Q(created_by=user)
+            )
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -256,6 +258,29 @@ class EvaluationFormCreateView(LoginRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
         response = super().form_valid(form)
         messages.success(self.request, 'Evaluation form created successfully.')
+        return response
+    
+    def get_success_url(self):
+        return reverse_lazy('evaluation:form_detail', kwargs={'pk': self.object.pk})
+
+
+class EvaluationFormUpdateView(LoginRequiredMixin, UpdateView):
+    """Update an existing evaluation form"""
+    model = EvaluationForm
+    template_name = 'evaluation/form_create.html'
+    fields = ['title', 'description', 'evaluation_type', 'target_role', 'due_date', 'is_active']
+    
+    def test_func(self):
+        user = self.request.user
+        form = self.get_object()
+        return (user.role == 'admin' or 
+                user.is_aamil or 
+                user.is_moze_coordinator or
+                user == form.created_by)
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Evaluation form updated successfully.')
         return response
     
     def get_success_url(self):
