@@ -242,8 +242,14 @@ def take_survey(request, pk):
         messages.error(request, "You are not eligible to take this survey.")
         return redirect('surveys:detail', pk=pk)
     
-    if not survey.is_active or survey.end_date < timezone.now():
+    # Check if survey is active and not expired
+    if not survey.is_active:
         messages.error(request, "This survey is not currently available.")
+        return redirect('surveys:detail', pk=pk)
+    
+    # Check if survey has expired (only if end_date is set)
+    if survey.end_date and survey.end_date < timezone.now():
+        messages.error(request, "This survey has expired.")
         return redirect('surveys:detail', pk=pk)
     
     # Check if user has already responded
