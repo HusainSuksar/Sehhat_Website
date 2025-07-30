@@ -200,16 +200,6 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
         form = self.object
         user = self.request.user
         
-        # Criteria grouped by category
-        criteria_by_category = {}
-        for criteria in form.criteria.filter(is_active=True):
-            category = criteria.category
-            if category not in criteria_by_category:
-                criteria_by_category[category] = []
-            criteria_by_category[category].append(criteria)
-        
-        context['criteria_by_category'] = criteria_by_category
-        
         # Check if user has already submitted
         user_submission = EvaluationSubmission.objects.filter(
             form=form,
@@ -329,8 +319,11 @@ def evaluate_form(request, pk):
             total_score = 0
             criteria_count = 0
             
-            for criteria in form.criteria.all():
-                rating_key = f'criteria_{criteria.id}'
+            # Get form criteria - use all active criteria since forms don't have direct criteria relationship
+            criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
+            
+            for criteria_item in criteria:
+                rating_key = f'criteria_{criteria_item.id}'
                 rating_value = request.POST.get(rating_key)
                 
                 if rating_value:
@@ -339,7 +332,7 @@ def evaluate_form(request, pk):
                         if 1 <= rating <= 5:
                             CriteriaRating.objects.create(
                                 submission=submission,
-                                criteria=criteria,
+                                criteria=criteria_item,
                                 score=rating
                             )
                             total_score += rating
@@ -360,8 +353,8 @@ def evaluate_form(request, pk):
             messages.error(request, f"Error submitting evaluation: {str(e)}")
             return redirect('evaluation:form_list')
     
-    # Get form criteria
-    criteria = form.criteria.all().order_by('order')
+    # Get form criteria - use all active criteria since forms don't have direct criteria relationship
+    criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
     
     context = {
         'form': form,
@@ -380,27 +373,18 @@ def submission_detail(request, pk):
     # Check permissions
     can_view = (
         user == submission.evaluator or
-                    user == submission.target_user or
+        user == submission.target_user or
         user.role == 'admin' or
-                    user.is_aamil or
-            user.is_moze_coordinator
+        user.is_aamil or
+        user.is_moze_coordinator
     )
     
     if not can_view:
         messages.error(request, "You don't have permission to view this submission.")
         return redirect('evaluation:dashboard')
     
-    # Get ratings grouped by category
-    ratings_by_category = {}
-    for rating in submission.ratings.select_related('criteria'):
-        category = rating.criteria.category
-        if category not in ratings_by_category:
-            ratings_by_category[category] = []
-        ratings_by_category[category].append(rating)
-    
     context = {
         'submission': submission,
-        'ratings_by_category': ratings_by_category,
     }
     
     return render(request, 'evaluation/submission_detail.html', context)
