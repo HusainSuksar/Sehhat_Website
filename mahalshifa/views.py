@@ -14,8 +14,10 @@ import csv
 from datetime import datetime, timedelta, date, time
 from decimal import Decimal
 
+from moze.models import Moze
+
 from .models import (
-    Hospital, Department, Doctor, Patient, Appointment, MedicalRecord,
+    Hospital, Department, Doctor, MedicalService, Patient, Appointment, MedicalRecord,
     Prescription, Medication, LabTest, LabResult, VitalSigns, 
     HospitalStaff, Room, Admission, Discharge, TreatmentPlan,
     Inventory, InventoryItem, EmergencyContact, Insurance
@@ -448,11 +450,26 @@ def create_appointment(request):
         if form.is_valid():
             appointment = form.save(commit=False)
             appointment.booked_by = request.user
+    
+         # 🔽 Add this based on your logic
+            if request.user.role == 'aamil':
+                appointment.moze = request.user.managed_mozes.first()
+            elif request.user.role == 'moze_coordinator':
+                  appointment.moze = request.user.coordinated_mozes.first()
+            elif request.user.role == 'badri_mahal_admin':  # as you mentioned earlier
+                 appointment.moze = Moze.objects.first()  # or allow selecting from all
+    
+            if appointment.moze is None:
+             messages.error(request, "Unable to determine Moze for this appointment.")
+             return redirect('mahalshifa:appointment_list')
             appointment.save()
             messages.success(request, 'Appointment created successfully!')
             return redirect('mahalshifa:appointment_detail', pk=appointment.pk)
     else:
         form = AppointmentForm()
+    
+        
+
     
     context = {
         'form': form,

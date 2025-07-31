@@ -243,14 +243,14 @@
                                     <tr>
                                         <td>{{ response.respondent.get_full_name|default:response.respondent.username }}</td>
                                         <td>
-                                            <span class="badge badge-info">{{ response.respondent.get_role_display }}</span>
+                                            <span class="badge badge-info" style="background-color: blue;">{{ response.respondent.get_role_display }}</span>
                                         </td>
                                         <td>{{ response.created_at|date:"M d, Y H:i" }}</td>
                                         <td>
                                             {% if response.is_complete %}
-                                                <span class="badge badge-success">Complete</span>
+                                                <span class="badge badge-success" style="background-color: green;">Complete</span>
                                             {% else %}
-                                                <span class="badge badge-warning">Incomplete</span>
+                                                <span class="badge badge-warning" style="background-color: orange;">Incomplete</span>
                                             {% endif %}
                                         </td>
                                     </tr>
