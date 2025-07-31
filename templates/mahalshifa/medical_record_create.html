@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Medical Record{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-notes-medical"></i> Create Medical Record
+            </h1>
+        </div>
+    </div>
+
+    <!-- Medical Record Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">New Medical Record</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="medical-record-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.patient.id_for_label }}">Patient *</label>
+                                    {{ form.patient }}
+                                    {% if form.patient.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.patient.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.moze.id_for_label }}">Moze *</label>
+                                    {{ form.moze }}
+                                    {% if form.moze.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.moze.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.chief_complaint.id_for_label }}">Chief Complaint *</label>
+                                    {{ form.chief_complaint }}
+                                    {% if form.chief_complaint.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.chief_complaint.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.history_of_present_illness.id_for_label }}">History of Present Illness</label>
+                                    {{ form.history_of_present_illness }}
+                                    {% if form.history_of_present_illness.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.history_of_present_illness.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.past_medical_history.id_for_label }}">Past Medical History</label>
+                                    {{ form.past_medical_history }}
+                                    {% if form.past_medical_history.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.past_medical_history.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.family_history.id_for_label }}">Family History</label>
+                                    {{ form.family_history }}
+                                    {% if form.family_history.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.family_history.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.social_history.id_for_label }}">Social History</label>
+                                    {{ form.social_history }}
+                                    {% if form.social_history.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.social_history.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.physical_examination.id_for_label }}">Physical Examination</label>
+                                    {{ form.physical_examination }}
+                                    {% if form.physical_examination.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.physical_examination.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.diagnosis.id_for_label }}">Diagnosis *</label>
+                                    {{ form.diagnosis }}
+                                    {% if form.diagnosis.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.diagnosis.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.differential_diagnosis.id_for_label }}">Differential Diagnosis</label>
+                                    {{ form.differential_diagnosis }}
+                                    {% if form.differential_diagnosis.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.differential_diagnosis.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.treatment_plan.id_for_label }}">Treatment Plan *</label>
+                                    {{ form.treatment_plan }}
+                                    {% if form.treatment_plan.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.treatment_plan.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.medications_prescribed.id_for_label }}">Medications Prescribed</label>
+                                    {{ form.medications_prescribed }}
+                                    {% if form.medications_prescribed.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.medications_prescribed.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.lab_tests_ordered.id_for_label }}">Lab Tests Ordered</label>
+                                    {{ form.lab_tests_ordered }}
+                                    {% if form.lab_tests_ordered.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.lab_tests_ordered.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.imaging_ordered.id_for_label }}">Imaging Ordered</label>
+                                    {{ form.imaging_ordered }}
+                                    {% if form.imaging_ordered.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.imaging_ordered.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.referrals.id_for_label }}">Referrals</label>
+                                    {{ form.referrals }}
+                                    {% if form.referrals.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.referrals.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        {{ form.follow_up_required }}
+                                        <label class="form-check-label" for="{{ form.follow_up_required.id_for_label }}">
+                                            Follow-up Required
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.follow_up_date.id_for_label }}">Follow-up Date</label>
+                                    {{ form.follow_up_date }}
+                                    {% if form.follow_up_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.follow_up_date.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="{{ form.follow_up_instructions.id_for_label }}">Follow-up Instructions</label>
+                                    {{ form.follow_up_instructions }}
+                                    {% if form.follow_up_instructions.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.follow_up_instructions.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.patient_education.id_for_label }}">Patient Education</label>
+                                    {{ form.patient_education }}
+                                    {% if form.patient_education.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.patient_education.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.doctor_notes.id_for_label }}">Doctor Notes</label>
+                                    {{ form.doctor_notes }}
+                                    {% if form.doctor_notes.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.doctor_notes.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'mahalshifa:medical_record_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Create Medical Record
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('medical-record-form');
+    const followUpRequired = document.getElementById('{{ form.follow_up_required.id_for_label }}');
+    const followUpDate = document.getElementById('{{ form.follow_up_date.id_for_label }}');
+    
+    // Show/hide follow-up date based on checkbox
+    function toggleFollowUpDate() {
+        if (followUpRequired.checked) {
+            followUpDate.parentElement.style.display = 'block';
+        } else {
+            followUpDate.parentElement.style.display = 'none';
+            followUpDate.value = '';
+        }
+    }
+    
+    followUpRequired.addEventListener('change', toggleFollowUpDate);
+    toggleFollowUpDate(); // Initial state
+});
+</script>
+{% endblock %}

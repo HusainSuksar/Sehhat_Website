@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Hospital - {{ hospital.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">⚠️ Warning!</h5>
+                        <p>Are you sure you want to delete the hospital <strong>"{{ hospital.name }}"</strong>?</p>
+                        <hr>
+                        <p class="mb-0">
+                            <strong>This action cannot be undone.</strong> All associated data including:
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            <li>Departments</li>
+                            <li>Doctors</li>
+                            <li>Staff</li>
+                            <li>Rooms</li>
+                            <li>Appointments</li>
+                            <li>Medical Records</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Hospital Details:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Name:</strong> {{ hospital.name }}</li>
+                                <li><strong>Type:</strong> {{ hospital.get_hospital_type_display }}</li>
+                                <li><strong>Address:</strong> {{ hospital.address }}</li>
+                                <li><strong>Phone:</strong> {{ hospital.phone }}</li>
+                                <li><strong>Email:</strong> {{ hospital.email }}</li>
+                                <li><strong>Total Beds:</strong> {{ hospital.total_beds }}</li>
+                                <li><strong>Available Beds:</strong> {{ hospital.available_beds }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Associated Data:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Departments:</strong> {{ hospital.departments.count }}</li>
+                                <li><strong>Doctors:</strong> {{ hospital.doctors.count }}</li>
+                                <li><strong>Staff:</strong> {{ hospital.staff.count }}</li>
+                                <li><strong>Rooms:</strong> {{ hospital.rooms.count }}</li>
+                                <li><strong>Appointments:</strong> {{ hospital.doctors.all|length }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'mahalshifa:hospital_detail' hospital.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Hospital
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

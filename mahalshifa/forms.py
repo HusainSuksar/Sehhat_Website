@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Hospital, Patient, Appointment, MedicalRecord, Prescription, LabTest
+from .models import Hospital, Patient, Appointment, MedicalRecord, Prescription, LabTest, Doctor
 
 User = get_user_model()
 
@@ -11,27 +11,24 @@ class HospitalForm(forms.ModelForm):
     class Meta:
         model = Hospital
         fields = [
-            'name', 'address', 'city', 'state', 'phone', 'email',
-            'website', 'hospital_type', 'capacity', 'specialties',
-            'emergency_services', 'is_active'
+            'name', 'description', 'address', 'phone', 'email',
+            'hospital_type', 'total_beds', 'available_beds', 'emergency_beds', 'icu_beds',
+            'is_active', 'is_emergency_capable', 'has_pharmacy', 'has_laboratory'
         ]
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Hospital name'
             }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Hospital description'
+            }),
             'address': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Hospital address'
-            }),
-            'city': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'City'
-            }),
-            'state': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'State/Province'
             }),
             'phone': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -41,27 +38,39 @@ class HospitalForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'hospital@example.com'
             }),
-            'website': forms.URLInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'https://hospital-website.com'
-            }),
             'hospital_type': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'capacity': forms.NumberInput(attrs={
+            'total_beds': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '1',
+                'min': '0',
                 'max': '10000'
             }),
-            'specialties': forms.Textarea(attrs={
+            'available_beds': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'List specialties (comma separated)'
+                'min': '0',
+                'max': '10000'
             }),
-            'emergency_services': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+            'emergency_beds': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '1000'
+            }),
+            'icu_beds': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'max': '1000'
             }),
             'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'is_emergency_capable': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'has_pharmacy': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'has_laboratory': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             })
         }
@@ -73,15 +82,29 @@ class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
         fields = [
-            'patient_id', 'date_of_birth', 'gender', 'blood_group',
-            'emergency_contact_name', 'emergency_contact_phone',
-            'address', 'allergies', 'medical_history', 'current_medications',
-            'insurance_provider', 'insurance_policy_number', 'hospital'
+            'its_id', 'first_name', 'last_name', 'arabic_name', 'date_of_birth', 'gender', 'blood_group',
+            'phone_number', 'email', 'address', 'emergency_contact_name', 'emergency_contact_phone',
+            'emergency_contact_relationship', 'allergies', 'chronic_conditions', 'current_medications',
+            'registered_moze', 'is_active'
         ]
         widgets = {
-            'patient_id': forms.TextInput(attrs={
+            'its_id': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Patient ID'
+                'placeholder': 'ITS ID (8 digits)',
+                'pattern': '[0-9]{8}',
+                'title': 'ITS ID must be exactly 8 digits'
+            }),
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'First name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Last name'
+            }),
+            'arabic_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Arabic name (optional)'
             }),
             'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control',
@@ -93,6 +116,19 @@ class PatientForm(forms.ModelForm):
             'blood_group': forms.Select(attrs={
                 'class': 'form-control'
             }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Phone number'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Email address (optional)'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Address'
+            }),
             'emergency_contact_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Emergency contact name'
@@ -101,43 +137,38 @@ class PatientForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Emergency contact phone'
             }),
-            'address': forms.Textarea(attrs={
+            'emergency_contact_relationship': forms.TextInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Patient address'
+                'placeholder': 'Relationship to patient'
             }),
             'allergies': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Known allergies'
+                'rows': 3,
+                'placeholder': 'Known allergies (optional)'
             }),
-            'medical_history': forms.Textarea(attrs={
+            'chronic_conditions': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Medical history'
+                'rows': 3,
+                'placeholder': 'Chronic medical conditions (optional)'
             }),
             'current_medications': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Current medications'
+                'placeholder': 'Current medications (optional)'
             }),
-            'insurance_provider': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Insurance provider'
-            }),
-            'insurance_policy_number': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Policy number'
-            }),
-            'hospital': forms.Select(attrs={
+            'registered_moze': forms.Select(attrs={
                 'class': 'form-control'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             })
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter active hospitals
-        self.fields['hospital'].queryset = Hospital.objects.filter(is_active=True)
+        # Filter active mozes
+        from moze.models import Moze
+        self.fields['registered_moze'].queryset = Moze.objects.filter(is_active=True)
 
 
 class AppointmentForm(forms.ModelForm):
@@ -184,13 +215,16 @@ class AppointmentForm(forms.ModelForm):
 
 
 class MedicalRecordForm(forms.ModelForm):
-    """Form for creating medical records"""
+    """Form for creating and editing medical records"""
     
     class Meta:
         model = MedicalRecord
         fields = [
-            'patient', 'doctor', 'symptoms', 'diagnosis',
-            'treatment', 'prescription', 'notes', 'follow_up_date'
+            'patient', 'doctor', 'moze', 'chief_complaint', 'history_of_present_illness',
+            'past_medical_history', 'family_history', 'social_history', 'physical_examination',
+            'diagnosis', 'differential_diagnosis', 'treatment_plan', 'medications_prescribed',
+            'lab_tests_ordered', 'imaging_ordered', 'referrals', 'follow_up_required',
+            'follow_up_date', 'follow_up_instructions', 'patient_education', 'doctor_notes'
         ]
         widgets = {
             'patient': forms.Select(attrs={
@@ -199,48 +233,113 @@ class MedicalRecordForm(forms.ModelForm):
             'doctor': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'symptoms': forms.Textarea(attrs={
+            'moze': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'chief_complaint': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Main complaint or reason for visit'
+            }),
+            'history_of_present_illness': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Patient symptoms'
+                'placeholder': 'History of present illness (optional)'
+            }),
+            'past_medical_history': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Past medical history (optional)'
+            }),
+            'family_history': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Family history (optional)'
+            }),
+            'social_history': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Social history (optional)'
+            }),
+            'physical_examination': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Physical examination findings (optional)'
             }),
             'diagnosis': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Medical diagnosis'
+                'placeholder': 'Diagnosis'
             }),
-            'treatment': forms.Textarea(attrs={
+            'differential_diagnosis': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Differential diagnosis (optional)'
+            }),
+            'treatment_plan': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Treatment plan'
             }),
-            'prescription': forms.Textarea(attrs={
+            'medications_prescribed': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Prescribed medications'
+                'placeholder': 'Medications prescribed (optional)'
             }),
-            'notes': forms.Textarea(attrs={
+            'lab_tests_ordered': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Additional notes'
+                'placeholder': 'Lab tests ordered (optional)'
+            }),
+            'imaging_ordered': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Imaging ordered (optional)'
+            }),
+            'referrals': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Referrals (optional)'
+            }),
+            'follow_up_required': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             }),
             'follow_up_date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
+            }),
+            'follow_up_instructions': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Follow-up instructions (optional)'
+            }),
+            'patient_education': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Patient education provided (optional)'
+            }),
+            'doctor_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Private doctor notes (optional)'
             })
         }
 
 
 class PrescriptionForm(forms.ModelForm):
-    """Form for creating prescriptions"""
+    """Form for creating and editing prescriptions"""
     
     class Meta:
         model = Prescription
         fields = [
-            'patient', 'doctor', 'medication_name', 'dosage',
-            'frequency', 'duration', 'instructions', 'refills'
+            'medical_record', 'patient', 'doctor', 'medication_name', 'dosage',
+            'frequency', 'duration', 'quantity', 'instructions', 'warnings',
+            'is_active', 'is_dispensed', 'dispensed_date', 'dispensed_by'
         ]
         widgets = {
+            'medical_record': forms.Select(attrs={
+                'class': 'form-control'
+            }),
             'patient': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -253,39 +352,61 @@ class PrescriptionForm(forms.ModelForm):
             }),
             'dosage': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Dosage (e.g., 500mg)'
+                'placeholder': 'e.g., 500mg, 10ml'
             }),
             'frequency': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Frequency (e.g., twice daily)'
+                'placeholder': 'e.g., Twice daily, Every 8 hours'
             }),
             'duration': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Duration (e.g., 7 days)'
+                'placeholder': 'e.g., 7 days, 2 weeks'
+            }),
+            'quantity': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 30 tablets, 100ml'
             }),
             'instructions': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Special instructions'
+                'placeholder': 'Special instructions for taking the medication'
             }),
-            'refills': forms.NumberInput(attrs={
+            'warnings': forms.Textarea(attrs={
                 'class': 'form-control',
-                'min': '0',
-                'max': '12'
+                'rows': 3,
+                'placeholder': 'Warnings and precautions (optional)'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'is_dispensed': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'dispensed_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'dispensed_by': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Name of person who dispensed'
             })
         }
 
 
 class LabTestForm(forms.ModelForm):
-    """Form for ordering lab tests"""
+    """Form for creating and editing lab tests"""
     
     class Meta:
         model = LabTest
         fields = [
-            'patient', 'doctor', 'test_name', 'test_type',
-            'instructions', 'urgent', 'notes'
+            'medical_record', 'patient', 'doctor', 'test_name', 'test_category',
+            'test_code', 'status', 'result_text', 'normal_range', 'is_abnormal',
+            'lab_name', 'lab_technician', 'doctor_notes', 'lab_notes'
         ]
         widgets = {
+            'medical_record': forms.Select(attrs={
+                'class': 'form-control'
+            }),
             'patient': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -296,62 +417,126 @@ class LabTestForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Test name'
             }),
-            'test_type': forms.Select(attrs={
+            'test_category': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'instructions': forms.Textarea(attrs={
+            'test_code': forms.TextInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Test instructions'
+                'placeholder': 'Test code (optional)'
             }),
-            'urgent': forms.CheckboxInput(attrs={
+            'status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'result_text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Test results (optional)'
+            }),
+            'normal_range': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Normal range (optional)'
+            }),
+            'is_abnormal': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
-            'notes': forms.Textarea(attrs={
+            'lab_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Additional notes'
+                'placeholder': 'Laboratory name (optional)'
+            }),
+            'lab_technician': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Lab technician name (optional)'
+            }),
+            'doctor_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Doctor notes (optional)'
+            }),
+            'lab_notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Lab notes (optional)'
             })
         }
 
 
 class PatientSearchForm(forms.Form):
     """Form for searching patients"""
-    
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Search by name, patient ID, or phone...'
+            'placeholder': 'Search by name, ITS ID, or phone number'
         })
     )
     
-    hospital = forms.ModelChoiceField(
-        queryset=Hospital.objects.filter(is_active=True),
+    gender = forms.ChoiceField(
         required=False,
-        empty_label="All Hospitals",
+        choices=[('', 'All Genders')] + [
+            ('male', 'Male'),
+            ('female', 'Female'),
+            ('other', 'Other')
+        ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     blood_group = forms.ChoiceField(
-        choices=[('', 'All Blood Groups')] + Patient.BLOOD_GROUP_CHOICES,
         required=False,
+        choices=[('', 'All Blood Groups')] + [
+            ('A+', 'A+'), ('A-', 'A-'),
+            ('B+', 'B+'), ('B-', 'B-'),
+            ('AB+', 'AB+'), ('AB-', 'AB-'),
+            ('O+', 'O+'), ('O-', 'O-'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    is_active = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'All Status'),
+            ('True', 'Active'),
+            ('False', 'Inactive')
+        ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
 
 class AppointmentFilterForm(forms.Form):
     """Form for filtering appointments"""
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search by patient name, doctor name, or reason'
+        })
+    )
     
     status = forms.ChoiceField(
-        choices=[('', 'All Statuses')] + Appointment.STATUS_CHOICES,
         required=False,
+        choices=[('', 'All Statuses')] + [
+            ('scheduled', 'Scheduled'),
+            ('confirmed', 'Confirmed'),
+            ('checked_in', 'Checked In'),
+            ('in_progress', 'In Progress'),
+            ('completed', 'Completed'),
+            ('cancelled', 'Cancelled'),
+            ('no_show', 'No Show'),
+            ('rescheduled', 'Rescheduled'),
+        ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     appointment_type = forms.ChoiceField(
-        choices=[('', 'All Types')] + Appointment.APPOINTMENT_TYPE_CHOICES,
         required=False,
+        choices=[('', 'All Types')] + [
+            ('regular', 'Regular Appointment'),
+            ('follow_up', 'Follow-up'),
+            ('urgent', 'Urgent'),
+            ('emergency', 'Emergency'),
+            ('screening', 'Health Screening'),
+            ('consultation', 'Consultation'),
+        ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
@@ -369,4 +554,18 @@ class AppointmentFilterForm(forms.Form):
             'class': 'form-control',
             'type': 'date'
         })
+    )
+    
+    doctor = forms.ModelChoiceField(
+        queryset=Doctor.objects.filter(is_available=True),
+        required=False,
+        empty_label="All Doctors",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    hospital = forms.ModelChoiceField(
+        queryset=Hospital.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Hospitals",
+        widget=forms.Select(attrs={'class': 'form-control'})
     )

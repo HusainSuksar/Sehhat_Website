@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Medical Record - {{ medical_record.patient.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-notes-medical"></i> Medical Record
+                </h1>
+                <div>
+                    {% if user.is_admin or medical_record.doctor.user == user %}
+                        <a href="{% url 'mahalshifa:medical_record_update' medical_record.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Record
+                        </a>
+                        <a href="{% url 'mahalshifa:medical_record_delete' medical_record.pk %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete Record
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Record Details -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Medical Record Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Patient Information</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Name:</strong> 
+                                    <a href="{% url 'mahalshifa:patient_detail' medical_record.patient.pk %}">
+                                        {{ medical_record.patient.get_full_name }}
+                                    </a>
+                                </li>
+                                <li><strong>ITS ID:</strong> {{ medical_record.patient.its_id }}</li>
+                                <li><strong>Age:</strong> {{ medical_record.patient.get_age }} years</li>
+                                <li><strong>Gender:</strong> {{ medical_record.patient.get_gender_display }}</li>
+                                <li><strong>Blood Group:</strong> {{ medical_record.patient.blood_group|default:"Not specified" }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Consultation Information</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Doctor:</strong> {{ medical_record.doctor.user.get_full_name }}</li>
+                                <li><strong>Specialization:</strong> {{ medical_record.doctor.specialization }}</li>
+                                <li><strong>Consultation Date:</strong> {{ medical_record.consultation_date|date:"M d, Y H:i" }}</li>
+                                <li><strong>Hospital:</strong> {{ medical_record.doctor.hospital.name }}</li>
+                                <li><strong>Department:</strong> {{ medical_record.doctor.department.name }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Chief Complaint</h6>
+                            <p>{{ medical_record.chief_complaint }}</p>
+                        </div>
+                    </div>
+
+                    {% if medical_record.history_of_present_illness %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>History of Present Illness</h6>
+                            <p>{{ medical_record.history_of_present_illness }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.past_medical_history %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Past Medical History</h6>
+                            <p>{{ medical_record.past_medical_history }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.family_history %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Family History</h6>
+                            <p>{{ medical_record.family_history }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.social_history %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Social History</h6>
+                            <p>{{ medical_record.social_history }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.physical_examination %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Physical Examination</h6>
+                            <p>{{ medical_record.physical_examination }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Diagnosis</h6>
+                            <p>{{ medical_record.diagnosis }}</p>
+                        </div>
+                    </div>
+
+                    {% if medical_record.differential_diagnosis %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Differential Diagnosis</h6>
+                            <p>{{ medical_record.differential_diagnosis }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Treatment Plan</h6>
+                            <p>{{ medical_record.treatment_plan }}</p>
+                        </div>
+                    </div>
+
+                    {% if medical_record.medications_prescribed %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Medications Prescribed</h6>
+                            <p>{{ medical_record.medications_prescribed }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.lab_tests_ordered %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Lab Tests Ordered</h6>
+                            <p>{{ medical_record.lab_tests_ordered }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.imaging_ordered %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Imaging Ordered</h6>
+                            <p>{{ medical_record.imaging_ordered }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.referrals %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Referrals</h6>
+                            <p>{{ medical_record.referrals }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.follow_up_required %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Follow-up Information</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Follow-up Required:</strong> Yes</li>
+                                {% if medical_record.follow_up_date %}
+                                    <li><strong>Follow-up Date:</strong> {{ medical_record.follow_up_date|date:"M d, Y" }}</li>
+                                {% endif %}
+                                {% if medical_record.follow_up_instructions %}
+                                    <li><strong>Instructions:</strong> {{ medical_record.follow_up_instructions }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.patient_education %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Patient Education</h6>
+                            <p>{{ medical_record.patient_education }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if medical_record.doctor_notes %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Doctor Notes</h6>
+                            <p>{{ medical_record.doctor_notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Count, Sum, Avg, F
@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
 import json
+import csv
 from datetime import datetime, timedelta, date, time
 from decimal import Decimal
 
@@ -20,6 +21,9 @@ from .models import (
     Inventory, InventoryItem, EmergencyContact, Insurance
 )
 from accounts.models import User
+from .forms import (
+    HospitalForm, PatientForm, AppointmentForm, MedicalRecordForm
+)
 
 
 @login_required
@@ -28,7 +32,7 @@ def dashboard(request):
     user = request.user
     
     # Base queryset based on user role
-    if user.role == 'admin':
+    if user.is_admin:
         hospitals = Hospital.objects.all()
         appointments = Appointment.objects.all()
         patients = Patient.objects.all()
@@ -163,23 +167,26 @@ class HospitalListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         user = self.request.user
-        
-        if user.role == 'admin':
+        if user.is_admin:
             return Hospital.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
-            return Hospital.objects.all()
-        elif user.role == 'doctor':
+        elif user.is_aamil or user.is_moze_coordinator:
+            # Hospital administrators can see their hospital data via staff relationship
+            return Hospital.objects.filter(staff__user=user).distinct()
+        elif user.is_doctor:
+            # Doctors can see their hospital
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
                 return Hospital.objects.filter(id=doctor_profile.hospital.id)
             except MahalshifaDoctor.DoesNotExist:
                 return Hospital.objects.none()
-            except Exception as e:
-                print(f"Error loading doctor hospitals for user {user.username}: {e}")
-                return Hospital.objects.none()
         else:
-            return Hospital.objects.none()
+            # Patients can see hospitals where they have appointments
+            try:
+                patient_profile = user.patient_record
+                return Hospital.objects.filter(doctors__appointments__patient=patient_profile).distinct()
+            except AttributeError:
+                return Hospital.objects.none()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -250,11 +257,11 @@ class PatientListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        if user.role == 'admin':
+        if user.is_admin:
             return Patient.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
-            return Patient.objects.all()
-        elif user.role == 'doctor':
+        elif user.is_aamil or user.is_moze_coordinator:
+            return Patient.objects.filter(registered_moze__aamil=user)
+        elif user.is_doctor:
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
@@ -278,7 +285,7 @@ class PatientListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        if user.role == 'admin' or user.is_aamil or user.is_moze_coordinator:
+        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
             context['hospitals'] = Hospital.objects.filter(is_active=True)
         
         context['current_filters'] = {
@@ -299,11 +306,11 @@ class AppointmentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
-        if user.role == 'admin':
+        if user.is_admin:
             return Appointment.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
+        elif user.is_aamil or user.is_moze_coordinator:
             return Appointment.objects.all()
-        elif user.role == 'doctor':
+        elif user.is_doctor:
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
@@ -329,7 +336,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
         
         context['status_choices'] = Appointment.STATUS_CHOICES
         
-        if user.role == 'admin' or user.is_aamil or user.is_moze_coordinator:
+        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
             context['doctors'] = Doctor.objects.filter(is_available=True).select_related('user')
         
         context['current_filters'] = {
@@ -342,20 +349,21 @@ class AppointmentListView(LoginRequiredMixin, ListView):
 
 @login_required
 def appointment_detail(request, pk):
-    """Detailed view of a specific appointment"""
+    """Detailed view of an appointment"""
     appointment = get_object_or_404(Appointment, pk=pk)
     user = request.user
     
     # Check permissions
     can_view = (
-        user.role == 'admin' or
-        user == appointment.patient.user_account or
-        user == appointment.doctor.user or
-        appointment.doctor.hospital.staff.filter(user=user).exists()
+        user.is_admin or 
+        user.is_aamil or 
+        user.is_moze_coordinator or
+        appointment.doctor.user == user or
+        appointment.patient.user_account == user
     )
     
     if not can_view:
-        messages.error(request, "You don't have permission to view this appointment.")
+        messages.error(request, 'You do not have permission to view this appointment.')
         return redirect('mahalshifa:appointment_list')
     
     # Get related data
@@ -370,7 +378,7 @@ def appointment_detail(request, pk):
         'prescriptions': prescriptions,
         'lab_tests': lab_tests,
         'vital_signs': vital_signs,
-        'can_edit': user == appointment.doctor.user or user.role == 'admin',
+        'can_edit': user == appointment.doctor.user or user.is_admin,
     }
     
     return render(request, 'mahalshifa/appointment_detail.html', context)
@@ -378,22 +386,23 @@ def appointment_detail(request, pk):
 
 @login_required
 def patient_detail(request, pk):
-    """Detailed view of a specific patient"""
+    """Detailed view of a patient"""
     patient = get_object_or_404(Patient, pk=pk)
     user = request.user
     
     # Check permissions
     can_view = (
-        user.role == 'admin' or
-        user == patient.user_account or
-        patient.appointments.filter(doctor__user=user).exists()
+        user.is_admin or 
+        user.is_aamil or 
+        user.is_moze_coordinator or
+        patient.user_account == user
     )
     
     if not can_view:
-        messages.error(request, "You don't have permission to view this patient.")
+        messages.error(request, 'You do not have permission to view this patient.')
         return redirect('mahalshifa:patient_list')
     
-    # Get patient data
+    # Get related data
     appointments = patient.appointments.select_related('doctor__user', 'doctor__hospital').order_by('-appointment_date')
     medical_records = MedicalRecord.objects.filter(patient=patient).order_by('-created_at')
     prescriptions = Prescription.objects.filter(patient=patient).order_by('-created_at')
@@ -418,8 +427,9 @@ def patient_detail(request, pk):
         'insurance_info': insurance_info,
         'recent_vitals': recent_vitals,
         'can_edit': (
-            user.role == 'admin' or
-            patient.appointments.filter(doctor__user=user).exists()
+            user.is_admin or
+            user.is_aamil or
+            user.is_moze_coordinator
         ),
     }
     
@@ -429,88 +439,26 @@ def patient_detail(request, pk):
 @login_required
 def create_appointment(request):
     """Create a new appointment"""
+    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to create appointments.')
+        return redirect('mahalshifa:appointment_list')
+    
     if request.method == 'POST':
-        user = request.user
-        
-        # Get form data
-        patient_id = request.POST.get('patient')
-        doctor_id = request.POST.get('doctor')
-        hospital_id = request.POST.get('hospital')
-        appointment_date = request.POST.get('appointment_date')
-        appointment_time = request.POST.get('appointment_time')
-        appointment_type = request.POST.get('appointment_type', 'regular')
-        notes = request.POST.get('notes', '')
-        
-        try:
-            patient = Patient.objects.get(id=patient_id)
-            doctor = Doctor.objects.get(id=doctor_id)
-            hospital = Hospital.objects.get(id=hospital_id)
-            
-            # Check permissions
-            can_create = (
-                user.role == 'admin' or
-                user == patient.user_account or
-                hospital.staff.filter(user=user).exists()
-            )
-            
-            if not can_create:
-                return JsonResponse({'error': 'Permission denied'}, status=403)
-            
-            # Create appointment
-            appointment = Appointment.objects.create(
-                patient=patient,
-                doctor=doctor,
-                hospital=hospital,
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                appointment_type=appointment_type,
-                notes=notes,
-                status='scheduled'
-            )
-            
-            messages.success(request, 'Appointment created successfully.')
-            return JsonResponse({
-                'success': True,
-                'appointment_id': appointment.id,
-                'redirect_url': f'/mahalshifa/appointments/{appointment.id}/'
-            })
-            
-        except (Patient.DoesNotExist, Doctor.DoesNotExist, Hospital.DoesNotExist):
-            return JsonResponse({'error': 'Invalid selection'}, status=400)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    
-    # GET request - show form
-    user = request.user
-    
-    if user.role == 'admin':
-        patients = Patient.objects.filter(is_active=True)
-        doctors = Doctor.objects.filter(is_available=True)
-        hospitals = Hospital.objects.filter(is_active=True)
-    elif user.is_aamil or user.is_moze_coordinator:
-        user_hospitals = Hospital.objects.filter(staff__user=user)
-        patients = Patient.objects.filter(registered_moze__aamil=user, is_active=True)
-        doctors = Doctor.objects.filter(hospital__in=user_hospitals, is_available=True)
-        hospitals = user_hospitals
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.booked_by = request.user
+            appointment.save()
+            messages.success(request, 'Appointment created successfully!')
+            return redirect('mahalshifa:appointment_detail', pk=appointment.pk)
     else:
-        # Patients can create appointments for themselves
-        try:
-            patient_profile = user.patient_record
-            patients = Patient.objects.filter(id=patient_profile.id)
-            # Get hospitals where this patient has appointments or could have them
-            available_hospitals = Hospital.objects.filter(is_active=True)
-            doctors = Doctor.objects.filter(hospital__in=available_hospitals, is_available=True)
-            hospitals = available_hospitals
-        except:
-            patients = Patient.objects.none()
-            doctors = Doctor.objects.none()
-            hospitals = Hospital.objects.none()
+        form = AppointmentForm()
     
     context = {
-        'patients': patients,
-        'doctors': doctors,
-        'hospitals': hospitals,
-        'appointment_types': Appointment.APPOINTMENT_TYPES,
+        'form': form,
+        'doctors': Doctor.objects.filter(is_available=True).select_related('user'),
+        'patients': Patient.objects.filter(is_active=True),
+        'services': MedicalService.objects.filter(is_active=True),
     }
     
     return render(request, 'mahalshifa/create_appointment.html', context)
@@ -519,76 +467,73 @@ def create_appointment(request):
 @login_required
 def medical_analytics(request):
     """Medical analytics dashboard"""
-    user = request.user
-    
-    # Check permissions
-    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to view analytics.")
+    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to view analytics.')
         return redirect('mahalshifa:dashboard')
     
-    # Base queryset
-    if user.role == 'admin':
-        hospitals = Hospital.objects.all()
+    # Get date range
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=30)
+    
+    # Get data based on user role
+    user = request.user
+    if user.is_admin:
         appointments = Appointment.objects.all()
         patients = Patient.objects.all()
-    else:
-        hospitals = Hospital.objects.filter(staff__user=user)
-        appointments = Appointment.objects.filter(doctor__hospital__in=hospitals)
+        hospitals = Hospital.objects.all()
+    elif user.is_aamil or user.is_moze_coordinator:
+        appointments = Appointment.objects.filter(doctor__hospital__staff__user=user).distinct()
         patients = Patient.objects.filter(registered_moze__aamil=user)
+        hospitals = Hospital.objects.filter(staff__user=user).distinct()
+    else:
+        appointments = Appointment.objects.none()
+        patients = Patient.objects.none()
+        hospitals = Hospital.objects.none()
     
-    # Time-based statistics
-    today = timezone.now().date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
+    # Calculate statistics
+    total_appointments = appointments.count()
+    completed_appointments = appointments.filter(status='completed').count()
+    pending_appointments = appointments.filter(status='scheduled').count()
+    total_patients = patients.count()
+    total_hospitals = hospitals.count()
     
-    stats = {
-        'total_appointments': appointments.count(),
-        'this_week': appointments.filter(appointment_date__gte=week_ago).count(),
-        'this_month': appointments.filter(appointment_date__gte=month_ago).count(),
-        'total_patients': patients.count(),
-        'active_patients': patients.filter(is_active=True).count(),
-        'emergency_cases': appointments.filter(appointment_type='emergency').count(),
-    }
-    
-    # Department performance - simplified
-    dept_performance = Department.objects.filter(
-        hospital__in=hospitals
-    )
-    
-    # Monthly appointment trends
-    monthly_trends = []
-    for i in range(12):
-        month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
+    # Monthly trends
+    monthly_data = []
+    for i in range(6):
+        month_start = end_date.replace(day=1) - timedelta(days=30*i)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         month_appointments = appointments.filter(
-            appointment_date__year=month_start.year,
-            appointment_date__month=month_start.month
+            appointment_date__gte=month_start,
+            appointment_date__lte=month_end
         ).count()
-        monthly_trends.append({
+        monthly_data.append({
             'month': month_start.strftime('%b %Y'),
             'count': month_appointments
         })
     
-    # Top doctors by appointments - use the correct related name
-    top_doctors = Doctor.objects.filter(
-        hospital__in=hospitals
-    ).annotate(
-        appointment_count=Count('appointments')
-    ).order_by('-appointment_count')[:10]
+    # Appointment status distribution
+    status_distribution = appointments.values('status').annotate(
+        count=Count('id')
+    ).order_by('status')
     
-    # Hospital comparison
+    # Hospital statistics
     hospital_stats = hospitals.annotate(
         appointment_count=Count('doctors__appointments'),
-        patient_count=Count('doctors__appointments__patient', distinct=True),
-        doctor_count=Count('doctors')
+        doctor_count=Count('doctors'),
+        patient_count=Count('doctors__appointments__patient', distinct=True)
     ).order_by('-appointment_count')
     
     context = {
-        'stats': stats,
-        'dept_performance': dept_performance,
-        'monthly_trends': monthly_trends[::-1],
-        'top_doctors': top_doctors,
+        'total_appointments': total_appointments,
+        'completed_appointments': completed_appointments,
+        'pending_appointments': pending_appointments,
+        'total_patients': total_patients,
+        'total_hospitals': total_hospitals,
+        'monthly_data': monthly_data,
+        'status_distribution': status_distribution,
         'hospital_stats': hospital_stats,
-        'user_role': user.get_role_display(),
+        'start_date': start_date,
+        'end_date': end_date,
     }
     
     return render(request, 'mahalshifa/analytics.html', context)
@@ -596,47 +541,51 @@ def medical_analytics(request):
 
 @login_required
 def inventory_management(request):
-    """Inventory management for hospitals"""
-    user = request.user
-    
-    # Check permissions
-    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to manage inventory.")
+    """Inventory management dashboard"""
+    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to view inventory.')
         return redirect('mahalshifa:dashboard')
     
-    # Base queryset
-    if user.role == 'admin':
-        hospitals = Hospital.objects.all()
+    # Get inventory data based on user role
+    user = request.user
+    if user.is_admin:
+        inventory_items = InventoryItem.objects.all()
+        inventories = Inventory.objects.all()
+    elif user.is_aamil or user.is_moze_coordinator:
+        inventory_items = InventoryItem.objects.filter(inventory__hospital__staff__user=user)
+        inventories = Inventory.objects.filter(hospital__staff__user=user)
     else:
-        hospitals = Hospital.objects.filter(staff__user=user)
+        inventory_items = InventoryItem.objects.none()
+        inventories = Inventory.objects.none()
     
-    inventory_items = InventoryItem.objects.filter(
-        inventory__hospital__in=hospitals
-    ).select_related('inventory__hospital')
+    # Calculate statistics
+    total_items = inventory_items.count()
+    low_stock_items = inventory_items.filter(current_stock__lte=F('minimum_stock')).count()
+    expired_items = inventory_items.filter(expiry_date__lt=timezone.now().date()).count()
+    
+    # Category distribution
+    category_distribution = inventory_items.values('category').annotate(
+        count=Count('id')
+    ).order_by('category')
     
     # Low stock items
-    low_stock_items = inventory_items.filter(
+    low_stock_list = inventory_items.filter(
         current_stock__lte=F('minimum_stock')
-    )
+    ).select_related('inventory')[:10]
     
-    # Recently updated items  
-    recent_updates = inventory_items.order_by('-updated_at')[:10]
-    
-    # Inventory by hospital
-    hospital_inventory = {}
-    for hospital in hospitals:
-        hospital_inventory[hospital] = inventory_items.filter(
-            inventory__hospital=hospital
-        ).count()
+    # Expired items
+    expired_list = inventory_items.filter(
+        expiry_date__lt=timezone.now().date()
+    ).select_related('inventory')[:10]
     
     context = {
-        'hospitals': hospitals,
-        'inventory_items': inventory_items,
+        'total_items': total_items,
         'low_stock_items': low_stock_items,
-        'recent_updates': recent_updates,
-        'hospital_inventory': hospital_inventory,
-        'total_items': inventory_items.count(),
-        'low_stock_count': low_stock_items.count(),
+        'expired_items': expired_items,
+        'category_distribution': category_distribution,
+        'low_stock_list': low_stock_list,
+        'expired_list': expired_list,
+        'inventories': inventories,
     }
     
     return render(request, 'mahalshifa/inventory.html', context)
@@ -645,74 +594,272 @@ def inventory_management(request):
 @login_required
 def export_medical_data(request):
     """Export medical data to CSV"""
-    import csv
-    
-    user = request.user
-    
-    # Check permissions
-    if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to export data.")
+    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to export data.')
         return redirect('mahalshifa:dashboard')
     
-    data_type = request.GET.get('type', 'appointments')
-    
-    # Base queryset
-    if user.role == 'admin':
-        hospitals = Hospital.objects.all()
+    # Get data based on user role
+    user = request.user
+    if user.is_admin:
+        appointments = Appointment.objects.all()
+        patients = Patient.objects.all()
+        medical_records = MedicalRecord.objects.all()
+    elif user.is_aamil or user.is_moze_coordinator:
+        appointments = Appointment.objects.filter(doctor__hospital__staff__user=user).distinct()
+        patients = Patient.objects.filter(registered_moze__aamil=user)
+        medical_records = MedicalRecord.objects.filter(moze__aamil=user)
     else:
-        hospitals = Hospital.objects.filter(staff__user=user)
+        appointments = Appointment.objects.none()
+        patients = Patient.objects.none()
+        medical_records = MedicalRecord.objects.none()
     
+    # Create CSV response
     response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="medical_data_export.csv"'
     
-    if data_type == 'appointments':
-        response['Content-Disposition'] = 'attachment; filename="appointments.csv"'
-        writer = csv.writer(response)
-        writer.writerow([
-            'ID', 'Patient', 'Doctor', 'Hospital', 'Date', 'Time', 
-            'Type', 'Status', 'Notes'
-        ])
-        
-        # Get doctors from these hospitals first, then appointments
-        hospital_doctors = Doctor.objects.filter(hospital__in=hospitals)
-        appointments = Appointment.objects.filter(
-            doctor__in=hospital_doctors
-        ).select_related('patient__user_account', 'doctor__user', 'doctor__hospital')
-        
-        for appointment in appointments:
-            writer.writerow([
-                appointment.id,
-                appointment.patient.get_full_name(),
-                appointment.doctor.user.get_full_name(),
-                appointment.doctor.hospital.name,
-                appointment.appointment_date,
-                appointment.appointment_time,
-                appointment.get_appointment_type_display(),
-                appointment.get_status_display(),
-                appointment.notes
-            ])
+    writer = csv.writer(response)
+    writer.writerow([
+        'Data Type', 'ID', 'Patient Name', 'Doctor Name', 'Date', 'Status', 'Notes'
+    ])
     
-    elif data_type == 'patients':
-        response['Content-Disposition'] = 'attachment; filename="patients.csv"'
-        writer = csv.writer(response)
+    # Export appointments
+    for appointment in appointments.select_related('patient', 'doctor__user'):
         writer.writerow([
-            'Patient ID', 'Name', 'ITS ID', 'Hospital', 'Blood Group', 
-            'Phone', 'Email', 'Created Date'
+            'Appointment',
+            appointment.id,
+            appointment.patient.get_full_name(),
+            appointment.doctor.user.get_full_name(),
+            appointment.appointment_date,
+            appointment.status,
+            appointment.reason
         ])
-        
-        patients = Patient.objects.filter(
-            registered_moze__aamil__in=[u for h in hospitals for u in h.staff.values_list('user', flat=True)]
-        ).select_related('user_account', 'registered_moze')
-        
-        for patient in patients:
-            writer.writerow([
-                patient.its_id,
-                patient.get_full_name(),
-                patient.its_id,
-                patient.registered_moze.location if patient.registered_moze else 'N/A',
-                patient.blood_group,
-                patient.phone_number,
-                patient.email,
-                patient.created_at.strftime('%Y-%m-%d')
-            ])
+    
+    # Export medical records
+    for record in medical_records.select_related('patient', 'doctor__user'):
+        writer.writerow([
+            'Medical Record',
+            record.id,
+            record.patient.get_full_name(),
+            record.doctor.user.get_full_name(),
+            record.consultation_date.date(),
+            'Completed',
+            record.diagnosis
+        ])
     
     return response
+
+# Hospital CRUD Views
+class HospitalCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Create a new hospital"""
+    model = Hospital
+    form_class = HospitalForm
+    template_name = 'mahalshifa/hospital_create.html'
+    success_url = reverse_lazy('mahalshifa:hospital_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Hospital created successfully!')
+        return super().form_valid(form)
+
+
+class HospitalUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing hospital"""
+    model = Hospital
+    form_class = HospitalForm
+    template_name = 'mahalshifa/hospital_edit.html'
+    success_url = reverse_lazy('mahalshifa:hospital_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Hospital updated successfully!')
+        return super().form_valid(form)
+
+
+class HospitalDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a hospital"""
+    model = Hospital
+    template_name = 'mahalshifa/hospital_confirm_delete.html'
+    success_url = reverse_lazy('mahalshifa:hospital_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Hospital deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# Patient CRUD Views
+class PatientCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Create a new patient"""
+    model = Patient
+    form_class = PatientForm
+    template_name = 'mahalshifa/patient_create.html'
+    success_url = reverse_lazy('mahalshifa:patient_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_aamil or self.request.user.is_moze_coordinator
+    
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Patient created successfully!')
+        return super().form_valid(form)
+
+
+class PatientUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing patient"""
+    model = Patient
+    form_class = PatientForm
+    template_name = 'mahalshifa/patient_edit.html'
+    success_url = reverse_lazy('mahalshifa:patient_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_aamil or self.request.user.is_moze_coordinator
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Patient updated successfully!')
+        return super().form_valid(form)
+
+
+class PatientDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a patient"""
+    model = Patient
+    template_name = 'mahalshifa/patient_confirm_delete.html'
+    success_url = reverse_lazy('mahalshifa:patient_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_aamil or self.request.user.is_moze_coordinator
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Patient deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# Appointment CRUD Views
+class AppointmentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing appointment"""
+    model = Appointment
+    form_class = AppointmentForm
+    template_name = 'mahalshifa/appointment_edit.html'
+    success_url = reverse_lazy('mahalshifa:appointment_list')
+    
+    def test_func(self):
+        appointment = self.get_object()
+        return (self.request.user.is_admin or 
+                self.request.user.is_aamil or 
+                self.request.user.is_moze_coordinator or
+                appointment.doctor.user == self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Appointment updated successfully!')
+        return super().form_valid(form)
+
+
+class AppointmentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete an appointment"""
+    model = Appointment
+    template_name = 'mahalshifa/appointment_confirm_delete.html'
+    success_url = reverse_lazy('mahalshifa:appointment_list')
+    
+    def test_func(self):
+        appointment = self.get_object()
+        return (self.request.user.is_admin or 
+                self.request.user.is_aamil or 
+                self.request.user.is_moze_coordinator or
+                appointment.doctor.user == self.request.user)
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Appointment deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# Medical Record CRUD Views
+class MedicalRecordListView(LoginRequiredMixin, ListView):
+    """List medical records with role-based access"""
+    model = MedicalRecord
+    template_name = 'mahalshifa/medical_record_list.html'
+    context_object_name = 'medical_records'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_admin:
+            return MedicalRecord.objects.all()
+        elif user.is_aamil or user.is_moze_coordinator:
+            return MedicalRecord.objects.filter(moze__aamil=user)
+        elif user.is_doctor:
+            return MedicalRecord.objects.filter(doctor__user=user)
+        else:
+            return MedicalRecord.objects.filter(patient__user_account=user)
+
+
+class MedicalRecordCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Create a new medical record"""
+    model = MedicalRecord
+    form_class = MedicalRecordForm
+    template_name = 'mahalshifa/medical_record_create.html'
+    success_url = reverse_lazy('mahalshifa:medical_record_list')
+    
+    def test_func(self):
+        return self.request.user.is_admin or self.request.user.is_doctor
+    
+    def form_valid(self, form):
+        form.instance.doctor = self.request.user.mahalshifa_doctor_profile
+        messages.success(self.request, 'Medical record created successfully!')
+        return super().form_valid(form)
+
+
+class MedicalRecordDetailView(LoginRequiredMixin, DetailView):
+    """Detailed view of a medical record"""
+    model = MedicalRecord
+    template_name = 'mahalshifa/medical_record_detail.html'
+    context_object_name = 'medical_record'
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_admin:
+            return MedicalRecord.objects.all()
+        elif user.is_aamil or user.is_moze_coordinator:
+            return MedicalRecord.objects.filter(moze__aamil=user)
+        elif user.is_doctor:
+            return MedicalRecord.objects.filter(doctor__user=user)
+        else:
+            return MedicalRecord.objects.filter(patient__user_account=user)
+
+
+class MedicalRecordUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing medical record"""
+    model = MedicalRecord
+    form_class = MedicalRecordForm
+    template_name = 'mahalshifa/medical_record_edit.html'
+    success_url = reverse_lazy('mahalshifa:medical_record_list')
+    
+    def test_func(self):
+        medical_record = self.get_object()
+        return (self.request.user.is_admin or 
+                medical_record.doctor.user == self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Medical record updated successfully!')
+        return super().form_valid(form)
+
+
+class MedicalRecordDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a medical record"""
+    model = MedicalRecord
+    template_name = 'mahalshifa/medical_record_confirm_delete.html'
+    success_url = reverse_lazy('mahalshifa:medical_record_list')
+    
+    def test_func(self):
+        medical_record = self.get_object()
+        return (self.request.user.is_admin or 
+                medical_record.doctor.user == self.request.user)
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Medical record deleted successfully!')
+        return super().delete(request, *args, **kwargs)
