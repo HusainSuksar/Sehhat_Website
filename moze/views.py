@@ -181,6 +181,40 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
             is_active=True
         ).select_related('author').order_by('-created_at')[:5]
         
+        # Get local doctors (from doctordirectory)
+        try:
+            from doctordirectory.models import Doctor
+            context['local_doctors'] = Doctor.objects.filter(
+                assigned_moze=moze,
+                is_available=True
+            ).select_related('user').order_by('name')
+        except ImportError:
+            context['local_doctors'] = []
+        
+        # Get patient case logs (from doctordirectory)
+        try:
+            from doctordirectory.models import PatientLog
+            context['patient_logs'] = PatientLog.objects.filter(
+                moze=moze
+            ).select_related('seen_by', 'schedule').order_by('-timestamp')[:20]
+        except ImportError:
+            context['patient_logs'] = []
+        
+        # Get moze evaluations (from evaluation app)
+        try:
+            from evaluation.models import Evaluation
+            context['evaluations'] = Evaluation.objects.filter(
+                moze=moze
+            ).select_related('evaluator').order_by('-evaluation_date')[:10]
+        except ImportError:
+            context['evaluations'] = []
+        
+        # Get moze settings
+        try:
+            context['moze_settings'] = moze.settings
+        except:
+            context['moze_settings'] = None
+        
         # Check if user can edit
         user = self.request.user
         context['can_edit'] = (
