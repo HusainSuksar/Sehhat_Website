@@ -46,7 +46,7 @@ def dashboard(request):
             doctor_profile = Doctor.objects.create(
                 user=user,
                 name=user.get_full_name(),
-                specialization="General Medicine"
+                specialty="General Medicine"
             )
         except Exception as e:
             print(f"Error creating doctor profile for user {user.username}: {e}")
@@ -108,7 +108,7 @@ class DoctorListView(LoginRequiredMixin, ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        queryset = Doctor.objects.filter(is_verified=True).select_related('user', 'assigned_moze')
+        queryset = Doctor.objects.select_related('user', 'assigned_moze')
         
         # Search functionality
         search = self.request.GET.get('search')
@@ -144,7 +144,6 @@ class DoctorListView(LoginRequiredMixin, ListView):
         
         # Get unique specialties for filter
         context['specialties'] = Doctor.objects.filter(
-            is_verified=True,
             user__specialty__isnull=False
         ).exclude(user__specialty='').values_list('user__specialty', flat=True).distinct()
         
@@ -161,7 +160,7 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'doctor'
     
     def get_queryset(self):
-        return Doctor.objects.filter(is_verified=True).select_related('user', 'assigned_moze')
+        return Doctor.objects.select_related('user', 'assigned_moze')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
