@@ -112,29 +112,29 @@
                                         </td>
                                         <td>
                                             {% if petition.category %}
-                                                <span class="badge badge-secondary">{{ petition.category.name }}</span>
+                                                <span class="badge badge-secondary" style="background-color: blue;">{{ petition.category.name }}</span>
                                             {% else %}
                                                 <span class="text-muted">No category</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if petition.priority == 'high' %}
-                                                <span class="badge badge-danger">High</span>
+                                                <span class="badge badge-danger" style="background-color: red;">High</span>
                                             {% elif petition.priority == 'medium' %}
-                                                <span class="badge badge-warning">Medium</span>
+                                                <span class="badge badge-warning" style="background-color: orange;">Medium</span>
                                             {% else %}
-                                                <span class="badge badge-info">Low</span>
+                                                <span class="badge badge-info" style="background-color: greenyellow;">Low</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if petition.status == 'pending' %}
-                                                <span class="badge badge-warning">Pending</span>
+                                                <span class="badge badge-warning" style="background-color: red;">Pending</span>
                                             {% elif petition.status == 'in_progress' %}
-                                                <span class="badge badge-info">In Progress</span>
+                                                <span class="badge badge-info" style="background-color: orange;">In Progress</span>
                                             {% elif petition.status == 'resolved' %}
-                                                <span class="badge badge-success">Resolved</span>
+                                                <span class="badge badge-success" style="background-color: green;">Resolved</span>
                                             {% else %}
-                                                <span class="badge badge-danger">Rejected</span>
+                                                <span class="badge badge-danger" style="background-color: brown;">Rejected</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ petition.created_at|date:"M d, Y" }}</td>

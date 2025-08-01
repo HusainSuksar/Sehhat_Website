@@ -7,104 +7,309 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-1">🏥 Doctor Directory Dashboard</h1>
-            <p class="text-muted mb-0">
-                {% if doctor_profile %}Welcome back, Dr. {{ doctor_profile.name }}{% else %}Medical Services Management{% endif %}
-            </p>
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h3 mb-1">🏥 Doctor Directory Dashboard</h1>
+                    <p class="text-muted mb-0">
+                        {% if doctor_profile %}Welcome back, Dr. {{ doctor_profile.name }}{% else %}Medical Services Management{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'doctordirectory:analytics' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-bar me-1"></i>View Analytics
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
+    <!-- Global Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-primary text-white">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <h5>Today's Appointments</h5>
-                    <h2>{{ todays_appointments|default:0 }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5>This Week</h5>
-                    <h2>{{ weekly_appointments|default:0 }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5>Total Patients</h5>
-                    <h2>{{ total_patients|default:0 }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <h5>Pending</h5>
-                    <h2>{{ pending_appointments|default:0 }}</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Recent Appointments</h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_appointments %}
-                        {% for appointment in recent_appointments %}
-                        <div class="mb-3 p-3 border-start border-primary">
-                            <h6>{% if not doctor_profile %}Dr. {{ appointment.doctor.name }} - {% endif %}{{ appointment.patient.user.get_full_name }}</h6>
-                            <p class="mb-1">{{ appointment.reason_for_visit }}</p>
-                            <small class="text-muted">{{ appointment.appointment_date }} at {{ appointment.appointment_time }}</small>
-                            <span class="badge bg-{{ appointment.status|default:'secondary' }} ms-2">{{ appointment.get_status_display }}</span>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Doctors
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_doctors }}</div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted">No recent appointments</p>
-                    {% endif %}
+                        <div class="col-auto">
+                            <i class="fas fa-user-md fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Quick Actions</h5>
-                </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-users"></i> All Doctors
-                        </a>
-                        {% if user.is_doctor %}
-                        <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-primary">
-                            <i class="fas fa-calendar"></i> My Schedule
-                        </a>
-                        {% endif %}
-                        <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-outline-success">
-                            <i class="fas fa-users"></i> View Patients
-                        </a>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Patients
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_patients_global }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Appointments
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_appointments_global }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Medical Records
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_medical_records }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-notes-medical fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Weekly and Monthly Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Weekly Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ weekly_appointments }}</h4>
+                                <small class="text-muted">Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ weekly_patients }}</h4>
+                                <small class="text-muted">Patients</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ monthly_appointments }}</h4>
+                                <small class="text-muted">Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ monthly_patients }}</h4>
+                                <small class="text-muted">Patients</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctor-Specific Statistics (if logged in as doctor) -->
+    {% if doctor_profile %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Your Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ todays_appointments }}</h4>
+                                <small class="text-muted">Today's Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ weekly_doctor_appointments }}</h4>
+                                <small class="text-muted">This Week</small>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ monthly_doctor_appointments }}</h4>
+                                <small class="text-muted">This Month</small>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">{{ pending_appointments }}</h4>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-secondary">{{ total_patients }}</h4>
+                                <small class="text-muted">Your Patients</small>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h4 class="text-dark">{{ total_appointments }}</h4>
+                                <small class="text-muted">Total Appointments</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Recent Appointments -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Appointments</h6>
+                    <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Book Appointment
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                        {% for appointment in recent_appointments %}
+                        <div class="mb-3 p-3 border-start border-primary">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        {% if not doctor_profile %}Dr. {{ appointment.doctor.name }} - {% endif %}
+                                        {{ appointment.patient.user.get_full_name }}
+                                    </h6>
+                                    <p class="mb-1 text-muted">{{ appointment.reason_for_visit }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date }}
+                                        <i class="fas fa-clock ms-2 me-1"></i>{{ appointment.appointment_time }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{{ appointment.status|default:'secondary' }}">{{ appointment.get_status_display }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No recent appointments</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions and Analytics -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-md me-1"></i>All Doctors
+                        </a>
+                        <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-users me-1"></i>View Patients
+                        </a>
+                        {% if user.is_doctor %}
+                        <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-primary">
+                            <i class="fas fa-calendar me-1"></i>My Schedule
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'doctordirectory:analytics' %}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar me-1"></i>Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Specialties -->
+            {% if top_specialties %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Specialties</h6>
+                </div>
+                <div class="card-body">
+                    {% for specialty in top_specialties %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ specialty.specialty }}</span>
+                        <span class="badge bg-primary">{{ specialty.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Appointment Status -->
+            {% if appointment_status %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Appointment Status</h6>
+                </div>
+                <div class="card-body">
+                    {% for status in appointment_status %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ status.status|title }}</span>
+                        <span class="badge bg-secondary">{{ status.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Recent Patient Logs -->
     {% if recent_logs %}
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Recent Patient Logs</h5>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Patient Logs</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -115,6 +320,7 @@
                                     <th>ITS ID</th>
                                     <th>Ailment</th>
                                     <th>Doctor</th>
+                                    <th>Visit Type</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -125,7 +331,51 @@
                                     <td><code>{{ log.patient_its_id }}</code></td>
                                     <td>{{ log.ailment|truncatewords:5 }}</td>
                                     <td>{{ log.seen_by.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if log.visit_type == 'emergency' %}danger{% elif log.visit_type == 'follow_up' %}warning{% else %}primary{% endif %}">
+                                            {{ log.visit_type|title }}
+                                        </span>
+                                    </td>
                                     <td><small>{{ log.timestamp|date:"M d, Y" }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Medical Records -->
+    {% if recent_medical_records %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Medical Records</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Diagnosis</th>
+                                    <th>Treatment Plan</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in recent_medical_records %}
+                                <tr>
+                                    <td><strong>{{ record.patient.get_full_name }}</strong></td>
+                                    <td>{{ record.doctor.name }}</td>
+                                    <td>{{ record.diagnosis|truncatewords:5 }}</td>
+                                    <td>{{ record.treatment_plan|truncatewords:5 }}</td>
+                                    <td><small>{{ record.created_at|date:"M d, Y" }}</small></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
