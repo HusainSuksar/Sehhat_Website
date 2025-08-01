@@ -825,8 +825,34 @@ class MedicalRecordCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
     def test_func(self):
         return self.request.user.is_admin or self.request.user.is_doctor
     
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user = self.request.user
+        
+        # If user is a doctor, filter doctor choices to only show their profile
+        if user.is_doctor:
+            try:
+                doctor_profile = user.mahalshifa_doctor_profile
+                form.fields['doctor'].queryset = Doctor.objects.filter(id=doctor_profile.id)
+                form.fields['doctor'].initial = doctor_profile
+            except Doctor.DoesNotExist:
+                # If user doesn't have a doctor profile, show all doctors
+                pass
+        
+        return form
+    
     def form_valid(self, form):
-        form.instance.doctor = self.request.user.mahalshifa_doctor_profile
+        user = self.request.user
+        
+        # If user is a doctor, automatically set the doctor field
+        if user.is_doctor:
+            try:
+                doctor_profile = user.mahalshifa_doctor_profile
+                form.instance.doctor = doctor_profile
+            except Doctor.DoesNotExist:
+                # If user doesn't have a doctor profile, let them choose
+                pass
+        
         messages.success(self.request, 'Medical record created successfully!')
         return super().form_valid(form)
 
