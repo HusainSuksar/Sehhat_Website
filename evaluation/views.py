@@ -464,12 +464,24 @@ def evaluation_analytics(request):
         count=Count('id')
     ).order_by('-avg_score')
     
+    # Get recent submissions for the table
+    recent_submissions = submissions.select_related('form', 'evaluator').order_by('-submitted_at')[:10]
+    
+    # Get category performance from responses
+    category_performance = EvaluationResponse.objects.filter(
+        submission__in=submissions
+    ).values('criteria__category').annotate(
+        avg_rating=Avg('score'),
+        count=Count('id')
+    ).order_by('-avg_rating')
+    
     context = {
         'stats': stats,
         'type_stats': type_stats,
         'monthly_trend': monthly_trend[::-1],
         'category_performance': category_performance,
         'role_performance': role_performance,
+        'recent_submissions': recent_submissions,
         'user_role': user.get_role_display(),
     }
     

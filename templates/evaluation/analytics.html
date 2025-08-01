@@ -9,18 +9,306 @@
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h1 class="h3 mb-0 text-gray-800">📊 Evaluation Analytics</h1>
+                <div>
+                    <a href="{% url 'evaluation:export_evaluations' %}" class="btn btn-success">
+                        <i class="fas fa-download me-1"></i>Export Data
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Analytics Dashboard</h6>
-            </div>
-            <div class="card-body">
-                <p>Evaluation analytics charts and statistics will be displayed here.</p>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Submissions
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_submissions }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                This Week
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.this_week }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-week fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                This Month
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.this_month }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Average Score
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.average_score|floatformat:1 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-star fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Monthly Trend Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Monthly Submission Trend</h6>
+                </div>
+                <div class="card-body">
+                    {% if monthly_trend %}
+                        <div class="chart-area">
+                            <canvas id="monthlyTrendChart"></canvas>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No data available for trend analysis</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Evaluation Type Breakdown -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Evaluation Types</h6>
+                </div>
+                <div class="card-body">
+                    {% if type_stats %}
+                        <div class="chart-pie pt-4 pb-2">
+                            <canvas id="typeBreakdownChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center small">
+                            {% for type_stat in type_stats %}
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> {{ type_stat.form__evaluation_type|title }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No evaluation type data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Analysis -->
+    <div class="row">
+        <!-- Role Performance -->
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Performance by Role</h6>
+                </div>
+                <div class="card-body">
+                    {% if role_performance %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Average Score</th>
+                                        <th>Submissions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for role in role_performance %}
+                                        <tr>
+                                            <td>{{ role.evaluator__role|title }}</td>
+                                            <td>{{ role.avg_score|floatformat:1 }}</td>
+                                            <td>{{ role.count }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No role performance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Performance -->
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Category Performance</h6>
+                </div>
+                <div class="card-body">
+                    {% if category_performance %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Average Rating</th>
+                                        <th>Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category in category_performance %}
+                                        <tr>
+                                            <td>{{ category.criteria__category|title }}</td>
+                                            <td>{{ category.avg_rating|floatformat:1 }}</td>
+                                            <td>{{ category.count }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No category performance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Submissions</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_submissions %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Form</th>
+                                        <th>Evaluator</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for submission in recent_submissions %}
+                                        <tr>
+                                            <td>{{ submission.form.title }}</td>
+                                            <td>{{ submission.evaluator.get_full_name }}</td>
+                                            <td>{{ submission.total_score|floatformat:1 }}</td>
+                                            <td>
+                                                {% if submission.is_complete %}
+                                                    <span class="badge bg-success">Complete</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Incomplete</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ submission.submitted_at|date:"M d, Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No recent submissions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Trend Chart
+{% if monthly_trend %}
+const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+new Chart(monthlyTrendCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in monthly_trend %}'{{ item.month }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Submissions',
+            data: [{% for item in monthly_trend %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: 'rgb(78, 115, 223)',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+{% endif %}
+
+// Type Breakdown Chart
+{% if type_stats %}
+const typeBreakdownCtx = document.getElementById('typeBreakdownChart').getContext('2d');
+new Chart(typeBreakdownCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for type_stat in type_stats %}'{{ type_stat.form__evaluation_type|title }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for type_stat in type_stats %}{{ type_stat.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: [
+                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+{% endif %}
+</script>
 {% endblock %}
