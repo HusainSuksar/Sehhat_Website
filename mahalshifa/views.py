@@ -822,6 +822,19 @@ class MedicalRecordCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
     template_name = 'mahalshifa/medical_record_create.html'
     success_url = reverse_lazy('mahalshifa:medical_record_list')
     
+    def post(self, request, *args, **kwargs):
+        """Handle POST request with debugging"""
+        print(f"🔍 POST request received for medical record creation")
+        print(f"📝 Form data: {request.POST}")
+        
+        form = self.get_form()
+        if form.is_valid():
+            print(f"✅ Form is valid")
+            return self.form_valid(form)
+        else:
+            print(f"❌ Form errors: {form.errors}")
+            return self.form_invalid(form)
+    
     def test_func(self):
         return self.request.user.is_admin or self.request.user.is_doctor
     
@@ -853,8 +866,14 @@ class MedicalRecordCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
                 # If user doesn't have a doctor profile, let them choose
                 pass
         
-        messages.success(self.request, 'Medical record created successfully!')
-        return super().form_valid(form)
+        # Save the form
+        medical_record = form.save()
+        
+        # Add success message
+        messages.success(self.request, f'Medical record created successfully for {medical_record.patient.get_full_name()}!')
+        
+        # Redirect to the medical record list
+        return redirect('mahalshifa:medical_record_list')
 
 
 class MedicalRecordDetailView(LoginRequiredMixin, DetailView):
