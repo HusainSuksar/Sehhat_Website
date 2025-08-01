@@ -33,7 +33,7 @@ class DoctorAccessMixin(UserPassesTestMixin):
 
 @login_required
 def dashboard(request):
-    """Doctor directory dashboard"""
+    """Doctor directory dashboard with comprehensive statistics"""
     user = request.user
     
     # Get doctor profile
@@ -61,7 +61,31 @@ def dashboard(request):
         print(f"Error loading patient profile for user {user.username}: {e}")
         patient_profile = None
     
-    # Get statistics
+    # Global statistics (for all users)
+    total_doctors = Doctor.objects.filter(is_verified=True, is_available=True).count()
+    total_patients_global = Patient.objects.count()
+    total_appointments_global = Appointment.objects.count()
+    total_medical_records = MedicalRecord.objects.count()
+    
+    # Weekly statistics
+    week_start = timezone.now().date() - timedelta(days=7)
+    weekly_appointments = Appointment.objects.filter(
+        appointment_date__gte=week_start
+    ).count()
+    weekly_patients = Patient.objects.filter(
+        appointments__appointment_date__gte=week_start
+    ).distinct().count()
+    
+    # Monthly statistics
+    month_start = timezone.now().date() - timedelta(days=30)
+    monthly_appointments = Appointment.objects.filter(
+        appointment_date__gte=month_start
+    ).count()
+    monthly_patients = Patient.objects.filter(
+        appointments__appointment_date__gte=month_start
+    ).distinct().count()
+    
+    # Doctor-specific statistics
     if doctor_profile:
         total_patients = Patient.objects.filter(appointments__doctor=doctor_profile).distinct().count()
         total_appointments = Appointment.objects.filter(doctor=doctor_profile).count()
@@ -73,11 +97,21 @@ def dashboard(request):
             doctor=doctor_profile,
             status='scheduled'
         ).count()
+        weekly_doctor_appointments = Appointment.objects.filter(
+            doctor=doctor_profile,
+            appointment_date__gte=week_start
+        ).count()
+        monthly_doctor_appointments = Appointment.objects.filter(
+            doctor=doctor_profile,
+            appointment_date__gte=month_start
+        ).count()
     else:
         total_patients = 0
         total_appointments = 0
         today_appointments = 0
         pending_appointments = 0
+        weekly_doctor_appointments = 0
+        monthly_doctor_appointments = 0
     
     # Get recent appointments
     if doctor_profile:
@@ -87,14 +121,66 @@ def dashboard(request):
     else:
         recent_appointments = []
     
+    # Get recent patient logs
+    if doctor_profile:
+        recent_logs = PatientLog.objects.filter(
+            seen_by=doctor_profile
+        ).order_by('-timestamp')[:10]
+    else:
+        recent_logs = PatientLog.objects.all().order_by('-timestamp')[:10]
+    
+    # Get top specialties
+    top_specialties = Doctor.objects.values('specialty').annotate(
+        count=Count('id')
+    ).order_by('-count')[:5]
+    
+    # Get appointment status distribution
+    appointment_status = Appointment.objects.values('status').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Get recent medical records
+    if doctor_profile:
+        recent_medical_records = MedicalRecord.objects.filter(
+            doctor=doctor_profile
+        ).select_related('patient').order_by('-created_at')[:5]
+    else:
+        recent_medical_records = MedicalRecord.objects.all().select_related('patient', 'doctor').order_by('-created_at')[:5]
+    
     context = {
         'doctor_profile': doctor_profile,
         'patient_profile': patient_profile,
+        
+        # Global statistics
+        'total_doctors': total_doctors,
+        'total_patients_global': total_patients_global,
+        'total_appointments_global': total_appointments_global,
+        'total_medical_records': total_medical_records,
+        
+        # Weekly statistics
+        'weekly_appointments': weekly_appointments,
+        'weekly_patients': weekly_patients,
+        
+        # Monthly statistics
+        'monthly_appointments': monthly_appointments,
+        'monthly_patients': monthly_patients,
+        
+        # Doctor-specific statistics
         'total_patients': total_patients,
         'total_appointments': total_appointments,
-        'today_appointments': today_appointments,
+        'todays_appointments': today_appointments,
         'pending_appointments': pending_appointments,
+        'weekly_doctor_appointments': weekly_doctor_appointments,
+        'monthly_doctor_appointments': monthly_doctor_appointments,
+        
+        # Recent data
         'recent_appointments': recent_appointments,
+        'recent_logs': recent_logs,
+        'recent_medical_records': recent_medical_records,
+        
+        # Analytics data
+        'top_specialties': top_specialties,
+        'appointment_status': appointment_status,
     }
     
     return render(request, 'doctordirectory/dashboard.html', context)
