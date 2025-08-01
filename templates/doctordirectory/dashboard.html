@@ -9,7 +9,7 @@
         <div class="col-12">
             <h1 class="h3 mb-1">🏥 Doctor Directory Dashboard</h1>
             <p class="text-muted mb-0">
-                {% if doctor %}Welcome back, Dr. {{ doctor.name }}{% else %}Medical Services Management{% endif %}
+                {% if doctor_profile %}Welcome back, Dr. {{ doctor_profile.name }}{% else %}Medical Services Management{% endif %}
             </p>
         </div>
     </div>
@@ -61,7 +61,7 @@
                     {% if recent_appointments %}
                         {% for appointment in recent_appointments %}
                         <div class="mb-3 p-3 border-start border-primary">
-                            <h6>{% if not doctor %}Dr. {{ appointment.doctor.name }} - {% endif %}{{ appointment.patient.user.get_full_name }}</h6>
+                            <h6>{% if not doctor_profile %}Dr. {{ appointment.doctor.name }} - {% endif %}{{ appointment.patient.user.get_full_name }}</h6>
                             <p class="mb-1">{{ appointment.reason_for_visit }}</p>
                             <small class="text-muted">{{ appointment.appointment_date }} at {{ appointment.appointment_time }}</small>
                             <span class="badge bg-{{ appointment.status|default:'secondary' }} ms-2">{{ appointment.get_status_display }}</span>
