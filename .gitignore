@@ -91,4 +91,4 @@ quick_test_data.py
 
 echo "db.sqlite3" >> .gitignore
 git rm --cached db.sqlite3
-git commit -m "Stop tracking db.sqlite3"
+git commit -m "Stop tracking db.sqlite3"db.sqlite3
