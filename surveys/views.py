@@ -438,7 +438,7 @@ def survey_analytics(request, pk):
     # Response timeline
     response_timeline = []
     if responses.exists():
-        start_date = survey.start_date or survey.created_at.date()
+        start_date = survey.start_date.date() if survey.start_date else survey.created_at.date()
         end_date = survey.end_date.date() if survey.end_date else timezone.now().date()
         
         current_date = start_date
