@@ -500,19 +500,19 @@ class HospitalDetailView(LoginRequiredMixin, DetailView):
         # Rooms
         context['rooms'] = hospital.rooms.all()
         
-        # Recent appointments
+        # Recent appointments - fix the field relationship
         context['recent_appointments'] = Appointment.objects.filter(
-            hospital=hospital
-        ).select_related('patient__user', 'doctor__user').order_by('-appointment_date')[:10]
+            doctor__hospital=hospital
+        ).select_related('patient', 'doctor__user').order_by('-appointment_date')[:10]
         
-        # Statistics
-        context['total_appointments'] = Appointment.objects.filter(hospital=hospital).count()
-        context['total_patients'] = Patient.objects.filter(hospital=hospital).count()
+        # Statistics - fix the field relationships
+        context['total_appointments'] = Appointment.objects.filter(doctor__hospital=hospital).count()
+        context['total_patients'] = Patient.objects.filter(appointments__doctor__hospital=hospital).distinct().count()
         context['total_doctors'] = Doctor.objects.filter(hospital=hospital).count()
         
         # Permission checks
         context['can_manage'] = (
-            user.role == 'admin' or
+            user.is_admin or
             hospital.staff.filter(user=user).exists()
         )
         
@@ -530,28 +530,49 @@ class PatientListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         if user.is_admin:
-            return Patient.objects.all()
+            queryset = Patient.objects.all()
         elif user.is_aamil or user.is_moze_coordinator:
-            return Patient.objects.filter(registered_moze__aamil=user)
+            # Fix the relationship - aamil manages mozes, not directly patients
+            mozes = user.managed_mozes.all() if user.is_aamil else user.coordinated_mozes.all()
+            queryset = Patient.objects.filter(registered_moze__in=mozes)
         elif user.is_doctor:
             try:
                 from .models import Doctor as MahalshifaDoctor
                 doctor_profile = MahalshifaDoctor.objects.get(user=user)
-                return Patient.objects.filter(appointments__doctor=doctor_profile).distinct()
+                queryset = Patient.objects.filter(appointments__doctor=doctor_profile).distinct()
             except MahalshifaDoctor.DoesNotExist:
-                return Patient.objects.none()
+                queryset = Patient.objects.none()
             except Exception as e:
                 print(f"Error loading doctor patients for user {user.username}: {e}")
-                return Patient.objects.none()
+                queryset = Patient.objects.none()
         else:
             # Patients can only see their own record
             try:
-                return Patient.objects.filter(id=user.patient_record.id)
+                queryset = Patient.objects.filter(id=user.patient_record.id)
             except AttributeError:
-                return Patient.objects.none()
+                queryset = Patient.objects.none()
             except Exception as e:
                 print(f"Error loading patient record for user {user.username}: {e}")
-                return Patient.objects.none()
+                queryset = Patient.objects.none()
+        
+        # Add search functionality
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(its_id__icontains=search) |
+                Q(phone_number__icontains=search)
+            )
+        
+        # Add status filter
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+        
+        return queryset.select_related('registered_moze', 'user_account')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
