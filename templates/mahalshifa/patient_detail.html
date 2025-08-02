@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ patient.user.get_full_name }} - Patient Details{% endblock %}
+{% block title %}{{ patient.get_full_name }} - Patient Details{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,50 +9,200 @@
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'mahalshifa:dashboard' %}">Mahal Shifa</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'mahalshifa:patient_list' %}">Patients</a></li>
-                    <li class="breadcrumb-item active">{{ patient.user.get_full_name|truncatechars:30 }}</li>
-                </ol>
-            </nav>
-            <h1 class="h3 mb-0 text-gray-800">👤 {{ patient.user.get_full_name }}</h1>
-        </div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'mahalshifa:dashboard' %}">Mahal Shifa</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'mahalshifa:patient_list' %}">Patients</a></li>
+                            <li class="breadcrumb-item active">{{ patient.get_full_name|truncatechars:30 }}</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-0 text-gray-800">👤 {{ patient.get_full_name }}</h1>
+                </div>
+                {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
+                    <div>
+                        <a href="{% url 'mahalshifa:patient_update' patient.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Patient
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Patient Information</h6>
+    <!-- Patient Information -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Patient Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>ITS ID:</strong></td>
+                                    <td>{{ patient.its_id }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Full Name:</strong></td>
+                                    <td>{{ patient.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Age:</strong></td>
+                                    <td>{{ patient.get_age }} years</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Gender:</strong></td>
+                                    <td>{{ patient.get_gender_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Date of Birth:</strong></td>
+                                    <td>{{ patient.date_of_birth|date:"M d, Y" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Phone:</strong></td>
+                                    <td>{{ patient.phone_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ patient.email|default:"Not provided" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Address:</strong></td>
+                                    <td>{{ patient.address }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Blood Group:</strong></td>
+                                    <td>{{ patient.blood_group|default:"Not specified" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if patient.is_active %}
+                                            <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>ITS ID:</strong> {{ patient.user.its_id }}
+
+            <!-- Medical Information -->
+            {% if patient.allergies or patient.chronic_conditions or patient.current_medications %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Medical Information</h6>
+                </div>
+                <div class="card-body">
+                    {% if patient.allergies %}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-warning">Allergies:</h6>
+                        <p>{{ patient.allergies }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <strong>Age:</strong> {{ patient.age }}
+                    {% endif %}
+                    
+                    {% if patient.chronic_conditions %}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-info">Chronic Conditions:</h6>
+                        <p>{{ patient.chronic_conditions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if patient.current_medications %}
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold text-success">Current Medications:</h6>
+                        <p>{{ patient.current_medications }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Emergency Contact -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Emergency Contact</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Name:</strong> {{ patient.emergency_contact_name }}<br>
+                            <strong>Relationship:</strong> {{ patient.emergency_contact_relationship }}<br>
+                            <strong>Phone:</strong> {{ patient.emergency_contact_phone }}
+                        </div>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Gender:</strong> {{ patient.get_gender_display }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Contact:</strong> {{ patient.user.phone_number }}
-                    </div>
-                </div>
-                {% if patient.medical_history %}
-                <div class="mb-3">
-                    <h6 class="font-weight-bold">Medical History:</h6>
-                    <div class="border-left-primary pl-3">
-                        {{ patient.medical_history|linebreaks }}
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-right">
+                                <h4 class="text-primary">{{ appointments.count }}</h4>
+                                <small class="text-muted">Appointments</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ medical_records.count }}</h4>
+                            <small class="text-muted">Medical Records</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            {% if appointments or medical_records %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                    <h6>Recent Appointments:</h6>
+                    <ul class="list-unstyled">
+                        {% for appointment in appointments|slice:":3" %}
+                        <li class="mb-2">
+                            <small class="text-muted">{{ appointment.appointment_date|date:"M d" }}</small><br>
+                            <strong>{{ appointment.doctor.user.get_full_name }}</strong><br>
+                            <span class="badge badge-{{ appointment.status }}">{{ appointment.get_status_display }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                    {% if medical_records %}
+                    <h6>Recent Medical Records:</h6>
+                    <ul class="list-unstyled">
+                        {% for record in medical_records|slice:":3" %}
+                        <li class="mb-2">
+                            <small class="text-muted">{{ record.consultation_date|date:"M d" }}</small><br>
+                            <strong>{{ record.doctor.user.get_full_name }}</strong><br>
+                            <small>{{ record.diagnosis|truncatewords:5 }}</small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}
