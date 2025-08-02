@@ -355,14 +355,23 @@ def appointment_detail(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk)
     user = request.user
     
-    # Check permissions
-    can_view = (
-        user.is_admin or 
-        user.is_aamil or 
-        user.is_moze_coordinator or
-        appointment.doctor.user == user or
-        appointment.patient.user_account == user
-    )
+    # Enhanced authorization check with proper access control
+    can_view = False
+    
+    if user.is_admin:
+        can_view = True
+    elif user.is_aamil or user.is_moze_coordinator:
+        # Check if this appointment is within their organizational scope
+        # Aamils can only view appointments for patients they're responsible for
+        if hasattr(appointment.patient, 'registered_moze') and appointment.patient.registered_moze.aamil == user:
+            can_view = True
+    elif user.is_doctor:
+        # Doctors can only view their own appointments
+        if hasattr(user, 'mahalshifa_doctor_profile') and appointment.doctor == user.mahalshifa_doctor_profile:
+            can_view = True
+    elif appointment.patient.user_account == user:
+        # Patients can only view their own appointments
+        can_view = True
     
     if not can_view:
         messages.error(request, 'You do not have permission to view this appointment.')
@@ -392,13 +401,23 @@ def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     user = request.user
     
-    # Check permissions
-    can_view = (
-        user.is_admin or 
-        user.is_aamil or 
-        user.is_moze_coordinator or
-        patient.user_account == user
-    )
+    # Enhanced authorization check with proper access control
+    can_view = False
+    
+    if user.is_admin:
+        can_view = True
+    elif user.is_aamil or user.is_moze_coordinator:
+        # Check if this patient is within their organizational scope
+        # Aamils can only view patients they're responsible for
+        if hasattr(patient, 'registered_moze') and patient.registered_moze.aamil == user:
+            can_view = True
+    elif user.is_doctor:
+        # Doctors can only view patients they have appointments with
+        if patient.appointments.filter(doctor__user=user).exists():
+            can_view = True
+    elif patient.user_account == user:
+        # Patients can only view their own records
+        can_view = True
     
     if not can_view:
         messages.error(request, 'You do not have permission to view this patient.')

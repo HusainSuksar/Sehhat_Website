@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.db.models.signals import post_save, post_delete, m2m_changed
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -161,41 +162,79 @@ def log_user_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=User)
 def log_user_delete(sender, instance, **kwargs):
+    # Create audit log without user reference since user is being deleted
+    # Set user to None to avoid referential integrity issues
     AuditLog.objects.create(
-        user=instance,
+        user=None,  # User is being deleted, can't reference it
         action='delete',
         object_type='User',
-        object_id=str(instance.pk),
-        object_repr=str(instance),
-        extra_data={}
+        object_id=str(instance.pk) if instance.pk else 'unknown',
+        object_repr=str(instance) if instance else 'Deleted User',
+        extra_data={
+            'deleted_user_username': getattr(instance, 'username', 'unknown'),
+            'deleted_user_email': getattr(instance, 'email', 'unknown'),
+            'deletion_timestamp': timezone.now().isoformat()
+        }
     )
 
 @receiver(m2m_changed, sender=User.groups.through)
 def log_group_membership_change(sender, instance, action, pk_set, **kwargs):
     if action in ['post_add', 'post_remove', 'post_clear']:
-        AuditLog.objects.create(
-            user=instance,
-            action='permission_change',
-            object_type='User',
-            object_id=str(instance.pk),
-            object_repr=str(instance),
-            extra_data={
-                'groups': [Group.objects.get(pk=pk).name for pk in pk_set] if pk_set else [],
-                'action': action
-            }
-        )
+        try:
+            # Safely handle group names with proper error handling
+            group_names = []
+            if pk_set:
+                for pk in pk_set:
+                    try:
+                        group = Group.objects.get(pk=pk)
+                        group_names.append(group.name)
+                    except Group.DoesNotExist:
+                        group_names.append(f'Unknown Group (ID: {pk})')
+            
+            AuditLog.objects.create(
+                user=instance,
+                action='permission_change',
+                object_type='User',
+                object_id=str(instance.pk) if instance.pk else 'unknown',
+                object_repr=str(instance) if instance else 'Unknown User',
+                extra_data={
+                    'groups': group_names,
+                    'action': action
+                }
+            )
+        except Exception as e:
+            # Log the error but don't break the signal
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error logging group membership change: {e}")
 
 @receiver(m2m_changed, sender=User.user_permissions.through)
 def log_user_permission_change(sender, instance, action, pk_set, **kwargs):
     if action in ['post_add', 'post_remove', 'post_clear']:
-        AuditLog.objects.create(
-            user=instance,
-            action='permission_change',
-            object_type='User',
-            object_id=str(instance.pk),
-            object_repr=str(instance),
-            extra_data={
-                'permissions': [Permission.objects.get(pk=pk).codename for pk in pk_set] if pk_set else [],
-                'action': action
-            }
-        )
+        try:
+            # Safely handle permission names with proper error handling
+            permission_names = []
+            if pk_set:
+                for pk in pk_set:
+                    try:
+                        permission = Permission.objects.get(pk=pk)
+                        permission_names.append(permission.codename)
+                    except Permission.DoesNotExist:
+                        permission_names.append(f'Unknown Permission (ID: {pk})')
+            
+            AuditLog.objects.create(
+                user=instance,
+                action='permission_change',
+                object_type='User',
+                object_id=str(instance.pk) if instance.pk else 'unknown',
+                object_repr=str(instance) if instance else 'Unknown User',
+                extra_data={
+                    'permissions': permission_names,
+                    'action': action
+                }
+            )
+        except Exception as e:
+            # Log the error but don't break the signal
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error logging user permission change: {e}")
