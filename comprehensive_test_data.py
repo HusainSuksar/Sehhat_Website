@@ -9,6 +9,7 @@ import sys
 import django
 import random
 import traceback
+import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from faker import Faker
@@ -50,6 +51,16 @@ DATA_SPECS = {
     'evaluation_forms_count': 20,
     'surveys_count': 20,
     'araz_count': 1200
+}
+
+# ID ranges to avoid conflicts with existing data
+ID_RANGES = {
+    'admin_start': 90000000,  # Start from 90M to avoid conflicts
+    'staff_start': 91000000,   # Start from 91M
+    'aamil_start': 92000000,   # Start from 92M
+    'student_start': 93000000, # Start from 93M
+    'doctor_start': 94000000,  # Start from 94M
+    'patient_start': 95000000, # Start from 95M
 }
 
 def create_comprehensive_test_data():
@@ -114,14 +125,15 @@ def create_comprehensive_test_data():
 def create_admin_users():
     """Create admin users"""
     admins = []
+    timestamp = int(time.time())
     for i in range(DATA_SPECS['admin_count']):
         user = User.objects.create(
-            username=f'admin_{i+1}',
-            email=f'admin{i+1}@umoor-sehhat.com',
+            username=f'admin_{timestamp}_{i+1}',
+            email=f'admin{timestamp}_{i+1}@umoor-sehhat.com',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             role='badri_mahal_admin',
-            its_id=f'{10000000 + i}',
+            its_id=f'{ID_RANGES["admin_start"] + i}',
             phone_number=fake.phone_number()[:15],
             is_staff=True,
             is_superuser=True
@@ -142,14 +154,15 @@ def create_admin_users():
 def create_staff_users():
     """Create staff users"""
     staff = []
+    timestamp = int(time.time())
     for i in range(DATA_SPECS['staff_count']):
         user = User.objects.create(
-            username=f'staff_{i+1}',
-            email=f'staff{i+1}@umoor-sehhat.com',
+            username=f'staff_{timestamp}_{i+1}',
+            email=f'staff{timestamp}_{i+1}@umoor-sehhat.com',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             role='aamil',
-            its_id=f'{20000000 + i}',
+            its_id=f'{ID_RANGES["staff_start"] + i}',
             phone_number=fake.phone_number()[:15],
             is_staff=True
         )
@@ -173,13 +186,14 @@ def create_moze_and_aamils():
     
     for i in range(DATA_SPECS['moze_count']):
         # Create Aamil user
+        timestamp = int(time.time())
         aamil_user = User.objects.create(
-            username=f'aamil_{i+1}',
-            email=f'aamil{i+1}@umoor-sehhat.com',
+            username=f'aamil_{timestamp}_{i+1}',
+            email=f'aamil{timestamp}_{i+1}@umoor-sehhat.com',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             role='aamil',
-            its_id=f'{30000000 + i}',
+            its_id=f'{ID_RANGES["aamil_start"] + i}',
             phone_number=fake.phone_number()[:15]
         )
         aamil_user.set_password('aamil123')
@@ -219,13 +233,14 @@ def create_students(moze_list):
     
     for i in range(DATA_SPECS['students_count']):
         # Create student user
+        timestamp = int(time.time())
         student_user = User.objects.create(
-            username=f'student_{i+1}',
-            email=f'student{i+1}@example.com',
+            username=f'student_{timestamp}_{i+1}',
+            email=f'student{timestamp}_{i+1}@example.com',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             role='student',
-            its_id=f'{40000000 + i}',
+            its_id=f'{ID_RANGES["student_start"] + i}',
             phone_number=fake.phone_number()[:15],
             college=fake.company(),
             specialization=random.choice(['Engineering', 'Medicine', 'Business', 'Arts', 'Science'])
@@ -305,13 +320,14 @@ def create_doctors(hospitals):
         
         for i in range(num_doctors):
             # Create doctor user
+            timestamp = int(time.time())
             doctor_user = User.objects.create(
-                username=f'doctor_{hospital.id}_{i+1}',
-                email=f'doctor{hospital.id}_{i+1}@medical.com',
+                username=f'doctor_{timestamp}_{hospital.id}_{i+1}',
+                email=f'doctor{timestamp}_{hospital.id}_{i+1}@medical.com',
                 first_name=fake.first_name(),
                 last_name=fake.last_name(),
                 role='doctor',
-                its_id=f'{60000000 + len(doctors)}',
+                its_id=f'{ID_RANGES["doctor_start"] + len(doctors)}',
                 phone_number=fake.phone_number()[:15],
                 specialty=random.choice(['Cardiology', 'Pediatrics', 'Surgery', 'Internal Medicine', 'Emergency Medicine'])
             )
@@ -356,7 +372,7 @@ def create_patients(moze_list):
         moze = random.choice(moze_list)
         
         patient = Patient.objects.create(
-            its_id=f'{50000000 + i}',
+            its_id=f'{ID_RANGES["patient_start"] + i}',
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             arabic_name=fake.name(),
