@@ -50,20 +50,20 @@
                                     </td>
                                     <td>
                                         {% if appointment.appointment_type == 'emergency' %}
-                                            <span class="badge badge-danger">Emergency</span>
+                                            <span class="badge badge-danger" style="background-color: red;">Emergency</span>
                                         {% elif appointment.appointment_type == 'urgent' %}
-                                            <span class="badge badge-warning">Urgent</span>
+                                            <span class="badge badge-warning" style="background-color: orangered;">Urgent</span>
                                         {% else %}
-                                            <span class="badge badge-info">Regular</span>
+                                            <span class="badge badge-info" style="background-color: blue;">Regular</span>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if appointment.status == 'scheduled' %}
-                                            <span class="badge badge-warning">Scheduled</span>
+                                            <span class="badge badge-warning" style="background-color: blue;">Scheduled</span>
                                         {% elif appointment.status == 'completed' %}
-                                            <span class="badge badge-success">Completed</span>
+                                            <span class="badge badge-success" style="background-color: green;">Completed</span>
                                         {% elif appointment.status == 'cancelled' %}
-                                            <span class="badge badge-danger">Cancelled</span>
+                                            <span class="badge badge-danger" style="background-color: red;">Cancelled</span>
                                         {% else %}
                                             <span class="badge badge-info">{{ appointment.get_status_display }}</span>
                                         {% endif %}
