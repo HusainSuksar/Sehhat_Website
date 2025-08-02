@@ -379,9 +379,9 @@ def appointment_detail(request, pk):
     
     # Get related data
     medical_records = MedicalRecord.objects.filter(appointment=appointment)
-    prescriptions = Prescription.objects.filter(appointment=appointment)
-    lab_tests = LabTest.objects.filter(appointment=appointment)
-    vital_signs = VitalSigns.objects.filter(appointment=appointment).order_by('-recorded_at')
+    prescriptions = Prescription.objects.filter(patient=appointment.patient)
+    lab_tests = LabTest.objects.filter(patient=appointment.patient)
+    vital_signs = VitalSigns.objects.filter(patient=appointment.patient).order_by('-recorded_at')
     
     context = {
         'appointment': appointment,
@@ -430,11 +430,11 @@ def patient_detail(request, pk):
     lab_tests = LabTest.objects.filter(patient=patient).order_by('-created_at')
     admissions = Admission.objects.filter(patient=patient).order_by('-admission_date')
     emergency_contacts = patient.emergency_contacts.all()
-    insurance_info = patient.insurance.all()
+    insurance_info = patient.insurance_policies.all()
     
     # Recent vital signs
     recent_vitals = VitalSigns.objects.filter(
-        appointment__patient=patient
+        patient=patient
     ).order_by('-recorded_at')[:5]
     
     context = {
