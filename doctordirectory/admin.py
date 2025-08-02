@@ -40,13 +40,13 @@ class DoctorAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Annotate with patient and appointment counts"""
         return super().get_queryset(request).annotate(
-            patient_count=Count('appointments__patient', distinct=True),
-            appointment_count=Count('appointments')
+            patient_count=Count('directory_appointments__patient', distinct=True),
+            appointment_count=Count('directory_appointments')
         )
     
     def get_patient_count(self, obj):
         """Display patient count with color coding"""
-        count = getattr(obj, 'patient_count', obj.appointments.values('patient').distinct().count())
+        count = getattr(obj, 'patient_count', obj.directory_appointments.values('patient').distinct().count())
         if count > 0:
             return format_html('<span style="color: green;">{}</span>', count)
         return format_html('<span style="color: red;">{}</span>', count)
@@ -55,7 +55,7 @@ class DoctorAdmin(admin.ModelAdmin):
     
     def get_appointment_count(self, obj):
         """Display appointment count"""
-        count = getattr(obj, 'appointment_count', obj.appointments.count())
+        count = getattr(obj, 'appointment_count', obj.directory_appointments.count())
         return count
     get_appointment_count.short_description = 'Appointments'
     get_appointment_count.admin_order_field = 'appointment_count'
