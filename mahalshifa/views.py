@@ -9,12 +9,14 @@ from django.db.models import Q, Count, Sum, Avg, F
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models.functions import TruncDate, TruncMonth
 import json
 import csv
 from datetime import datetime, timedelta, date, time
 from decimal import Decimal
 
 from moze.models import Moze
+from accounts.permissions import can_user_access, get_patient_data_for_user, get_medical_records_for_user
 
 from .models import (
     Hospital, Department, Doctor, MedicalService, Patient, Appointment, MedicalRecord,
@@ -98,66 +100,334 @@ def dashboard(request):
     # Recent appointments
     recent_appointments = appointments.select_related(
         'patient__user_account', 'doctor__user', 'doctor__hospital'
-    ).order_by('-appointment_date', '-appointment_time')[:10]
+    ).order_by('-appointment_date')[:10]
     
-    # Hospital statistics
-    total_hospitals = hospitals.count()
+    # Doctor duty schedule
+    if user.is_doctor:
+        try:
+            doctor_profile = Doctor.objects.get(user=user)
+            duty_schedule = appointments.filter(
+                doctor=doctor_profile,
+                appointment_date__gte=today
+            ).order_by('appointment_date', 'appointment_time')[:20]
+        except Doctor.DoesNotExist:
+            duty_schedule = []
+    else:
+        duty_schedule = []
     
-    # Monthly appointment trends
-    monthly_stats = []
+    # Medical records statistics
+    medical_records = get_medical_records_for_user(user)
+    if medical_records:
+        total_records = medical_records.count()
+        recent_records = medical_records.order_by('-consultation_date')[:5]
+    else:
+        total_records = 0
+        recent_records = []
+    
+    # Monthly trends
+    months = []
+    appointment_counts = []
+    patient_counts = []
+    
     for i in range(6):
-        month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
-        month_appointments = appointments.filter(
-            appointment_date__year=month_start.year,
-            appointment_date__month=month_start.month
-        ).count()
-        monthly_stats.append({
-            'month': month_start.strftime('%b %Y'),
-            'count': month_appointments
-        })
-    
-    # Department statistics - simplified without complex joins
-    dept_stats = []
-    if can_manage:
-        dept_stats = Department.objects.filter(
-            hospital__in=hospitals
-        )[:5]
-    
-    # Emergency cases
-    emergency_cases = appointments.filter(
-        appointment_type='emergency',
-        appointment_date=today
-    ).count()
-    
-    # Lab tests pending
-    pending_lab_tests = LabTest.objects.filter(
-        patient__in=patients,
-        status='pending'
-    ).count()
-    
-    # Recent admissions
-    recent_admissions = Admission.objects.filter(
-        patient__in=patients
-    ).select_related('patient__user_account', 'room', 'hospital').order_by('-admission_date')[:5]
+        month = timezone.now() - timedelta(days=30*i)
+        month_start = month.replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        months.append(month_start.strftime('%B %Y'))
+        appointment_counts.append(
+            appointments.filter(appointment_date__range=[month_start, month_end]).count()
+        )
+        patient_counts.append(
+            patients.filter(registration_date__range=[month_start, month_end]).count()
+        )
     
     context = {
+        'hospitals': hospitals,
+        'total_patients': total_patients,
+        'active_patients': active_patients,
         'todays_appointments': todays_appointments,
         'pending_appointments': pending_appointments,
         'completed_appointments': completed_appointments,
-        'total_patients': total_patients,
-        'active_patients': active_patients,
-        'total_hospitals': total_hospitals,
-        'emergency_cases': emergency_cases,
-        'pending_lab_tests': pending_lab_tests,
+        'total_records': total_records,
         'recent_appointments': recent_appointments,
-        'recent_admissions': recent_admissions,
-        'monthly_stats': monthly_stats[::-1],
-        'dept_stats': dept_stats,
+        'recent_records': recent_records,
+        'duty_schedule': duty_schedule,
         'can_manage': can_manage,
+        'months': months,
+        'appointment_counts': appointment_counts,
+        'patient_counts': patient_counts,
         'user_role': user.get_role_display(),
     }
     
     return render(request, 'mahalshifa/dashboard.html', context)
+
+
+@login_required
+def doctor_duty_schedule(request):
+    """
+    Doctor duty scheduling and management
+    """
+    user = request.user
+    
+    # Check permissions
+    if not can_user_access(user, 'duty_schedule', 'view'):
+        messages.error(request, "You don't have permission to view duty schedules.")
+        return redirect('mahalshifa:dashboard')
+    
+    # Get doctors based on user role
+    if user.is_admin:
+        doctors = Doctor.objects.all()
+    elif user.is_aamil or user.is_moze_coordinator:
+        # Get doctors from their Mozes
+        mozes = user.managed_mozes.all() if user.is_aamil else user.coordinated_mozes.all()
+        doctors = Doctor.objects.filter(appointments__moze__in=mozes).distinct()
+    else:
+        doctors = Doctor.objects.none()
+    
+    # Get date range
+    start_date = request.GET.get('start_date', timezone.now().date())
+    end_date = request.GET.get('end_date', (timezone.now() + timedelta(days=7)).date())
+    
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Get appointments for the date range
+    appointments = Appointment.objects.filter(
+        appointment_date__range=[start_date, end_date],
+        doctor__in=doctors
+    ).select_related('doctor__user', 'patient', 'moze').order_by('appointment_date', 'appointment_time')
+    
+    # Group appointments by doctor and date
+    duty_schedule = {}
+    for appointment in appointments:
+        doctor_id = appointment.doctor.id
+        date_key = appointment.appointment_date
+        
+        if doctor_id not in duty_schedule:
+            duty_schedule[doctor_id] = {}
+        
+        if date_key not in duty_schedule[doctor_id]:
+            duty_schedule[doctor_id][date_key] = []
+        
+        duty_schedule[doctor_id][date_key].append(appointment)
+    
+    # Get doctor statistics
+    doctor_stats = []
+    for doctor in doctors:
+        doctor_appointments = appointments.filter(doctor=doctor)
+        doctor_stats.append({
+            'doctor': doctor,
+            'total_appointments': doctor_appointments.count(),
+            'completed_appointments': doctor_appointments.filter(status='completed').count(),
+            'pending_appointments': doctor_appointments.filter(status__in=['scheduled', 'confirmed']).count(),
+            'today_appointments': doctor_appointments.filter(appointment_date=timezone.now().date()).count(),
+        })
+    
+    context = {
+        'doctors': doctors,
+        'duty_schedule': duty_schedule,
+        'doctor_stats': doctor_stats,
+        'start_date': start_date,
+        'end_date': end_date,
+        'user_role': user.get_role_display(),
+    }
+    
+    return render(request, 'mahalshifa/doctor_duty_schedule.html', context)
+
+
+@login_required
+def patient_visit_log(request):
+    """
+    Log and manage patient visits
+    """
+    user = request.user
+    
+    # Check permissions
+    if not can_user_access(user, 'patient', 'view'):
+        messages.error(request, "You don't have permission to view patient visits.")
+        return redirect('mahalshifa:dashboard')
+    
+    # Get patients based on user role
+    patients = get_patient_data_for_user(user)
+    
+    if not patients:
+        messages.warning(request, "No patients accessible.")
+        return redirect('mahalshifa:dashboard')
+    
+    # Get visit date range
+    start_date = request.GET.get('start_date', (timezone.now() - timedelta(days=30)).date())
+    end_date = request.GET.get('end_date', timezone.now().date())
+    
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Get appointments and medical records for the date range
+    appointments = Appointment.objects.filter(
+        patient__in=patients,
+        appointment_date__range=[start_date, end_date]
+    ).select_related('patient', 'doctor__user', 'moze').order_by('-appointment_date')
+    
+    medical_records = MedicalRecord.objects.filter(
+        patient__in=patients,
+        consultation_date__date__range=[start_date, end_date]
+    ).select_related('patient', 'doctor__user', 'moze').order_by('-consultation_date')
+    
+    # Patient visit statistics
+    visit_stats = {
+        'total_visits': appointments.count() + medical_records.count(),
+        'appointments': appointments.count(),
+        'consultations': medical_records.count(),
+        'unique_patients': patients.filter(
+            appointments__appointment_date__range=[start_date, end_date]
+        ).distinct().count(),
+    }
+    
+    # Recent visits
+    recent_visits = []
+    
+    # Add appointments
+    for appointment in appointments[:20]:
+        recent_visits.append({
+            'type': 'appointment',
+            'date': appointment.appointment_date,
+            'time': appointment.appointment_time,
+            'patient': appointment.patient,
+            'doctor': appointment.doctor,
+            'status': appointment.status,
+            'moze': appointment.moze,
+            'object': appointment,
+        })
+    
+    # Add medical records
+    for record in medical_records[:20]:
+        recent_visits.append({
+            'type': 'consultation',
+            'date': record.consultation_date.date(),
+            'time': record.consultation_date.time(),
+            'patient': record.patient,
+            'doctor': record.doctor,
+            'status': 'completed',
+            'moze': record.moze,
+            'object': record,
+        })
+    
+    # Sort by date and time
+    recent_visits.sort(key=lambda x: (x['date'], x['time']), reverse=True)
+    recent_visits = recent_visits[:20]
+    
+    # Patient demographics
+    patient_demographics = {
+        'gender_distribution': patients.values('gender').annotate(count=Count('id')),
+        'age_groups': {
+            '0-18': patients.filter(date_of_birth__gte=timezone.now().date() - timedelta(days=18*365)).count(),
+            '19-30': patients.filter(
+                date_of_birth__lt=timezone.now().date() - timedelta(days=18*365),
+                date_of_birth__gte=timezone.now().date() - timedelta(days=30*365)
+            ).count(),
+            '31-50': patients.filter(
+                date_of_birth__lt=timezone.now().date() - timedelta(days=30*365),
+                date_of_birth__gte=timezone.now().date() - timedelta(days=50*365)
+            ).count(),
+            '51+': patients.filter(date_of_birth__lt=timezone.now().date() - timedelta(days=50*365)).count(),
+        }
+    }
+    
+    context = {
+        'patients': patients,
+        'appointments': appointments,
+        'medical_records': medical_records,
+        'visit_stats': visit_stats,
+        'recent_visits': recent_visits,
+        'patient_demographics': patient_demographics,
+        'start_date': start_date,
+        'end_date': end_date,
+        'user_role': user.get_role_display(),
+    }
+    
+    return render(request, 'mahalshifa/patient_visit_log.html', context)
+
+
+@login_required
+def dua_araz_preparation(request):
+    """
+    Prepare and manage Dua Araz (petitions)
+    """
+    user = request.user
+    
+    # Check permissions
+    if not can_user_access(user, 'araz', 'view'):
+        messages.error(request, "You don't have permission to view petitions.")
+        return redirect('mahalshifa:dashboard')
+    
+    # Get petitions based on user role
+    if user.is_admin:
+        petitions = Petition.objects.all()
+    elif user.is_aamil or user.is_moze_coordinator:
+        mozes = user.managed_mozes.all() if user.is_aamil else user.coordinated_mozes.all()
+        petitions = Petition.objects.filter(created_by__managed_mozes__in=mozes)
+    elif user.is_doctor:
+        petitions = Petition.objects.filter(created_by=user)
+    else:
+        petitions = Petition.objects.none()
+    
+    # Filter by status
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        petitions = petitions.filter(status=status_filter)
+    
+    # Filter by date range
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        petitions = petitions.filter(created_at__date__gte=start_date)
+    if end_date:
+        petitions = petitions.filter(created_at__date__lte=end_date)
+    
+    # Statistics
+    petition_stats = {
+        'total': petitions.count(),
+        'pending': petitions.filter(status='pending').count(),
+        'approved': petitions.filter(status='approved').count(),
+        'rejected': petitions.filter(status='rejected').count(),
+        'in_progress': petitions.filter(status='in_progress').count(),
+    }
+    
+    # Recent petitions
+    recent_petitions = petitions.order_by('-created_at')[:10]
+    
+    # Monthly trends
+    months = []
+    petition_counts = []
+    
+    for i in range(6):
+        month = timezone.now() - timedelta(days=30*i)
+        month_start = month.replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        months.append(month_start.strftime('%B %Y'))
+        petition_counts.append(
+            petitions.filter(created_at__date__range=[month_start, month_end]).count()
+        )
+    
+    context = {
+        'petitions': petitions,
+        'petition_stats': petition_stats,
+        'recent_petitions': recent_petitions,
+        'months': months,
+        'petition_counts': petition_counts,
+        'status_filter': status_filter,
+        'start_date': start_date,
+        'end_date': end_date,
+        'user_role': user.get_role_display(),
+    }
+    
+    return render(request, 'mahalshifa/dua_araz_preparation.html', context)
 
 
 class HospitalListView(LoginRequiredMixin, ListView):

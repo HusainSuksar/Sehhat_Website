@@ -7,6 +7,15 @@ urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
     
+    # Doctor duty scheduling
+    path('duty-schedule/', views.doctor_duty_schedule, name='duty_schedule'),
+    
+    # Patient visit logging
+    path('patient-visits/', views.patient_visit_log, name='patient_visit_log'),
+    
+    # Dua Araz preparation
+    path('dua-araz/', views.dua_araz_preparation, name='dua_araz_preparation'),
+    
     # Hospital management
     path('hospitals/', views.HospitalListView.as_view(), name='hospital_list'),
     path('hospitals/create/', views.HospitalCreateView.as_view(), name='hospital_create'),
