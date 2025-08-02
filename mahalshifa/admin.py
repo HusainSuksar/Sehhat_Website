@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.db.models import Count
 from .models import (
     MedicalService, Patient, Appointment, MedicalRecord, Prescription,
     LabTest, VitalSigns, Hospital, Department, Doctor, HospitalStaff,
@@ -17,29 +19,41 @@ class MedicalServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ['get_full_name', 'its_id', 'gender', 'blood_group', 'is_active', 'registration_date']
-    list_filter = ['gender', 'blood_group', 'is_active', 'registration_date']
+    list_display = ['get_full_name', 'its_id', 'gender', 'blood_group', 'is_active', 'registration_date', 'get_moze']
+    list_filter = ['gender', 'blood_group', 'is_active', 'registration_date', 'registered_moze']
     search_fields = ['first_name', 'last_name', 'arabic_name', 'its_id', 'phone_number']
     readonly_fields = ['registration_date', 'created_at', 'updated_at']
     ordering = ['last_name', 'first_name']
+    
+    def get_moze(self, obj):
+        return obj.registered_moze.name if obj.registered_moze else 'Not Assigned'
+    get_moze.short_description = 'Registered Moze'
 
 
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'doctor', 'appointment_date', 'appointment_time', 'status', 'appointment_type']
-    list_filter = ['status', 'appointment_type', 'appointment_date', 'doctor__hospital']
+    list_display = ['patient', 'doctor', 'appointment_date', 'appointment_time', 'status', 'appointment_type', 'get_moze']
+    list_filter = ['status', 'appointment_type', 'appointment_date', 'doctor__hospital', 'moze']
     search_fields = ['patient__first_name', 'patient__last_name', 'doctor__user__first_name', 'reason']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-appointment_date', '-appointment_time']
+    
+    def get_moze(self, obj):
+        return obj.moze.name if obj.moze else 'Not Assigned'
+    get_moze.short_description = 'Moze'
 
 
 @admin.register(MedicalRecord)
 class MedicalRecordAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'doctor', 'consultation_date', 'diagnosis']
-    list_filter = ['consultation_date', 'follow_up_required', 'doctor__hospital']
+    list_display = ['patient', 'doctor', 'consultation_date', 'diagnosis', 'get_moze']
+    list_filter = ['consultation_date', 'follow_up_required', 'doctor__hospital', 'moze']
     search_fields = ['patient__first_name', 'patient__last_name', 'diagnosis', 'chief_complaint']
     readonly_fields = ['consultation_date', 'created_at', 'updated_at']
     ordering = ['-consultation_date']
+    
+    def get_moze(self, obj):
+        return obj.moze.name if obj.moze else 'Not Assigned'
+    get_moze.short_description = 'Moze'
 
 
 @admin.register(Prescription)
@@ -71,27 +85,82 @@ class VitalSignsAdmin(admin.ModelAdmin):
 
 @admin.register(Hospital)
 class HospitalAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hospital_type', 'total_beds', 'available_beds', 'is_active', 'is_emergency_capable']
+    list_display = ['name', 'hospital_type', 'total_beds', 'available_beds', 'is_active', 'is_emergency_capable', 'get_doctor_count', 'get_department_count']
     list_filter = ['hospital_type', 'is_active', 'is_emergency_capable', 'has_pharmacy', 'has_laboratory']
     search_fields = ['name', 'description', 'address']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['name']
+    
+    def get_queryset(self, request):
+        """Annotate with doctor and department counts"""
+        return super().get_queryset(request).annotate(
+            doctor_count=Count('doctors'),
+            department_count=Count('departments')
+        )
+    
+    def get_doctor_count(self, obj):
+        """Display doctor count with color coding"""
+        count = getattr(obj, 'doctor_count', obj.doctors.count())
+        if count > 0:
+            return format_html('<span style="color: green;">{}</span>', count)
+        return format_html('<span style="color: red;">{}</span>', count)
+    get_doctor_count.short_description = 'Doctors'
+    get_doctor_count.admin_order_field = 'doctor_count'
+    
+    def get_department_count(self, obj):
+        """Display department count"""
+        count = getattr(obj, 'department_count', obj.departments.count())
+        return count
+    get_department_count.short_description = 'Departments'
+    get_department_count.admin_order_field = 'department_count'
 
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hospital', 'head', 'floor_number', 'is_active']
+    list_display = ['name', 'hospital', 'head', 'floor_number', 'is_active', 'get_doctor_count']
     list_filter = ['is_active', 'hospital']
     search_fields = ['name', 'hospital__name']
     ordering = ['hospital', 'name']
+    
+    def get_queryset(self, request):
+        """Annotate with doctor count"""
+        return super().get_queryset(request).annotate(
+            doctor_count=Count('doctors')
+        )
+    
+    def get_doctor_count(self, obj):
+        """Display doctor count"""
+        count = getattr(obj, 'doctor_count', obj.doctors.count())
+        return count
+    get_doctor_count.short_description = 'Doctors'
+    get_doctor_count.admin_order_field = 'doctor_count'
 
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'license_number', 'specialization', 'hospital', 'department', 'is_available']
-    list_filter = ['specialization', 'is_available', 'is_emergency_doctor', 'hospital']
+    list_display = ['get_full_name', 'license_number', 'specialization', 'hospital', 'department', 'is_available', 'get_patient_count']
+    list_filter = ['specialization', 'is_available', 'is_emergency_doctor', 'hospital', 'department']
     search_fields = ['user__first_name', 'user__last_name', 'license_number', 'specialization']
     ordering = ['user__last_name', 'user__first_name']
+    
+    def get_full_name(self, obj):
+        """Display doctor's full name with specialization"""
+        return format_html('<strong>{}</strong><br><small>{}</small>', 
+                         obj.user.get_full_name(), obj.specialization)
+    get_full_name.short_description = 'Doctor (Specialization)'
+    
+    def get_queryset(self, request):
+        """Annotate with patient count"""
+        return super().get_queryset(request).annotate(
+            patient_count=Count('appointments', distinct=True)
+        )
+    
+    def get_patient_count(self, obj):
+        """Display patient count"""
+        count = getattr(obj, 'patient_count', obj.appointments.values('patient').distinct().count())
+        return count
+    get_patient_count.short_description = 'Patients'
+    get_patient_count.admin_order_field = 'patient_count'
 
 
 @admin.register(HospitalStaff)
