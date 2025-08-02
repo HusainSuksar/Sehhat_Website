@@ -21,6 +21,8 @@ from .forms import (
     AppointmentForm, MedicalRecordForm, PrescriptionForm, LabTestForm, VitalSignsForm
 )
 from accounts.models import User
+# Import mahalshifa doctors for stats
+from mahalshifa.models import Doctor as MahalShifaDoctor
 
 
 class DoctorAccessMixin(UserPassesTestMixin):
@@ -36,21 +38,11 @@ def dashboard(request):
     """Doctor directory dashboard with comprehensive statistics"""
     user = request.user
     
-    # Get doctor profile
+    # Get doctor profile from mahalshifa
     try:
-        from .models import Doctor
-        doctor_profile = Doctor.objects.get(user=user)
-    except Doctor.DoesNotExist:
-        # Create doctor profile if doesn't exist
-        try:
-            doctor_profile = Doctor.objects.create(
-                user=user,
-                name=user.get_full_name(),
-                specialty="General Medicine"
-            )
-        except Exception as e:
-            print(f"Error creating doctor profile for user {user.username}: {e}")
-            doctor_profile = None
+        doctor_profile = MahalShifaDoctor.objects.get(user=user)
+    except MahalShifaDoctor.DoesNotExist:
+        doctor_profile = None
     
     # Get patient profile if user is also a patient
     try:
@@ -61,8 +53,8 @@ def dashboard(request):
         print(f"Error loading patient profile for user {user.username}: {e}")
         patient_profile = None
     
-    # Global statistics (for all users)
-    total_doctors = Doctor.objects.filter(is_verified=True, is_available=True).count()
+    # Global statistics (for all users) - Use mahalshifa doctors
+    total_doctors = MahalShifaDoctor.objects.filter(user__is_active=True).count()
     total_patients_global = Patient.objects.count()
     total_appointments_global = Appointment.objects.count()
     total_medical_records = MedicalRecord.objects.count()
@@ -87,24 +79,36 @@ def dashboard(request):
     
     # Doctor-specific statistics
     if doctor_profile:
-        total_patients = Patient.objects.filter(appointments__doctor=doctor_profile).distinct().count()
-        total_appointments = Appointment.objects.filter(doctor=doctor_profile).count()
-        today_appointments = Appointment.objects.filter(
-            doctor=doctor_profile,
-            appointment_date=timezone.now().date()
-        ).count()
-        pending_appointments = Appointment.objects.filter(
-            doctor=doctor_profile,
-            status='scheduled'
-        ).count()
-        weekly_doctor_appointments = Appointment.objects.filter(
-            doctor=doctor_profile,
-            appointment_date__gte=week_start
-        ).count()
-        monthly_doctor_appointments = Appointment.objects.filter(
-            doctor=doctor_profile,
-            appointment_date__gte=month_start
-        ).count()
+        # For mahalshifa doctors, we need to check if they have corresponding doctordirectory records
+        try:
+            # Try to get the corresponding doctordirectory doctor
+            doctordirectory_doctor = Doctor.objects.get(user=user)
+            total_patients = Patient.objects.filter(appointments__doctor=doctordirectory_doctor).distinct().count()
+            total_appointments = Appointment.objects.filter(doctor=doctordirectory_doctor).count()
+            today_appointments = Appointment.objects.filter(
+                doctor=doctordirectory_doctor,
+                appointment_date=timezone.now().date()
+            ).count()
+            pending_appointments = Appointment.objects.filter(
+                doctor=doctordirectory_doctor,
+                status='scheduled'
+            ).count()
+            weekly_doctor_appointments = Appointment.objects.filter(
+                doctor=doctordirectory_doctor,
+                appointment_date__gte=week_start
+            ).count()
+            monthly_doctor_appointments = Appointment.objects.filter(
+                doctor=doctordirectory_doctor,
+                appointment_date__gte=month_start
+            ).count()
+        except Doctor.DoesNotExist:
+            # If no doctordirectory doctor exists, show 0 stats
+            total_patients = 0
+            total_appointments = 0
+            today_appointments = 0
+            pending_appointments = 0
+            weekly_doctor_appointments = 0
+            monthly_doctor_appointments = 0
     else:
         total_patients = 0
         total_appointments = 0
@@ -115,22 +119,30 @@ def dashboard(request):
     
     # Get recent appointments
     if doctor_profile:
-        recent_appointments = Appointment.objects.filter(
-            doctor=doctor_profile
-        ).select_related('patient__user').order_by('-appointment_date')[:5]
+        try:
+            doctordirectory_doctor = Doctor.objects.get(user=user)
+            recent_appointments = Appointment.objects.filter(
+                doctor=doctordirectory_doctor
+            ).select_related('patient__user').order_by('-appointment_date')[:5]
+        except Doctor.DoesNotExist:
+            recent_appointments = []
     else:
-        recent_appointments = []
+        recent_appointments = Appointment.objects.all().select_related('patient__user', 'doctor').order_by('-appointment_date')[:5]
     
     # Get recent patient logs
     if doctor_profile:
-        recent_logs = PatientLog.objects.filter(
-            seen_by=doctor_profile
-        ).order_by('-timestamp')[:10]
+        try:
+            doctordirectory_doctor = Doctor.objects.get(user=user)
+            recent_logs = PatientLog.objects.filter(
+                seen_by=doctordirectory_doctor
+            ).order_by('-timestamp')[:10]
+        except Doctor.DoesNotExist:
+            recent_logs = []
     else:
         recent_logs = PatientLog.objects.all().order_by('-timestamp')[:10]
     
-    # Get top specialties
-    top_specialties = Doctor.objects.values('specialty').annotate(
+    # Get top specialties from mahalshifa doctors
+    top_specialties = MahalShifaDoctor.objects.values('specialization').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -141,37 +153,42 @@ def dashboard(request):
     
     # Get recent medical records
     if doctor_profile:
-        recent_medical_records = MedicalRecord.objects.filter(
-            doctor=doctor_profile
-        ).select_related('patient').order_by('-created_at')[:5]
+        try:
+            doctordirectory_doctor = Doctor.objects.get(user=user)
+            recent_medical_records = MedicalRecord.objects.filter(
+                doctor=doctordirectory_doctor
+            ).select_related('patient').order_by('-created_at')[:5]
+        except Doctor.DoesNotExist:
+            recent_medical_records = []
     else:
         recent_medical_records = MedicalRecord.objects.all().select_related('patient', 'doctor').order_by('-created_at')[:5]
     
+    # Ensure all stats are integers, not None
     context = {
         'doctor_profile': doctor_profile,
         'patient_profile': patient_profile,
         
         # Global statistics
-        'total_doctors': total_doctors,
-        'total_patients_global': total_patients_global,
-        'total_appointments_global': total_appointments_global,
-        'total_medical_records': total_medical_records,
+        'total_doctors': total_doctors or 0,
+        'total_patients_global': total_patients_global or 0,
+        'total_appointments_global': total_appointments_global or 0,
+        'total_medical_records': total_medical_records or 0,
         
         # Weekly statistics
-        'weekly_appointments': weekly_appointments,
-        'weekly_patients': weekly_patients,
+        'weekly_appointments': weekly_appointments or 0,
+        'weekly_patients': weekly_patients or 0,
         
         # Monthly statistics
-        'monthly_appointments': monthly_appointments,
-        'monthly_patients': monthly_patients,
+        'monthly_appointments': monthly_appointments or 0,
+        'monthly_patients': monthly_patients or 0,
         
         # Doctor-specific statistics
-        'total_patients': total_patients,
-        'total_appointments': total_appointments,
-        'todays_appointments': today_appointments,
-        'pending_appointments': pending_appointments,
-        'weekly_doctor_appointments': weekly_doctor_appointments,
-        'monthly_doctor_appointments': monthly_doctor_appointments,
+        'total_patients': total_patients or 0,
+        'total_appointments': total_appointments or 0,
+        'todays_appointments': today_appointments or 0,
+        'pending_appointments': pending_appointments or 0,
+        'weekly_doctor_appointments': weekly_doctor_appointments or 0,
+        'monthly_doctor_appointments': monthly_doctor_appointments or 0,
         
         # Recent data
         'recent_appointments': recent_appointments,
