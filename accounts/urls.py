@@ -26,8 +26,8 @@ urlpatterns = [
         template_name='accounts/password_reset.html'
     ), name='password_reset'),
     
-    # User management (for admins)
-    path('users/', views.UserListView.as_view(), name='user_list'),
+    # User management (for admins) - redirects to modern user directory
+    path('users/', views.user_directory, name='user_list'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
     path('users/<int:pk>/edit/', views.UserEditView.as_view(), name='user_edit'),
     

@@ -538,6 +538,15 @@ def user_directory(request):
     if role_filter:
         users = users.filter(role=role_filter)
     
+    # Filter by moze if specified (for aamil and moze_coordinator users)
+    moze_filter = request.GET.get('moze')
+    if moze_filter:
+        # Filter users who are aamil or moze_coordinator and associated with this moze
+        users = users.filter(
+            Q(role='aamil', managed_mozes__id=moze_filter) |
+            Q(role='moze_coordinator', coordinated_mozes__id=moze_filter)
+        ).distinct()
+    
     # Filter by ITS ID if specified
     its_id_filter = request.GET.get('its_id')
     if its_id_filter:
@@ -582,15 +591,27 @@ def user_directory(request):
             'date_joined': user.date_joined,
         })
     
+    # Get statistics
+    total_users = users.count()
+    role_stats = {}
+    for role_key, role_name in User.ROLE_CHOICES:
+        role_stats[role_key] = users.filter(role=role_key).count()
+    
     context = {
         'users': user_data,
         'mozes': mozes,
         'jamiat_list': jamiat_list,
-        'total_users': users.count(),
+        'total_users': total_users,
         'role_choices': User.ROLE_CHOICES,
+        'role_stats': role_stats,
         'can_add_user': request.user.is_admin or request.user.role in ['aamil', 'moze_coordinator'],
         'can_edit_user': request.user.is_admin or request.user.role in ['aamil', 'moze_coordinator'],
         'can_delete_user': request.user.is_admin,
+        'current_filters': {
+            'role': role_filter,
+            'moze': moze_filter,
+            'its_id': its_id_filter,
+        }
     }
     
     return render(request, 'accounts/user_directory.html', context)
