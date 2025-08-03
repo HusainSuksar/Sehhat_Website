@@ -42,4 +42,7 @@ urlpatterns = [
 
     # Object permission management (admin only)
     path('object-permissions/', views.ObjectPermissionManagementView.as_view(), name='object_permission_management'),
+    
+    # Modern user directory
+    path('user-directory/', views.user_directory, name='user_directory'),
 ]

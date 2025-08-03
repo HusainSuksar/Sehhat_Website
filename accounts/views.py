@@ -523,3 +523,68 @@ def dashboard_view(request):
         'show_audit_log_link': request.user.is_admin,
     }
     return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+def user_directory(request):
+    """
+    Modern user directory view for managing doctors, paramedics, and Umoor Sehhat KGs
+    """
+    # Get all users with their roles
+    users = User.objects.filter(is_active=True).select_related('moze').prefetch_related('groups')
+    
+    # Filter by role if specified
+    role_filter = request.GET.get('role')
+    if role_filter:
+        users = users.filter(role=role_filter)
+    
+    # Filter by moze if specified
+    moze_filter = request.GET.get('moze')
+    if moze_filter:
+        users = users.filter(moze__id=moze_filter)
+    
+    # Filter by jamiat if specified
+    jamiat_filter = request.GET.get('jamiat')
+    if jamiat_filter:
+        users = users.filter(jamiat__id=jamiat_filter)
+    
+    # Filter by ITS ID if specified
+    its_id_filter = request.GET.get('its_id')
+    if its_id_filter:
+        users = users.filter(its_id__icontains=its_id_filter)
+    
+    # Get all mozes for filter dropdown
+    mozes = Moze.objects.filter(is_active=True)
+    
+    # Get all jamiat for filter dropdown (if you have a Jamiat model)
+    # jamiat_list = Jamiat.objects.filter(is_active=True)
+    jamiat_list = []  # Placeholder - replace with actual Jamiat model
+    
+    # Prepare user data for the template
+    user_data = []
+    for user in users:
+        user_data.append({
+            'id': user.id,
+            'name': user.get_full_name(),
+            'email': user.email,
+            'phone': user.phone or '',
+            'role': user.get_role_display(),
+            'role_key': user.role,
+            'moze': user.moze.name if user.moze else '',
+            'its_id': user.its_id or '',
+            'is_active': user.is_active,
+            'date_joined': user.date_joined,
+        })
+    
+    context = {
+        'users': user_data,
+        'mozes': mozes,
+        'jamiat_list': jamiat_list,
+        'total_users': users.count(),
+        'role_choices': User.ROLE_CHOICES,
+        'can_add_user': request.user.is_admin or request.user.role in ['aamil', 'moze_coordinator'],
+        'can_edit_user': request.user.is_admin or request.user.role in ['aamil', 'moze_coordinator'],
+        'can_delete_user': request.user.is_admin,
+    }
+    
+    return render(request, 'accounts/user_directory.html', context)
