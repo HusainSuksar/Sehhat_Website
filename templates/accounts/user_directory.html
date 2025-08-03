@@ -381,21 +381,21 @@
         <div class="filters-section">
             <div class="filters-grid">
                 <div class="filter-group">
-                    <label class="filter-label">Moze</label>
-                    <select class="filter-input" id="moze-filter" name="moze">
-                        <option value="">All Mozes</option>
-                        {% for moze in mozes %}
-                        <option value="{{ moze.id }}" {% if request.GET.moze == moze.id|stringformat:"s" %}selected{% endif %}>{{ moze.name }}</option>
+                    <label class="filter-label">Role</label>
+                    <select class="filter-input" id="role-filter" name="role">
+                        <option value="">All Roles</option>
+                        {% for role_key, role_name in role_choices %}
+                        <option value="{{ role_key }}" {% if request.GET.role == role_key %}selected{% endif %}>{{ role_name }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 
                 <div class="filter-group">
-                    <label class="filter-label">Jamiat</label>
-                    <select class="filter-input" id="jamiat-filter" name="jamiat">
-                        <option value="">All Jamiat</option>
-                        {% for jamiat in jamiat_list %}
-                        <option value="{{ jamiat.id }}" {% if request.GET.jamiat == jamiat.id|stringformat:"s" %}selected{% endif %}>{{ jamiat.name }}</option>
+                    <label class="filter-label">Moze</label>
+                    <select class="filter-input" id="moze-filter" name="moze">
+                        <option value="">All Mozes</option>
+                        {% for moze in mozes %}
+                        <option value="{{ moze.id }}" {% if request.GET.moze == moze.id|stringformat:"s" %}selected{% endif %}>{{ moze.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -556,8 +556,8 @@
 
 <script>
 // Filter functionality
+document.getElementById('role-filter').addEventListener('change', submitFilters);
 document.getElementById('moze-filter').addEventListener('change', submitFilters);
-document.getElementById('jamiat-filter').addEventListener('change', submitFilters);
 document.getElementById('its-id').addEventListener('input', debounce(submitFilters, 500));
 
 function debounce(func, wait) {
@@ -577,23 +577,23 @@ function submitFilters() {
     form.method = 'GET';
     form.action = window.location.pathname;
     
+    const roleFilter = document.getElementById('role-filter').value;
     const mozeFilter = document.getElementById('moze-filter').value;
-    const jamiatFilter = document.getElementById('jamiat-filter').value;
     const itsIdFilter = document.getElementById('its-id').value;
+    
+    if (roleFilter) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'role';
+        input.value = roleFilter;
+        form.appendChild(input);
+    }
     
     if (mozeFilter) {
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'moze';
         input.value = mozeFilter;
-        form.appendChild(input);
-    }
-    
-    if (jamiatFilter) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'jamiat';
-        input.value = jamiatFilter;
         form.appendChild(input);
     }
     

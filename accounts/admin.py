@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
+from django.shortcuts import redirect
+from django.urls import reverse
 from .models import AuditLog, User, UserProfile
 
 @admin.register(User)
@@ -51,6 +53,10 @@ class CustomUserAdmin(UserAdmin):
     def has_delete_permission(self, request, obj=None):
         """Admin can delete users"""
         return request.user.is_superuser or request.user.is_staff
+    
+    def changelist_view(self, request, extra_context=None):
+        """Redirect to custom user directory view"""
+        return redirect('accounts:user_directory')
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):

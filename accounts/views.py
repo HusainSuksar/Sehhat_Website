@@ -531,22 +531,12 @@ def user_directory(request):
     Modern user directory view for managing doctors, paramedics, and Umoor Sehhat KGs
     """
     # Get all users with their roles
-    users = User.objects.filter(is_active=True).select_related('moze').prefetch_related('groups')
+    users = User.objects.filter(is_active=True).prefetch_related('groups')
     
     # Filter by role if specified
     role_filter = request.GET.get('role')
     if role_filter:
         users = users.filter(role=role_filter)
-    
-    # Filter by moze if specified
-    moze_filter = request.GET.get('moze')
-    if moze_filter:
-        users = users.filter(moze__id=moze_filter)
-    
-    # Filter by jamiat if specified
-    jamiat_filter = request.GET.get('jamiat')
-    if jamiat_filter:
-        users = users.filter(jamiat__id=jamiat_filter)
     
     # Filter by ITS ID if specified
     its_id_filter = request.GET.get('its_id')
@@ -563,14 +553,30 @@ def user_directory(request):
     # Prepare user data for the template
     user_data = []
     for user in users:
+        # Get moze information if user has any moze relationships
+        moze_name = ''
+        try:
+            # Check if user is aamil and has managed mozes
+            if user.role == 'aamil' and hasattr(user, 'managed_mozes'):
+                moze = user.managed_mozes.first()
+                if moze:
+                    moze_name = moze.name
+            # Check if user is moze_coordinator and has coordinated mozes
+            elif user.role == 'moze_coordinator' and hasattr(user, 'coordinated_mozes'):
+                moze = user.coordinated_mozes.first()
+                if moze:
+                    moze_name = moze.name
+        except:
+            moze_name = ''
+        
         user_data.append({
             'id': user.id,
             'name': user.get_full_name(),
             'email': user.email,
-            'phone': user.phone or '',
+            'phone': user.phone_number or '',
             'role': user.get_role_display(),
             'role_key': user.role,
-            'moze': user.moze.name if user.moze else '',
+            'moze': moze_name,
             'its_id': user.its_id or '',
             'is_active': user.is_active,
             'date_joined': user.date_joined,
