@@ -305,6 +305,10 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
     def post(self, request, *args, **kwargs):
         """Handle comment creation"""
         moze = self.get_object()
+        
+        # Debug: Print POST data
+        print(f"POST data: {request.POST}")
+        
         form = MozeCommentForm(request.POST)
         
         if form.is_valid():
@@ -314,7 +318,13 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
             comment.save()
             messages.success(request, 'Comment added successfully.')
         else:
-            messages.error(request, 'Error adding comment.')
+            # Add more detailed error messages
+            error_messages = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_messages.append(f"{field}: {error}")
+            messages.error(request, f'Error adding comment: {", ".join(error_messages)}')
+            print(f"Form errors: {form.errors}")
         
         return redirect('moze:detail', pk=moze.pk)
 
