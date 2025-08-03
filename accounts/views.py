@@ -13,6 +13,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django import forms
+from django.db.models import Q
 from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 import json
 
