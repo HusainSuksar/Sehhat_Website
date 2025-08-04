@@ -51,6 +51,36 @@ class Moze(models.Model):
         return self.assigned_doctors.filter(user__is_active=True)
 
 
+class UmoorSehhatTeam(models.Model):
+    """Umoor Sehhat team members with categories"""
+    TEAM_CATEGORIES = [
+        ('medical', 'Medical'),
+        ('sports', 'Sports'),
+        ('nazafat', 'Nazafat'),
+        ('environment', 'Environment'),
+    ]
+    
+    moze = models.ForeignKey(Moze, on_delete=models.CASCADE, related_name='umoor_teams')
+    category = models.CharField(max_length=20, choices=TEAM_CATEGORIES)
+    member = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='umoor_team_memberships')
+    photo = models.ImageField(upload_to='team_photos/', blank=True, null=True)
+    contact_number = models.CharField(max_length=15, blank=True)
+    position = models.CharField(max_length=100, blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['moze', 'member', 'category']
+        ordering = ['category', 'member__first_name']
+        verbose_name = 'Umoor Sehhat Team Member'
+        verbose_name_plural = 'Umoor Sehhat Team Members'
+    
+    def __str__(self):
+        return f"{self.member.get_full_name()} - {self.get_category_display()} ({self.moze.name})"
+
+
 class MozeComment(models.Model):
     """Threaded comments for Moze dashboard"""
     moze = models.ForeignKey(Moze, on_delete=models.CASCADE, related_name='comments')

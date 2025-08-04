@@ -17,7 +17,7 @@ from .models import Moze, MozeComment, MozeSettings
 from .forms import MozeForm, MozeCommentForm, MozeSettingsForm
 from accounts.models import User
 from accounts.permissions import can_user_manage_moze, get_moze_data_for_user
-from mahalshifa.models import Patient, Appointment, MedicalRecord, Doctor as MahalshifaDoctor
+from mahalshifa.models import Patient, Appointment, MedicalRecord, Doctor as MahalshifaDoctor, Doctor
 from surveys.models import Survey, SurveyResponse
 from evaluation.models import EvaluationForm, EvaluationSubmission
 from araz.models import Petition
@@ -288,6 +288,18 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
         appointments = Appointment.objects.filter(moze=moze)
         doctors = MahalshifaDoctor.objects.filter(appointments__moze=moze).distinct()
         
+        # Get evaluations
+        evaluations = moze.evaluations_received.filter(is_published=True).order_by('-evaluation_date')[:5]
+        
+        # Get patient case logs (medical records)
+        patient_logs = moze.medical_records.select_related('patient', 'doctor__user').order_by('-consultation_date')[:10]
+        
+        # Get photos
+        photos = moze.photos.filter(is_public=True).order_by('-created_at')[:6]
+        
+        # Get local doctors
+        local_doctors = Doctor.objects.filter(hospital__mozes=moze).select_related('user')[:5]
+        
         # Statistics
         context.update({
             'patients_count': patients.count(),
@@ -298,6 +310,10 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
             'recent_appointments': appointments.order_by('-appointment_date')[:5],
             'recent_patients': patients.order_by('-registration_date')[:5],
             'user_role': self.request.user.get_role_display(),
+            'evaluations': evaluations,
+            'patient_logs': patient_logs,
+            'photos': photos,
+            'local_doctors': local_doctors,
         })
         
         return context

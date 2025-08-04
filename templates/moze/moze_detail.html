@@ -224,6 +224,199 @@
             font-size: 2rem;
         }
     }
+    
+    /* Doctors Grid */
+    .doctors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .doctor-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .doctor-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #6b7280;
+        flex-shrink: 0;
+    }
+    
+    .doctor-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .doctor-info {
+        flex: 1;
+    }
+    
+    .doctor-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .doctor-specialty {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .doctor-contact {
+        color: #059669;
+        font-size: 0.875rem;
+    }
+    
+    /* Evaluations Grid */
+    .evaluations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .evaluation-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .evaluation-grade {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+    }
+    
+    .grade-a+, .grade-a {
+        background: #059669;
+    }
+    
+    .grade-b {
+        background: #3b82f6;
+    }
+    
+    .grade-c {
+        background: #f59e0b;
+    }
+    
+    .grade-d, .grade-e {
+        background: #dc2626;
+    }
+    
+    .evaluation-details {
+        font-size: 0.875rem;
+    }
+    
+    .evaluation-date {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .evaluation-score {
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .evaluation-evaluator {
+        color: #059669;
+        font-size: 0.75rem;
+    }
+    
+    /* Patient Logs Table */
+    .patient-logs-table {
+        margin-bottom: 2rem;
+    }
+    
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logs-table th,
+    .logs-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .logs-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+    
+    .logs-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    /* Photo Gallery */
+    .photo-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .photo-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .gallery-photo {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+    
+    .photo-caption {
+        padding: 0.75rem;
+    }
+    
+    .photo-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .photo-date {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
 </style>
 {% endblock %}
 
@@ -327,6 +520,99 @@
             </div>
         {% endif %}
     </div>
+    
+    <!-- Local Doctors Section -->
+    {% if local_doctors %}
+    <div class="print-break">
+        <h2 class="section-title">Local Doctors</h2>
+        <div class="doctors-grid">
+            {% for doctor in local_doctors %}
+            <div class="doctor-card">
+                <div class="doctor-avatar">
+                    {% if doctor.user.profile_photo %}
+                        <img src="{{ doctor.user.profile_photo }}" alt="Doctor Photo">
+                    {% else %}
+                        <i class="fas fa-user-md"></i>
+                    {% endif %}
+                </div>
+                <div class="doctor-info">
+                    <div class="doctor-name">{{ doctor.user.get_full_name }}</div>
+                    <div class="doctor-specialty">{{ doctor.specialization }}</div>
+                    <div class="doctor-contact">{{ doctor.user.phone_number|default:"No contact" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Evaluation Grades Section -->
+    {% if evaluations %}
+    <div class="print-break">
+        <h2 class="section-title">Evaluation Grades</h2>
+        <div class="evaluations-grid">
+            {% for evaluation in evaluations %}
+            <div class="evaluation-card">
+                <div class="evaluation-grade grade-{{ evaluation.overall_grade|lower }}">
+                    {{ evaluation.overall_grade }}
+                </div>
+                <div class="evaluation-details">
+                    <div class="evaluation-date">{{ evaluation.evaluation_date|date:"M Y" }}</div>
+                    <div class="evaluation-score">{{ evaluation.overall_score|floatformat:1 }}%</div>
+                    <div class="evaluation-evaluator">By: {{ evaluation.evaluator.get_full_name }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Patient Case Logs Section -->
+    {% if patient_logs %}
+    <div class="print-break">
+        <h2 class="section-title">Recent Patient Cases</h2>
+        <div class="patient-logs-table">
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Diagnosis</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in patient_logs %}
+                    <tr>
+                        <td>{{ record.patient.get_full_name }}</td>
+                        <td>{{ record.diagnosis|truncatechars:50 }}</td>
+                        <td>Dr. {{ record.doctor.user.get_full_name }}</td>
+                        <td>{{ record.consultation_date|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Photos Section -->
+    {% if photos %}
+    <div class="print-break">
+        <h2 class="section-title">Uploaded Photos</h2>
+        <div class="photo-gallery">
+            {% for photo in photos %}
+            <div class="photo-item">
+                <img src="{{ photo.image.url }}" alt="{{ photo.title|default:'Photo' }}" class="gallery-photo">
+                <div class="photo-caption">
+                    <div class="photo-title">{{ photo.title|default:"Untitled" }}</div>
+                    <div class="photo-date">{{ photo.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Follow-Up Comments Section -->
     <div class="print-break">
