@@ -114,6 +114,7 @@
                                         <th>Target Role</th>
                                         <th>Status</th>
                                         <th>Created</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -138,6 +139,16 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ form.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-sm btn-primary">View</a>
+                                                {% if form.is_active %}
+                                                    <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-clipboard-check"></i> Evaluate
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

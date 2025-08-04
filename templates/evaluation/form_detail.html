@@ -20,10 +20,18 @@
         </div>
         <div>
             {% if can_edit %}
-                <a href="{% url 'evaluation:form_update' form.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                <a href="{% url 'evaluation:form_update' form.pk %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
             {% endif %}
             {% if can_evaluate %}
-                <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-success btn-sm">Evaluate</a>
+                <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-clipboard-check"></i> Take Evaluation
+                </a>
+            {% elif form.is_active %}
+                <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-clipboard-check"></i> Take Evaluation
+                </a>
             {% endif %}
         </div>
             </div>
@@ -55,6 +63,25 @@
                         {{ form.description|linebreaks }}
                     </div>
                 </div>
+                
+                {% if form.is_active %}
+                <div class="mb-4 p-4 bg-light border-left-success">
+                    <h5 class="text-success mb-3">
+                        <i class="fas fa-play-circle"></i> Ready to Evaluate?
+                    </h5>
+                    <p class="mb-3">This evaluation form is active and ready for submissions. Click below to start your evaluation.</p>
+                    <a href="{% url 'evaluation:evaluate_form' form.pk %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-clipboard-check"></i> Start Evaluation Now
+                    </a>
+                </div>
+                {% else %}
+                <div class="mb-4 p-4 bg-light border-left-warning">
+                    <h5 class="text-warning mb-3">
+                        <i class="fas fa-pause-circle"></i> Form Not Active
+                    </h5>
+                    <p class="mb-0">This evaluation form is currently inactive and not accepting submissions.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 </div>
