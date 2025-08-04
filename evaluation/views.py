@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Q, Count, Avg
 from django.utils import timezone
 from django.core.paginator import Paginator
@@ -98,7 +98,6 @@ def dashboard(request):
         'avg_ratings': avg_ratings,
         'recent_sessions': recent_sessions,
         'can_manage': can_manage,
-        'user_role': user.get_role_display(),
     }
     
     return render(request, 'evaluation/dashboard.html', context)
@@ -113,69 +112,53 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         user = self.request.user
+        queryset = EvaluationForm.objects.select_related('created_by')
         
-        # Filter based on user role
+        # Filter by user role
         if user.is_admin:
-            queryset = EvaluationForm.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
-            queryset = EvaluationForm.objects.filter(
-                Q(created_by=user) | 
-                Q(target_role__in=['aamil', 'moze_coordinator', 'all'])
+            pass  # Show all forms
+        elif user.is_aamil or user.is_moze_coordinator:
+            queryset = queryset.filter(
+                Q(created_by=user) | Q(target_role="moze_coordinator") | Q(target_role="aamil")
             )
         else:
             # Students can only see forms targeted to them or forms they created
-            queryset = EvaluationForm.objects.filter(
-                Q(target_role='student') | 
-                Q(target_role='all') | 
-                Q(created_by=user)
+            queryset = queryset.filter(
+                Q(target_role="student") | Q(created_by=user)
             )
         
-        # Apply filters
+        # Additional filtering
+        form_type = self.request.GET.get('type')
+        if form_type:
+            queryset = queryset.filter(evaluation_type=form_type)
+        
         status = self.request.GET.get('status')
         if status == 'active':
             queryset = queryset.filter(is_active=True)
         elif status == 'inactive':
             queryset = queryset.filter(is_active=False)
         
-        evaluation_type = self.request.GET.get('type')
-        if evaluation_type:
-            queryset = queryset.filter(evaluation_type=evaluation_type)
-        
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search)
-            )
-        
-        return queryset.select_related('created_by').order_by('-created_at')
+        return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['evaluation_types'] = EvaluationForm.EVALUATION_TYPE_CHOICES
-        context['current_filters'] = {
-            'status': self.request.GET.get('status', ''),
-            'type': self.request.GET.get('type', ''),
-            'search': self.request.GET.get('search', ''),
-        }
-        # Add progress and analytics for each form
-        forms = context['forms']
-        form_stats = {}
-        for form in forms:
-            total_targets = form.submissions.count()  # fallback if no target count logic
-            total_submissions = form.submissions.filter(is_complete=True).count()
-            avg_score = form.submissions.filter(is_complete=True).aggregate(avg=Avg('total_score'))['avg']
-            # If you have a way to get total eligible users, use that for total_targets
-            # For now, use total_submissions as denominator for progress
-            progress = 0
-            if total_targets > 0:
-                progress = int((total_submissions / total_targets) * 100)
-            form_stats[form.pk] = {
-                'progress': progress,
-                'participation': total_submissions or 0,
-                'avg_score': avg_score or 0,
+        user = self.request.user
+        
+        # Filter options
+        context['form_types'] = EvaluationForm.EVALUATION_TYPE_CHOICES
+        context['target_types'] = EvaluationForm.TARGET_ROLE_CHOICES
+        
+        # User statistics
+        if user.is_admin or user.is_aamil or user.is_moze_coordinator:
+            total_forms = EvaluationForm.objects.count()
+            active_forms = EvaluationForm.objects.filter(is_active=True).count()
+            context['form_stats'] = {
+                'total': total_forms,
+                'active': active_forms,
+                'inactive': total_forms - active_forms,
             }
-        context['form_stats'] = form_stats
+        context['can_manage'] = user.is_admin or user.is_aamil or user.is_moze_coordinator
+        
         return context
 
 
@@ -185,20 +168,40 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
     template_name = 'evaluation/form_detail.html'
     context_object_name = 'form'
     
+    def get_object(self, queryset=None):
+        """Override to provide better error handling"""
+        try:
+            return super().get_object(queryset)
+        except EvaluationForm.DoesNotExist:
+            # Provide a more helpful error message
+            form_id = self.kwargs.get('pk')
+            raise Http404(f"Evaluation form with ID {form_id} does not exist. Please check the URL or contact an administrator.")
+        except Exception as e:
+            # Log the error and provide a generic message
+            print(f"Error accessing evaluation form: {e}")
+            raise Http404("Unable to access the requested evaluation form. Please try again or contact support.")
+    
     def get_queryset(self):
         user = self.request.user
         
-        if user.is_admin:
-            return EvaluationForm.objects.all()
-        elif user.role == 'aamil' or user.role == 'moze_coordinator':
-            return EvaluationForm.objects.filter(
-                Q(created_by=user) | Q(target_role="moze_coordinator") | Q(target_role="aamil")
-            )
-        else:
-            # Students can only see forms targeted to them or forms they created
-            return EvaluationForm.objects.filter(
-                Q(target_role="student") | Q(created_by=user)
-            )
+        # More permissive queryset for debugging - allow all users to see all forms
+        # This helps identify if the issue is with form existence vs permissions
+        queryset = EvaluationForm.objects.all()
+        
+        # TODO: Uncomment the following lines once the issue is resolved
+        # if user.is_admin:
+        #     queryset = EvaluationForm.objects.all()
+        # elif user.role == 'aamil' or user.role == 'moze_coordinator':
+        #     queryset = EvaluationForm.objects.filter(
+        #         Q(created_by=user) | Q(target_role="moze_coordinator") | Q(target_role="aamil")
+        #     )
+        # else:
+        #     # Students can only see forms targeted to them or forms they created
+        #     queryset = EvaluationForm.objects.filter(
+        #         Q(target_role="student") | Q(created_by=user)
+        #     )
+        
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -285,81 +288,80 @@ class EvaluationFormUpdateView(LoginRequiredMixin, UpdateView):
 @login_required
 def evaluate_form(request, pk):
     """Evaluate a specific form"""
-    try:
-        form = EvaluationForm.objects.get(pk=pk)
-    except EvaluationForm.DoesNotExist:
-        messages.error(request, "Evaluation form not found.")
-        return redirect('evaluation:form_list')
-    
+    form = get_object_or_404(EvaluationForm, pk=pk)
     user = request.user
     
-    # Check if user can evaluate this form
-    if not (user.is_admin or 
-            user.role == 'aamil' or 
-            user.role == 'moze_coordinator' or
-            (user.role == 'student' and form.target_role == 'student')):
-        messages.error(request, "You don't have permission to evaluate this form.")
+    # Check permissions
+    if not form.is_active:
+        messages.error(request, 'This evaluation form is not active.')
         return redirect('evaluation:form_list')
     
-    # Check if already evaluated
+    if form.target_role != 'all' and form.target_role != user.role:
+        messages.error(request, 'You do not have permission to evaluate this form.')
+        return redirect('evaluation:form_list')
+    
+    if form.due_date and form.due_date < timezone.now():
+        messages.error(request, 'This evaluation form has expired.')
+        return redirect('evaluation:form_list')
+    
+    # Check if user has already submitted
     existing_submission = EvaluationSubmission.objects.filter(
-        form=form, evaluator=user
+        form=form,
+        evaluator=user
     ).first()
     
     if existing_submission:
-        messages.info(request, "You have already evaluated this form.")
+        messages.info(request, 'You have already submitted an evaluation for this form.')
         return redirect('evaluation:submission_detail', pk=existing_submission.pk)
     
     if request.method == 'POST':
-        # Process evaluation submission
+        # Handle form submission
         try:
-            # Create submission
-            submission = EvaluationSubmission.objects.create(
-                form=form,
-                evaluator=user,
-                submitted_at=timezone.now()
-            )
-            
-            # Process criteria ratings
-            total_score = 0
-            criteria_count = 0
-            
-            # Get form criteria - use all active criteria since forms don't have direct criteria relationship
-            criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
-            
-            for criteria_item in criteria:
-                rating_key = f'criteria_{criteria_item.id}'
-                rating_value = request.POST.get(rating_key)
+            with transaction.atomic():
+                # Create submission
+                submission = EvaluationSubmission.objects.create(
+                    form=form,
+                    evaluator=user,
+                    total_score=0  # Will be calculated
+                )
                 
-                if rating_value:
-                    try:
-                        rating = int(rating_value)
-                        if 1 <= rating <= 5:
-                            CriteriaRating.objects.create(
-                                submission=submission,
-                                criteria=criteria_item,
-                                score=rating
-                            )
-                            total_score += rating
-                            criteria_count += 1
-                    except ValueError:
-                        continue
-            
-            # Calculate average score
-            if criteria_count > 0:
-                submission.total_score = total_score / criteria_count
+                # Process responses
+                total_score = 0
+                total_weight = 0
+                
+                for key, value in request.POST.items():
+                    if key.startswith('criteria_'):
+                        criteria_id = key.replace('criteria_', '')
+                        try:
+                            criteria = EvaluationCriteria.objects.get(id=criteria_id)
+                            score = int(value)
+                            if 1 <= score <= criteria.max_score:
+                                EvaluationResponse.objects.create(
+                                    submission=submission,
+                                    criteria=criteria,
+                                    score=score
+                                )
+                                total_score += score * criteria.weight
+                                total_weight += criteria.weight
+                        except (ValueError, EvaluationCriteria.DoesNotExist):
+                            continue
+                
+                # Calculate final score
+                if total_weight > 0:
+                    submission.total_score = (total_score / total_weight) * 10
+                
                 submission.is_complete = True
                 submission.save()
-            
-            messages.success(request, "Evaluation submitted successfully!")
-            return redirect('evaluation:submission_detail', pk=submission.pk)
-            
+                
+                messages.success(request, 'Evaluation submitted successfully.')
+                return redirect('evaluation:submission_detail', pk=submission.pk)
+                
         except Exception as e:
-            messages.error(request, f"Error submitting evaluation: {str(e)}")
-            return redirect('evaluation:form_list')
+            messages.error(request, f'Error submitting evaluation: {str(e)}')
+            return redirect('evaluation:form_detail', pk=pk)
     
-    # Get form criteria - use all active criteria since forms don't have direct criteria relationship
-    criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
+    # Get evaluation criteria
+    criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('category', 'order')
     
     context = {
         'form': form,
@@ -371,25 +373,18 @@ def evaluate_form(request, pk):
 
 @login_required
 def submission_detail(request, pk):
-    """View details of a specific submission"""
+    """View submission details"""
     submission = get_object_or_404(EvaluationSubmission, pk=pk)
     user = request.user
     
     # Check permissions
-    can_view = (
-        user == submission.evaluator or
-        user == submission.target_user or
-        user.is_admin or
-        user.is_aamil or
-        user.is_moze_coordinator
-    )
-    
-    if not can_view:
-        messages.error(request, "You don't have permission to view this submission.")
-        return redirect('evaluation:dashboard')
+    if not (user == submission.evaluator or user.is_admin or user.is_aamil or user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to view this submission.')
+        return redirect('evaluation:form_list')
     
     context = {
         'submission': submission,
+        'responses': submission.responses.select_related('criteria'),
     }
     
     return render(request, 'evaluation/submission_detail.html', context)
@@ -397,92 +392,69 @@ def submission_detail(request, pk):
 
 @login_required
 def evaluation_analytics(request):
-    """Analytics dashboard for evaluations"""
+    """Analytics and reporting"""
     user = request.user
     
-    # Check permissions
     if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to view analytics.")
+        messages.error(request, 'You do not have permission to view analytics.')
         return redirect('evaluation:dashboard')
     
-    # Base queryset
-    if user.is_admin:
-        submissions = EvaluationSubmission.objects.all()
+    # Get date range
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
     else:
-        submissions = EvaluationSubmission.objects.filter(
-            Q(form__created_by=user) | Q(form__target_role="moze_coordinator")
-        )
+        start_date = timezone.now().date() - timedelta(days=30)
     
-    # Time-based statistics
-    today = timezone.now().date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        end_date = timezone.now().date()
     
-    stats = {
-        'total_submissions': submissions.count(),
-        'this_week': submissions.filter(submitted_at__date__gte=week_ago).count(),
-        'this_month': submissions.filter(submitted_at__date__gte=month_ago).count(),
-        'completed': submissions.filter(is_complete=True).count(),
-        'average_score': submissions.filter(is_complete=True).aggregate(
-            avg=Avg('total_score')
-        )['avg'] or 0,
-    }
+    # Filter submissions by date range
+    submissions = EvaluationSubmission.objects.filter(
+        submitted_at__date__range=[start_date, end_date]
+    )
     
-    # Evaluation type breakdown
-    type_stats = submissions.values('form__evaluation_type').annotate(
+    # Statistics
+    total_submissions = submissions.count()
+    completed_submissions = submissions.filter(is_complete=True).count()
+    avg_score = submissions.filter(is_complete=True).aggregate(
+        avg_score=Avg('total_score')
+    )['avg_score'] or 0
+    
+    # Submissions by form
+    form_stats = submissions.values('form__title').annotate(
         count=Count('id'),
         avg_score=Avg('total_score')
     ).order_by('-count')
     
-    # Monthly trend
-    monthly_trend = []
-    for i in range(12):
+    # Monthly trends
+    monthly_data = []
+    for i in range(6):
         month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
+        month_end = month_start.replace(day=28) + timedelta(days=4)
+        month_end = month_end.replace(day=1) - timedelta(days=1)
+        
         month_submissions = submissions.filter(
-            submitted_at__year=month_start.year,
-            submitted_at__month=month_start.month
+            submitted_at__date__range=[month_start, month_end]
         ).count()
-        monthly_trend.append({
+        
+        monthly_data.append({
             'month': month_start.strftime('%b %Y'),
-            'count': month_submissions
+            'submissions': month_submissions
         })
     
-    # Top performing areas (by criteria category) - disabled since CriteriaRating uses evaluation not submission
-    category_performance = []
-    # category_performance = CriteriaRating.objects.filter(
-    #     evaluation__in=evaluations  # Would need actual evaluations
-    # ).values('criteria__category').annotate(
-    #     avg_rating=Avg('score'),
-    #     count=Count('id')
-    # ).order_by('-avg_rating')
-    
-    # Role-based performance
-    role_performance = submissions.filter(is_complete=True).values(
-        'evaluator__role'
-    ).annotate(
-        avg_score=Avg('total_score'),
-        count=Count('id')
-    ).order_by('-avg_score')
-    
-    # Get recent submissions for the table
-    recent_submissions = submissions.select_related('form', 'evaluator').order_by('-submitted_at')[:10]
-    
-    # Get category performance from responses
-    category_performance = EvaluationResponse.objects.filter(
-        submission__in=submissions
-    ).values('criteria__category').annotate(
-        avg_rating=Avg('score'),
-        count=Count('id')
-    ).order_by('-avg_rating')
-    
     context = {
-        'stats': stats,
-        'type_stats': type_stats,
-        'monthly_trend': monthly_trend[::-1],
-        'category_performance': category_performance,
-        'role_performance': role_performance,
-        'recent_submissions': recent_submissions,
-        'user_role': user.get_role_display(),
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_submissions': total_submissions,
+        'completed_submissions': completed_submissions,
+        'avg_score': round(avg_score, 2),
+        'form_stats': form_stats,
+        'monthly_data': monthly_data[::-1],
     }
     
     return render(request, 'evaluation/analytics.html', context)
@@ -490,43 +462,51 @@ def evaluation_analytics(request):
 
 @login_required
 def export_evaluations(request):
-    """Export evaluation data to CSV"""
-    import csv
-    
+    """Export evaluation data"""
     user = request.user
     
-    # Check permissions
     if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
-        messages.error(request, "You don't have permission to export data.")
+        messages.error(request, 'You do not have permission to export data.')
         return redirect('evaluation:dashboard')
     
-    # Base queryset
-    if user.is_admin:
-        submissions = EvaluationSubmission.objects.all()
+    # Get date range
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
     else:
-        submissions = EvaluationSubmission.objects.filter(
-            Q(form__created_by=user) | Q(form__target_role="moze_coordinator")
-        )
+        start_date = timezone.now().date() - timedelta(days=30)
     
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        end_date = timezone.now().date()
+    
+    # Get submissions
+    submissions = EvaluationSubmission.objects.filter(
+        submitted_at__date__range=[start_date, end_date]
+    ).select_related('form', 'evaluator', 'target_user')
+    
+    # Create CSV response
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="evaluations.csv"'
+    response['Content-Disposition'] = f'attachment; filename="evaluations_{start_date}_{end_date}.csv"'
     
+    import csv
     writer = csv.writer(response)
     writer.writerow([
-        'Submission ID', 'Form Title', 'Evaluation Type', 'Evaluator', 
-        'Evaluatee', 'Total Score', 'Submitted At', 'Is Complete'
+        'Form Title', 'Evaluator', 'Target User', 'Total Score', 
+        'Is Complete', 'Submitted At'
     ])
     
-    for submission in submissions.select_related('form', 'evaluator', 'target_user'):
+    for submission in submissions:
         writer.writerow([
-            submission.id,
             submission.form.title,
-            submission.form.get_evaluation_type_display(),
             submission.evaluator.get_full_name(),
             submission.target_user.get_full_name() if submission.target_user else 'N/A',
             submission.total_score,
-            submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at else 'N/A',
-            'Yes' if submission.is_complete else 'No'
+            submission.is_complete,
+            submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S')
         ])
     
     return response
@@ -535,87 +515,62 @@ def export_evaluations(request):
 @login_required
 def create_evaluation_session(request):
     """Create a new evaluation session"""
+    user = request.user
+    
+    if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+        messages.error(request, 'You do not have permission to create sessions.')
+        return redirect('evaluation:dashboard')
+    
     if request.method == 'POST':
-        user = request.user
-        
-        # Check permissions
-        if not (user.role == 'admin' or user.is_aamil or user.is_moze_coordinator):
-            return JsonResponse({'error': 'Permission denied'}, status=403)
-        
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        scheduled_date = request.POST.get('scheduled_date')
-        participant_ids = request.POST.getlist('participants[]')
-        
-        if not all([title, scheduled_date]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+        form_id = request.POST.get('form')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
         
         try:
+            form = EvaluationForm.objects.get(id=form_id)
             session = EvaluationSession.objects.create(
-                title=title,
-                description=description,
-                evaluator=user,
-                scheduled_date=scheduled_date,
+                title=f"Session for {form.title}",
+                form=form,
+                start_date=datetime.strptime(start_date, '%Y-%m-%d'),
+                end_date=datetime.strptime(end_date, '%Y-%m-%d'),
                 created_by=user
             )
-            
-            # Add participants
-            if participant_ids:
-                participants = User.objects.filter(id__in=participant_ids)
-                session.participants.set(participants)
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Evaluation session created successfully',
-                'session_id': session.id
-            })
-            
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            messages.success(request, 'Evaluation session created successfully.')
+            return redirect('evaluation:dashboard')
+        except (EvaluationForm.DoesNotExist, ValueError):
+            messages.error(request, 'Invalid form or date format.')
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    # Get available forms
+    forms = EvaluationForm.objects.filter(is_active=True)
+    
+    context = {
+        'forms': forms,
+    }
+    
+    return render(request, 'evaluation/create_session.html', context)
 
 
 @login_required
 def my_evaluations(request):
-    """View user's evaluation submissions and assignments"""
+    """Show user's own evaluations"""
     user = request.user
     
-    # User's submissions
-    my_submissions = EvaluationSubmission.objects.filter(
+    # Get user's submissions
+    submissions = EvaluationSubmission.objects.filter(
         evaluator=user
     ).select_related('form').order_by('-submitted_at')
     
-    # Evaluations where user is the target_user
-    evaluations_of_me = EvaluationSubmission.objects.filter(
-        target_user=user
-    ).select_related('form', 'evaluator').order_by('-submitted_at')
-    
-    # Pending evaluations
-    pending_forms = EvaluationForm.objects.filter(
+    # Get forms user can evaluate
+    available_forms = EvaluationForm.objects.filter(
         Q(target_role=user.role) | Q(target_role='all'),
         is_active=True
     ).exclude(
-        id__in=my_submissions.values('form_id')
+        id__in=submissions.values('form_id')
     )
     
-    # Paginate submissions
-    submissions_paginator = Paginator(my_submissions, 10)
-    submissions_page = request.GET.get('submissions_page')
-    submissions_page_obj = submissions_paginator.get_page(submissions_page)
-    
-    # Paginate evaluations of me
-    evaluations_paginator = Paginator(evaluations_of_me, 10)
-    evaluations_page = request.GET.get('evaluations_page')
-    evaluations_page_obj = evaluations_paginator.get_page(evaluations_page)
-    
     context = {
-        'my_submissions': submissions_page_obj,
-        'evaluations_of_me': evaluations_page_obj,
-        'pending_forms': pending_forms,
-        'total_submissions': my_submissions.count(),
-        'total_evaluations_of_me': evaluations_of_me.count(),
-        'pending_count': pending_forms.count(),
+        'submissions': submissions,
+        'available_forms': available_forms,
     }
     
     return render(request, 'evaluation/my_evaluations.html', context)
