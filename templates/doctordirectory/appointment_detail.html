@@ -263,7 +263,7 @@
                     
                     <div class="mb-2">
                         <small class="text-muted">Last Visit:</small><br>
-                        {% with last_appointment=appointment.patient.appointments.exclude.pk=appointment.pk.first %}
+                        {% with last_appointment=appointment.patient.appointments.all|first %}
                             {% if last_appointment %}
                                 {{ last_appointment.appointment_date|date:"M d, Y" }}
                             {% else %}
@@ -280,7 +280,7 @@
                     <h5><i class="fas fa-history"></i> Recent Appointments</h5>
                 </div>
                 <div class="card-body">
-                    {% with recent_appointments=appointment.patient.appointments.exclude.pk=appointment.pk.order_by='-appointment_date'|slice:':5' %}
+                    {% with recent_appointments=appointment.patient.appointments.all|slice:':5' %}
                         {% if recent_appointments %}
                             {% for apt in recent_appointments %}
                             <div class="mb-2 pb-2 border-bottom">
