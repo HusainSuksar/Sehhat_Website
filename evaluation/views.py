@@ -115,7 +115,7 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Filter based on user role
-        if user.is_admin:
+        if user.is_admin or user.role == 'badri_mahal_admin':
             queryset = EvaluationForm.objects.all()
         elif user.role == 'aamil' or user.role == 'moze_coordinator':
             queryset = EvaluationForm.objects.filter(
@@ -123,9 +123,9 @@ class EvaluationFormListView(LoginRequiredMixin, ListView):
                 Q(target_role__in=['aamil', 'moze_coordinator', 'all'])
             )
         else:
-            # Students can only see forms targeted to them or forms they created
+            # Students and others can see forms targeted to them, to 'all', or forms they created
             queryset = EvaluationForm.objects.filter(
-                Q(target_role='student') | 
+                Q(target_role=user.role) | 
                 Q(target_role='all') | 
                 Q(created_by=user)
             )
@@ -188,16 +188,22 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         user = self.request.user
         
-        if user.is_admin:
+        if user.is_admin or user.role == 'badri_mahal_admin':
             return EvaluationForm.objects.all()
         elif user.role == 'aamil' or user.role == 'moze_coordinator':
+            # Aamils and coordinators can see forms they created, forms targeted to them, or forms targeted to 'all'
             return EvaluationForm.objects.filter(
-                Q(created_by=user) | Q(target_role="moze_coordinator") | Q(target_role="aamil")
+                Q(created_by=user) | 
+                Q(target_role="aamil") | 
+                Q(target_role="moze_coordinator") | 
+                Q(target_role="all")
             )
         else:
-            # Students can only see forms targeted to them or forms they created
+            # Students and others can see forms targeted to them, to 'all', or forms they created
             return EvaluationForm.objects.filter(
-                Q(target_role="student") | Q(created_by=user)
+                Q(target_role=user.role) | 
+                Q(target_role="all") | 
+                Q(created_by=user)
             )
     
     def get_context_data(self, **kwargs):
