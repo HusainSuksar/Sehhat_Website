@@ -3,86 +3,47 @@
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
+    /* Performance-optimized premium design */
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e8eaf6 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
         min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
     }
 
-    /* Animated Background Elements */
-    .bg-animation {
+    /* Simplified background - removed expensive floating orbs */
+    .bg-pattern {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #3b82f6 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #10b981 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
-    }
-
-    .bg-orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .bg-orb:nth-child(1) {
-        width: 320px;
-        height: 320px;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
-        top: -160px;
-        right: -160px;
-        animation-delay: 0s;
-    }
-
-    .bg-orb:nth-child(2) {
-        width: 320px;
-        height: 320px;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
-        bottom: -160px;
-        left: -160px;
-        animation-delay: 2s;
-    }
-
-    .bg-orb:nth-child(3) {
-        width: 384px;
-        height: 384px;
-        background: linear-gradient(135deg, rgba(147, 51, 234, 0.05), rgba(236, 72, 153, 0.05));
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        animation-delay: 4s;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) scale(1); }
-        50% { transform: translateY(-20px) scale(1.05); }
     }
 
     /* Main Content */
     .main-content {
         position: relative;
-        z-index: 10;
+        z-index: 1;
         max-width: 1400px;
         margin: 0 auto;
         padding: 2rem 1.5rem;
     }
 
-    /* Welcome Section */
+    /* Welcome Section - simplified */
     .welcome-section {
         display: flex;
         flex-direction: column;
         gap: 2rem;
         margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
 
     @media (min-width: 1024px) {
@@ -100,62 +61,27 @@
     }
 
     .welcome-icon {
-        position: relative;
-        width: 80px;
-        height: 80px;
+        width: 64px;
+        height: 64px;
         background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 24px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
-    }
-
-    .welcome-icon::after {
-        content: '';
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .welcome-icon::before {
-        content: '⚡';
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        z-index: 1;
-    }
-
-    .welcome-icon i {
         color: white;
-        font-size: 2.5rem;
+        font-size: 1.5rem;
     }
 
     .welcome-text h2 {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #1f2937, #374151);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #1f2937;
         margin-bottom: 0.5rem;
     }
 
     .welcome-text p {
         color: #6b7280;
-        font-size: 1.125rem;
+        font-size: 1rem;
         margin-bottom: 0.75rem;
     }
 
@@ -177,17 +103,22 @@
         color: #059669;
     }
 
-    .welcome-actions {
-        display: flex;
-        gap: 0.75rem;
+    .role-badge {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
     }
 
+    /* Buttons - simplified */
     .btn {
         padding: 0.75rem 1.5rem;
-        border-radius: 12px;
+        border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         border: none;
         display: inline-flex;
         align-items: center;
@@ -198,29 +129,31 @@
     .btn-primary {
         background: linear-gradient(135deg, #10b981, #059669);
         color: white;
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
     }
 
     .btn-primary:hover {
-        box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
-        transform: translateY(-2px);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         color: white;
     }
 
     .btn-outline {
-        background: rgba(255, 255, 255, 0.8);
+        background: white;
         color: #374151;
         border: 1px solid #d1d5db;
-        backdrop-filter: blur(10px);
     }
 
     .btn-outline:hover {
-        background: white;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: #f9fafb;
         color: #374151;
     }
 
-    /* Action Bar */
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Action Bar - simplified */
     .action-bar {
         display: flex;
         justify-content: space-between;
@@ -228,11 +161,10 @@
         flex-wrap: wrap;
         gap: 1rem;
         padding: 1rem;
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(20px);
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
     }
 
@@ -241,12 +173,7 @@
         gap: 0.75rem;
     }
 
-    .btn-sm {
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-    }
-
-    /* Stats Grid */
+    /* Stats Grid - performance optimized */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -255,42 +182,22 @@
     }
 
     .stat-card {
-        position: relative;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: white;
+        border-radius: 12px;
         padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        transition: all 0.5s ease;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         cursor: pointer;
-        overflow: hidden;
         text-decoration: none;
         color: inherit;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--card-gradient);
-        opacity: 0;
-        transition: opacity 0.5s ease;
     }
 
     .stat-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         text-decoration: none;
         color: inherit;
-    }
-
-    .stat-card:hover::before {
-        opacity: 0.05;
-    }
-
-    .stat-card:hover .stat-icon {
-        transform: scale(1.1) rotate(3deg);
     }
 
     .stat-header {
@@ -301,14 +208,12 @@
     }
 
     .stat-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.5s ease;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .stat-trend {
@@ -323,16 +228,8 @@
         color: #059669;
     }
 
-    .trend-down {
-        color: #dc2626;
-    }
-
-    .stat-content {
-        margin-bottom: 1rem;
-    }
-
     .stat-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 0.25rem;
@@ -362,14 +259,13 @@
         }
     }
 
-    /* Quick Actions */
+    /* Quick Actions - simplified */
     .quick-actions {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .section-header {
@@ -386,10 +282,10 @@
     }
 
     .section-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 12px;
+        width: 32px;
+        height: 32px;
+        background: #10b981;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -397,7 +293,7 @@
     }
 
     .section-title h3 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 700;
         color: #1f2937;
     }
@@ -406,7 +302,7 @@
         background: #d1fae5;
         color: #065f46;
         padding: 0.25rem 0.75rem;
-        border-radius: 12px;
+        border-radius: 8px;
         font-size: 0.875rem;
         font-weight: 600;
     }
@@ -422,56 +318,48 @@
         flex-direction: column;
         align-items: center;
         gap: 0.5rem;
-        padding: 1.5rem 1rem;
-        background: var(--action-bg);
-        border: none;
-        border-radius: 12px;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-decoration: none;
-        color: var(--action-color);
+        color: #374151;
     }
 
     .action-btn:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         text-decoration: none;
-        color: var(--action-color);
-    }
-
-    .action-btn:hover .action-icon {
-        transform: scale(1.1);
+        color: #374151;
     }
 
     .action-icon {
-        width: 32px;
-        height: 32px;
-        background: var(--action-gradient);
-        border-radius: 8px;
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #6b7280);
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        transition: transform 0.3s ease;
+        font-size: 0.875rem;
     }
 
     .action-label {
         font-size: 0.75rem;
         font-weight: 600;
+        text-align: center;
     }
 
-    /* Recent Activity */
+    /* Recent Activity - simplified */
     .recent-activity {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: white;
+        border-radius: 12px;
         padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .activity-list {
-        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .activity-item {
@@ -479,23 +367,23 @@
         align-items: flex-start;
         gap: 0.75rem;
         padding: 0.75rem;
-        border-radius: 12px;
-        transition: background-color 0.2s ease;
+        border-radius: 8px;
         margin-bottom: 0.5rem;
-    }
-
-    .activity-item:hover {
-        background: rgba(0, 0, 0, 0.02);
+        border-left: 3px solid #10b981;
+        background: #f9fafb;
     }
 
     .activity-icon {
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: #10b981;
+        color: white;
         flex-shrink: 0;
+        font-size: 0.875rem;
     }
 
     .activity-content {
@@ -514,60 +402,10 @@
         color: #6b7280;
     }
 
-    .view-all-btn {
-        width: 100%;
-        background: none;
-        border: none;
-        color: #10b981;
-        padding: 0.75rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: background-color 0.2s ease;
-    }
-
-    .view-all-btn:hover {
-        background: #d1fae5;
-    }
-
-    /* Role Badge */
-    .role-badge {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #92400e;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    /* Animations */
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .animate-slide-up {
-        animation: slideInUp 0.6s ease-out;
-    }
-
     /* Responsive Design */
     @media (max-width: 768px) {
         .welcome-text h2 {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
         
         .stats-grid {
@@ -578,21 +416,25 @@
             grid-template-columns: repeat(2, 1fr);
         }
     }
+
+    /* Remove expensive animations on mobile */
+    @media (max-width: 768px) {
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Animated Background -->
-<div class="bg-animation">
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
-</div>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
 
 <!-- Main Content -->
 <main class="main-content">
     <!-- Welcome Section -->
-    <section class="welcome-section animate-slide-up">
+    <section class="welcome-section">
         <div class="welcome-content">
             <div class="welcome-icon">
                 {% if user.is_admin %}
@@ -670,10 +512,10 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
-        <a href="{% url 'accounts:user_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+        <a href="{% url 'accounts:user_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
-                    <i class="fas fa-users" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                    <i class="fas fa-users" style="color: #3b82f6;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -687,10 +529,10 @@
             </div>
         </a>
 
-        <a href="{% url 'students:student_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #10b981, #059669);">
+        <a href="{% url 'students:student_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
-                    <i class="fas fa-graduation-cap" style="color: #10b981; font-size: 1.5rem;"></i>
+                    <i class="fas fa-graduation-cap" style="color: #10b981;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -704,10 +546,10 @@
             </div>
         </a>
 
-        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
-                    <i class="fas fa-stethoscope" style="color: #8b5cf6; font-size: 1.5rem;"></i>
+                    <i class="fas fa-stethoscope" style="color: #8b5cf6;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -721,10 +563,10 @@
             </div>
         </a>
 
-        <a href="{% url 'mahalshifa:hospital_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #f97316, #ea580c);">
+        <a href="{% url 'mahalshifa:hospital_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #fed7aa, #fdba74);">
-                    <i class="fas fa-hospital" style="color: #f97316; font-size: 1.5rem;"></i>
+                    <i class="fas fa-hospital" style="color: #f97316;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -738,10 +580,10 @@
             </div>
         </a>
 
-        <a href="{% url 'moze:list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #06b6d4, #0891b2);">
+        <a href="{% url 'moze:list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
-                    <i class="fas fa-mosque" style="color: #06b6d4; font-size: 1.5rem;"></i>
+                    <i class="fas fa-mosque" style="color: #06b6d4;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -755,12 +597,12 @@
             </div>
         </a>
 
-        <a href="{% url 'surveys:list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #6366f1, #4f46e5);">
+        <a href="{% url 'surveys:list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
-                    <i class="fas fa-poll" style="color: #6366f1; font-size: 1.5rem;"></i>
+                    <i class="fas fa-poll" style="color: #6366f1;"></i>
                 </div>
-                <div class="stat-trend trend-down">
+                <div class="stat-trend">
                     <i class="fas fa-arrow-down"></i>
                     -3%
                 </div>
@@ -772,10 +614,10 @@
             </div>
         </a>
 
-        <a href="{% url 'araz:petition_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #ec4899, #db2777);">
+        <a href="{% url 'araz:petition_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8);">
-                    <i class="fas fa-gavel" style="color: #ec4899; font-size: 1.5rem;"></i>
+                    <i class="fas fa-gavel" style="color: #ec4899;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -789,10 +631,10 @@
             </div>
         </a>
 
-        <a href="{% url 'photos:album_list' %}" class="stat-card" style="--card-gradient: linear-gradient(135deg, #06b6d4, #3b82f6);">
+        <a href="{% url 'photos:album_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #dbeafe);">
-                    <i class="fas fa-images" style="color: #06b6d4; font-size: 1.5rem;"></i>
+                    <i class="fas fa-images" style="color: #06b6d4;"></i>
                 </div>
                 <div class="stat-trend trend-up">
                     <i class="fas fa-arrow-up"></i>
@@ -823,29 +665,22 @@
 
             <div class="actions-grid">
                 {% if user.is_admin %}
-                    <a href="{% url 'accounts:audit_log_list' %}" class="action-btn" style="--action-bg: #fef2f2; --action-color: #dc2626; --action-gradient: linear-gradient(135deg, #ef4444, #dc2626);">
-                        <div class="action-icon">
+                    <a href="{% url 'accounts:audit_log_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #dc2626;">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <span class="action-label">Audit Logs</span>
                     </a>
 
-                    <a href="{% url 'accounts:user_list' %}" class="action-btn" style="--action-bg: #faf5ff; --action-color: #7c3aed; --action-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                        <div class="action-icon">
+                    <a href="{% url 'accounts:user_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #7c3aed;">
                             <i class="fas fa-users"></i>
                         </div>
                         <span class="action-label">Manage Users</span>
                     </a>
 
-                    <a href="{% url 'accounts:permission_management' %}" class="action-btn" style="--action-bg: #f9fafb; --action-color: #374151; --action-gradient: linear-gradient(135deg, #6b7280, #374151);">
-                        <div class="action-icon">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                        <span class="action-label">Permissions</span>
-                    </a>
-
-                    <a href="{% url 'evaluation:analytics' %}" class="action-btn" style="--action-bg: #ecfdf5; --action-color: #059669; --action-gradient: linear-gradient(135deg, #10b981, #059669);">
-                        <div class="action-icon">
+                    <a href="{% url 'evaluation:analytics' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #059669;">
                             <i class="fas fa-chart-bar"></i>
                         </div>
                         <span class="action-label">Analytics</span>
@@ -853,22 +688,22 @@
                 {% endif %}
 
                 {% if user.is_aamil or user.is_moze_coordinator %}
-                    <a href="{% url 'moze:list' %}" class="action-btn" style="--action-bg: #ecfdf5; --action-color: #059669; --action-gradient: linear-gradient(135deg, #10b981, #059669);">
-                        <div class="action-icon">
+                    <a href="{% url 'moze:list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #059669;">
                             <i class="fas fa-mosque"></i>
                         </div>
                         <span class="action-label">Moze Centers</span>
                     </a>
 
-                    <a href="{% url 'evaluation:dashboard' %}" class="action-btn" style="--action-bg: #eff6ff; --action-color: #2563eb; --action-gradient: linear-gradient(135deg, #3b82f6, #2563eb);">
-                        <div class="action-icon">
+                    <a href="{% url 'evaluation:dashboard' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #2563eb;">
                             <i class="fas fa-clipboard-check"></i>
                         </div>
                         <span class="action-label">Evaluations</span>
                     </a>
 
-                    <a href="{% url 'photos:album_list' %}" class="action-btn" style="--action-bg: #f0fdfa; --action-color: #0d9488; --action-gradient: linear-gradient(135deg, #14b8a6, #0d9488);">
-                        <div class="action-icon">
+                    <a href="{% url 'photos:album_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #0d9488;">
                             <i class="fas fa-camera"></i>
                         </div>
                         <span class="action-label">Photos</span>
@@ -876,53 +711,39 @@
                 {% endif %}
 
                 {% if user.is_doctor %}
-                    <a href="{% url 'doctordirectory:patient_list' %}" class="action-btn" style="--action-bg: #fff7ed; --action-color: #ea580c; --action-gradient: linear-gradient(135deg, #f97316, #ea580c);">
-                        <div class="action-icon">
+                    <a href="{% url 'doctordirectory:patient_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #ea580c;">
                             <i class="fas fa-user-injured"></i>
                         </div>
                         <span class="action-label">My Patients</span>
                     </a>
 
-                    <a href="{% url 'doctordirectory:schedule_management' %}" class="action-btn" style="--action-bg: #eef2ff; --action-color: #4338ca; --action-gradient: linear-gradient(135deg, #6366f1, #4338ca);">
-                        <div class="action-icon">
+                    <a href="{% url 'doctordirectory:schedule_management' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #4338ca;">
                             <i class="fas fa-calendar"></i>
                         </div>
                         <span class="action-label">Schedule</span>
                     </a>
-
-                    <a href="{% url 'doctordirectory:create_appointment' %}" class="action-btn" style="--action-bg: #ecfdf5; --action-color: #059669; --action-gradient: linear-gradient(135deg, #10b981, #059669);">
-                        <div class="action-icon">
-                            <i class="fas fa-calendar-plus"></i>
-                        </div>
-                        <span class="action-label">New Appointment</span>
-                    </a>
                 {% endif %}
 
                 {% if user.is_student %}
-                    <a href="{% url 'students:course_list' %}" class="action-btn" style="--action-bg: #ecfdf5; --action-color: #059669; --action-gradient: linear-gradient(135deg, #10b981, #059669);">
-                        <div class="action-icon">
+                    <a href="{% url 'students:course_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #059669;">
                             <i class="fas fa-book"></i>
                         </div>
                         <span class="action-label">My Courses</span>
                     </a>
 
-                    <a href="{% url 'students:my_grades' %}" class="action-btn" style="--action-bg: #fff7ed; --action-color: #ea580c; --action-gradient: linear-gradient(135deg, #f97316, #ea580c);">
-                        <div class="action-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <span class="action-label">My Grades</span>
-                    </a>
-
-                    <a href="{% url 'araz:petition_create' %}" class="action-btn" style="--action-bg: #fce7f3; --action-color: #db2777; --action-gradient: linear-gradient(135deg, #ec4899, #db2777);">
-                        <div class="action-icon">
+                    <a href="{% url 'araz:petition_create' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #db2777;">
                             <i class="fas fa-plus-circle"></i>
                         </div>
                         <span class="action-label">Submit Petition</span>
                     </a>
                 {% endif %}
 
-                <a href="{% url 'surveys:list' %}" class="action-btn" style="--action-bg: #eff6ff; --action-color: #2563eb; --action-gradient: linear-gradient(135deg, #3b82f6, #2563eb);">
-                    <div class="action-icon">
+                <a href="{% url 'surveys:list' %}" class="action-btn">
+                    <div class="action-icon" style="--action-color: #2563eb;">
                         <i class="fas fa-poll"></i>
                     </div>
                     <span class="action-label">Surveys</span>
@@ -943,7 +764,7 @@
 
             <div class="activity-list">
                 <div class="activity-item">
-                    <div class="activity-icon" style="background: #dcfce7; color: #16a34a;">
+                    <div class="activity-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="activity-content">
@@ -953,7 +774,7 @@
                 </div>
 
                 <div class="activity-item">
-                    <div class="activity-icon" style="background: #dbeafe; color: #2563eb;">
+                    <div class="activity-icon">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="activity-content">
@@ -963,7 +784,7 @@
                 </div>
 
                 <div class="activity-item">
-                    <div class="activity-icon" style="background: #e9d5ff; color: #7c3aed;">
+                    <div class="activity-icon">
                         <i class="fas fa-database"></i>
                     </div>
                     <div class="activity-content">
@@ -971,75 +792,14 @@
                         <div class="activity-time">Last backup: Today</div>
                     </div>
                 </div>
-
-                <div class="activity-item">
-                    <div class="activity-icon" style="background: #fed7aa; color: #ea580c;">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-text">Security scan completed</div>
-                        <div class="activity-time">No threats detected</div>
-                    </div>
-                </div>
             </div>
 
             {% if user.is_admin %}
-                <a href="{% url 'accounts:audit_log_list' %}" class="view-all-btn">View All Activity</a>
-            {% else %}
-                <button class="view-all-btn" onclick="alert('Contact administrator for detailed activity logs')">View System Status</button>
+                <a href="{% url 'accounts:audit_log_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                    View All Activity
+                </a>
             {% endif %}
         </div>
     </div>
 </main>
-
-<script>
-// Add interactivity
-document.addEventListener('DOMContentLoaded', function() {
-    // Add click handlers for stat cards
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Add ripple effect
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                pointer-events: none;
-            `;
-            
-            this.style.position = 'relative';
-            this.style.overflow = 'hidden';
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-
-    // Add CSS for ripple animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-});
-</script>
 {% endblock %}
