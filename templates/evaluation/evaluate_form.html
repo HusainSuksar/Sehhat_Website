@@ -27,12 +27,29 @@
                         <strong>Select Moze to Evaluate:</strong> <span class="text-danger">*</span>
                     </label>
                     <select name="target_moze" id="target_moze" class="form-control" required>
-                        <option value="">Choose the Moze you are evaluating...</option>
-                        {% for moze in mozes %}
-                            <option value="{{ moze.id }}">{{ moze.name }} - {{ moze.location }}</option>
-                        {% endfor %}
+                        {% if is_aamil and auto_selected_moze %}
+                            <!-- Auto-selected for aamil -->
+                            <option value="{{ auto_selected_moze.id }}" selected>{{ auto_selected_moze.name }} - {{ auto_selected_moze.location }}</option>
+                        {% else %}
+                            <option value="">Choose the Moze you are evaluating...</option>
+                            {% for moze in mozes %}
+                                <option value="{{ moze.id }}" {% if auto_selected_moze and moze.id == auto_selected_moze.id %}selected{% endif %}>
+                                    {{ moze.name }} - {{ moze.location }}
+                                </option>
+                            {% endfor %}
+                        {% endif %}
                     </select>
-                    <small class="form-text text-muted">Select the medical center (Moze) you are evaluating.</small>
+                    <small class="form-text text-muted">
+                        {% if is_aamil %}
+                            {% if auto_selected_moze %}
+                                You are evaluating your managed Moze: <strong>{{ auto_selected_moze.name }}</strong>
+                            {% else %}
+                                Select from your managed medical centers (Mozes).
+                            {% endif %}
+                        {% else %}
+                            Select the medical center (Moze) you are evaluating.
+                        {% endif %}
+                    </small>
                 </div>
 
                 <hr class="my-4">

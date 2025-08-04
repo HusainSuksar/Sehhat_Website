@@ -397,13 +397,23 @@ def evaluate_form(request, pk):
     # Get form criteria - use all active criteria since forms don't have direct criteria relationship
     criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
     
-    # Get active Mozes for selection
-    mozes = Moze.objects.filter(is_active=True).order_by('name')
+    # Get active Mozes for selection - filter based on user role
+    if user.role == 'aamil':
+        # Aamils can only evaluate their own managed Mozes
+        mozes = user.managed_mozes.filter(is_active=True).order_by('name')
+        # Auto-select if there's only one Moze
+        auto_selected_moze = mozes.first() if mozes.count() == 1 else None
+    else:
+        # Admins and coordinators can evaluate any active Moze
+        mozes = Moze.objects.filter(is_active=True).order_by('name')
+        auto_selected_moze = None
     
     context = {
         'form': form,
         'criteria': criteria,
         'mozes': mozes,
+        'auto_selected_moze': auto_selected_moze,
+        'is_aamil': user.role == 'aamil',
     }
     
     return render(request, 'evaluation/evaluate_form.html', context)
