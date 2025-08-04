@@ -660,9 +660,9 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <a href="{% url 'araz:my_petitions' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
-                        View All My Petitions
-                    </a>
+                                     <a href="{% url 'araz:petition_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                     View All Petitions
+                 </a>
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">
@@ -757,13 +757,13 @@
                         </div>
                     </a>
 
-                    <a href="{% url 'araz:my_petitions' %}" class="action-btn">
+                    <a href="{% url 'araz:my_assignments' %}" class="action-btn">
                         <div class="action-icon" style="--action-color: #3b82f6;">
                             <i class="fas fa-user-edit"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">My Petitions</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Track submissions</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">My Assignments</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Assigned to me</div>
                         </div>
                     </a>
 
