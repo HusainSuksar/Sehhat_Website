@@ -126,6 +126,11 @@ def dashboard(request):
         start_date__gte=timezone.now().date()
     ).order_by('start_date')[:5]
     
+    # Calculate my_gpa for the template
+    my_gpa = my_data.get('average_grade', 0) if my_data else 0
+    if my_gpa:
+        my_gpa = round(my_gpa, 2)
+    
     context = {
         'total_students': total_students,
         'active_students': active_students,
@@ -135,6 +140,7 @@ def dashboard(request):
         'recent_submissions': recent_submissions,
         'recent_announcements': recent_announcements,
         'my_data': my_data,
+        'my_gpa': my_gpa,
         'monthly_stats': monthly_stats[::-1],
         'course_stats': course_stats,
         'upcoming_events': upcoming_events,
