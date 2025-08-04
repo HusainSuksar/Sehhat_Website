@@ -256,49 +256,188 @@
                             </li>
                         {% endif %}
                         
-                        {% if user.is_aamil or user.is_moze_coordinator %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-clinic-medical me-1"></i>Moze
+                        {% if user.is_aamil %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="aamilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-clinic-medical me-1"></i>Aamil Links
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'moze:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'moze:list' %}">
+                                        <i class="fas fa-mosque me-2"></i>My Mozes
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'moze:analytics' %}">
+                                        <i class="fas fa-chart-line me-2"></i>Moze Analytics
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
+                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:dashboard' %}">
+                                        <i class="fas fa-camera me-2"></i>Photos Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
+                                        <i class="fas fa-images me-2"></i>Photo Albums
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:upload_photos' %}">
+                                        <i class="fas fa-upload me-2"></i>Upload Photos
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:dashboard' %}">
+                                        <i class="fas fa-gavel me-2"></i>Araz Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                        <i class="fas fa-scroll me-2"></i>Petitions
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:my_assignments' %}">
+                                        <i class="fas fa-tasks me-2"></i>My Assignments
+                                    </a></li>
+                                </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-camera me-1"></i>Photos
+                        {% endif %}
+                        
+                        {% if user.is_moze_coordinator %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="coordinatorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-users-cog me-1"></i>Coordinator Links
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'moze:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'moze:list' %}">
+                                        <i class="fas fa-mosque me-2"></i>Mozes
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'moze:analytics' %}">
+                                        <i class="fas fa-chart-line me-2"></i>Moze Analytics
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
+                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_create' %}">
+                                        <i class="fas fa-plus-circle me-2"></i>Create Evaluation
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:dashboard' %}">
+                                        <i class="fas fa-camera me-2"></i>Photos Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
+                                        <i class="fas fa-images me-2"></i>Photo Albums
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                        <i class="fas fa-scroll me-2"></i>Petitions
+                                    </a></li>
+                                </ul>
                             </li>
                         {% endif %}
                         
                         {% if user.is_doctor %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-stethoscope me-1"></i>Patients
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="doctorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-md me-1"></i>Doctor Links
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-calendar me-1"></i>Schedule
-                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:patient_list' %}">
+                                        <i class="fas fa-user-injured me-2"></i>My Patients
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:create_appointment' %}">
+                                        <i class="fas fa-calendar-plus me-2"></i>Create Appointment
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:schedule_management' %}">
+                                        <i class="fas fa-calendar-alt me-2"></i>My Schedule
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:doctor_list' %}">
+                                        <i class="fas fa-users me-2"></i>Doctor Directory
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:analytics' %}">
+                                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
+                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
+                                    </a></li>
+                                </ul>
                             </li>
                         {% endif %}
                         
                         {% if user.is_student %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-graduation-cap me-1"></i>Profile
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-graduation-cap me-1"></i>Student Links
                                 </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-hands-helping me-1"></i>Aid Requests
-                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'students:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:course_list' %}">
+                                        <i class="fas fa-book me-2"></i>My Courses
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:my_grades' %}">
+                                        <i class="fas fa-star me-2"></i>My Grades
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:my_schedule' %}">
+                                        <i class="fas fa-calendar me-2"></i>My Schedule
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:attendance_record' %}">
+                                        <i class="fas fa-check-circle me-2"></i>Attendance
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
+                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
+                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_create' %}">
+                                        <i class="fas fa-plus-circle me-2"></i>Submit Petition
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                        <i class="fas fa-scroll me-2"></i>My Petitions
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'students:analytics' %}">
+                                        <i class="fas fa-chart-line me-2"></i>My Analytics
+                                    </a></li>
+                                </ul>
                             </li>
                         {% endif %}
                         
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'surveys:list' %}" class="text-decoration-none">
-                                <i class="fas fa-poll me-1"></i>Surveys
+                        <!-- Common links for all authenticated users -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="commonDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-globe me-1"></i>Common Links
                             </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'surveys:list' %}">
+                                    <i class="fas fa-poll me-2"></i>Surveys
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
+                                    <i class="fas fa-images me-2"></i>Photo Albums
+                                </a></li>
+                                {% if not user.is_admin %}
+                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                        <i class="fas fa-scroll me-2"></i>Petitions
+                                    </a></li>
+                                {% endif %}
+                            </ul>
                         </li>
                     </ul>
                     
