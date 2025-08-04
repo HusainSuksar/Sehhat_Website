@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.views.generic import (
     TemplateView, ListView, DetailView, UpdateView, CreateView
@@ -616,3 +617,42 @@ def user_directory(request):
     }
     
     return render(request, 'accounts/user_directory.html', context)
+
+
+@login_required
+@require_http_methods(["POST", "DELETE"])
+def user_delete(request, pk):
+    """
+    Delete a user (admin only)
+    """
+    if not (request.user.is_admin or request.user.is_superuser):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        user = get_object_or_404(User, pk=pk)
+        
+        # Prevent deleting self
+        if user == request.user:
+            return JsonResponse({'error': 'Cannot delete your own account'}, status=400)
+        
+        # Prevent deleting superusers unless request user is superuser
+        if user.is_superuser and not request.user.is_superuser:
+            return JsonResponse({'error': 'Cannot delete superuser account'}, status=403)
+        
+        # Store user info for response
+        user_name = user.get_full_name()
+        user_id = user.id
+        
+        # Delete the user
+        user.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'User "{user_name}" deleted successfully',
+            'user_id': user_id
+        })
+        
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f'Failed to delete user: {str(e)}'}, status=500)

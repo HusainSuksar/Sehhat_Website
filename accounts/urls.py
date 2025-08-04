@@ -30,6 +30,7 @@ urlpatterns = [
     path('users/', views.user_directory, name='user_list'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
     path('users/<int:pk>/edit/', views.UserEditView.as_view(), name='user_edit'),
+    path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
     
     # ITS ID verification
     path('verify-its/', views.VerifyITSView.as_view(), name='verify_its'),

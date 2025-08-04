@@ -490,6 +490,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="addUserForm">
+                {% csrf_token %}
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -624,17 +625,46 @@ function editUser(userId) {
 
 // Delete user functionality
 function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        // Implement delete functionality
-        console.log('Delete user:', userId);
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        // Show loading state
+        const button = document.querySelector(`button[onclick="deleteUser(${userId})"]`);
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        button.disabled = true;
         
-        // Remove the row from the table
-        const row = document.querySelector(`tr[data-user-id="${userId}"]`);
-        if (row) {
-            row.remove();
-        }
-        
-        alert('User deleted successfully');
+        // Make AJAX call to delete user
+        fetch(`/accounts/users/${userId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the row from the table
+                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                if (row) {
+                    row.style.opacity = '0.5';
+                    setTimeout(() => row.remove(), 300);
+                }
+                alert(data.message || 'User deleted successfully');
+            } else {
+                alert(data.error || 'Failed to delete user');
+                // Restore button
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting user. Please try again.');
+            // Restore button
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
     }
 }
 
