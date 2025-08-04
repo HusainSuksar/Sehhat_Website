@@ -1,315 +1,1089 @@
 {% extends 'base.html' %}
 
-{% block title %}Moze Dashboard - Umoor Sehhat{% endblock %}
+{% block title %}Moze Management Dashboard - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e8eaf6 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Animated Background Elements */
+    .bg-animation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .bg-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .bg-orb:nth-child(1) {
+        width: 320px;
+        height: 320px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+        top: -160px;
+        right: -160px;
+        animation-delay: 0s;
+    }
+
+    .bg-orb:nth-child(2) {
+        width: 320px;
+        height: 320px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+        bottom: -160px;
+        left: -160px;
+        animation-delay: 2s;
+    }
+
+    .bg-orb:nth-child(3) {
+        width: 384px;
+        height: 384px;
+        background: linear-gradient(135deg, rgba(147, 51, 234, 0.05), rgba(236, 72, 153, 0.05));
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation-delay: 4s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
+    }
+
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 10;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 20px 40px rgba(6, 182, 212, 0.3);
+    }
+
+    .welcome-icon::after {
+        content: '';
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .welcome-icon::before {
+        content: '🕌';
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        z-index: 1;
+    }
+
+    .welcome-icon i {
+        color: white;
+        font-size: 2.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #1f2937, #374151);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1.125rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    .welcome-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: white;
+        box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 15px 40px rgba(6, 182, 212, 0.4);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-outline {
+        background: rgba(255, 255, 255, 0.8);
+        color: #374151;
+        border: 1px solid #d1d5db;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-outline:hover {
+        background: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Action Bar */
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        position: relative;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.5s ease;
+        cursor: pointer;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--card-gradient);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover::before {
+        opacity: 0.05;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(3deg);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.5s ease;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .trend-up {
+        color: #059669;
+    }
+
+    .trend-down {
+        color: #dc2626;
+    }
+
+    .stat-content {
+        margin-bottom: 1rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Moze Overview */
+    .moze-overview {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .moze-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .moze-item {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .moze-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #06b6d4, #0891b2);
+    }
+
+    .moze-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .moze-header {
+        margin-bottom: 1rem;
+    }
+
+    .moze-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+    }
+
+    .moze-name:hover {
+        color: #06b6d4;
+        text-decoration: none;
+    }
+
+    .moze-location {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .moze-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .moze-stat {
+        text-align: center;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 8px;
+    }
+
+    .moze-stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .moze-stat-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-inactive {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #cffafe;
+        color: #0891b2;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--action-gradient);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    /* Recent Activity */
+    .recent-activity {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .activity-list {
+        margin-bottom: 1rem;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        transition: background-color 0.2s ease;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #06b6d4;
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .activity-item:hover {
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .activity-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-comment {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    .view-all-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        color: #06b6d4;
+        padding: 0.75rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+    }
+
+    .view-all-btn:hover {
+        background: #cffafe;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Animations */
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-slide-up {
+        animation: slideInUp 0.6s ease-out;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .moze-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="mb-1">Moze Management Dashboard</h2>
-                    <p class="text-muted mb-0">Welcome back, {{ user.get_full_name }} ({{ user_role }})</p>
+<!-- Animated Background -->
+<div class="bg-animation">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+</div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section animate-slide-up">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-mosque"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Moze Management Dashboard</h2>
+                <p>Comprehensive oversight and management of medical centers across the network.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name }} ({{ user_role }})</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ active_mozes }} Active Centers</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ team_members_count }} Team Members</span>
+                    </div>
                 </div>
-                <div>
-                    <a href="{% url 'moze:create' %}" class="btn btn-primary me-2">
-                        <i class="fas fa-plus me-1"></i>New Moze
-                    </a>
-                    <a href="{% url 'moze:list' %}" class="btn btn-outline-primary">
-                        <i class="fas fa-list me-1"></i>View All
-                    </a>
+            </div>
+        </div>
+
+        <div class="welcome-actions">
+            {% if user.is_admin or user.is_aamil %}
+                <a href="{% url 'moze:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    New Moze
+                </a>
+            {% endif %}
+            <a href="{% url 'moze:list' %}" class="btn btn-outline">
+                <i class="fas fa-list"></i>
+                View All
+            </a>
+        </div>
+    </section>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="action-group">
+            {% if user.is_admin or user.is_aamil %}
+                <a href="{% url 'moze:create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i>
+                    Create Moze
+                </a>
+            {% endif %}
+            <a href="{% url 'moze:analytics' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-chart-bar"></i>
+                Analytics
+            </a>
+            <button class="btn btn-outline btn-sm" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+            <i class="fas fa-print"></i>
+            Print Report
+        </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #06b6d4, #0891b2);">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+                    <i class="fas fa-mosque" style="color: #06b6d4; font-size: 1.5rem;"></i>
                 </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    +{{ active_mozes }}
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_mozes }}</div>
+                <div class="stat-label">Total Mozes</div>
+                <div class="stat-subtitle">Medical centers registered</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #10b981, #059669);">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.5rem;"></i>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    +5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ active_mozes }}</div>
+                <div class="stat-label">Active Mozes</div>
+                <div class="stat-subtitle">Currently operational</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+                    <i class="fas fa-users" style="color: #8b5cf6; font-size: 1.5rem;"></i>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    +12%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ team_members_count }}</div>
+                <div class="stat-label">Team Members</div>
+                <div class="stat-subtitle">Assigned staff</div>
+            </div>
+        </div>
+
+        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #f59e0b, #d97706);">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-comments" style="color: #f59e0b; font-size: 1.5rem;"></i>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ recent_comments|length }}</div>
+                <div class="stat-label">Recent Activities</div>
+                <div class="stat-subtitle">Last 30 days</div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="mb-1">{{ total_mozes }}</h3>
-                            <p class="mb-0">Total Mozes</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-clinic-medical fa-2x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="mb-1">{{ active_mozes }}</h3>
-                            <p class="mb-0">Active Mozes</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-check-circle fa-2x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="mb-1">{{ team_members_count }}</h3>
-                            <p class="mb-0">Team Members</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="mb-1">{{ recent_comments|length }}</h3>
-                            <p class="mb-0">Recent Activities</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-comments fa-2x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
         <!-- Moze Overview -->
-        <div class="col-lg-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-clinic-medical me-2"></i>Moze Overview
-                        </h5>
-                        <a href="{% url 'moze:list' %}" class="btn btn-sm btn-outline-primary">
-                            View All
-                        </a>
+        <div class="moze-overview">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon">
+                        <i class="fas fa-mosque"></i>
                     </div>
+                    <h3>Moze Overview</h3>
                 </div>
-                <div class="card-body">
-                    {% if moze_stats %}
-                        <div class="row">
-                            {% for stat in moze_stats %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="border rounded p-3 h-100">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <h6 class="mb-1">
-                                                    <a href="{% url 'moze:detail' stat.moze.pk %}" 
-                                                       class="text-decoration-none">
-                                                        {{ stat.moze.name }}
-                                                    </a>
-                                                </h6>
-                                                <p class="small text-muted mb-2">
-                                                    <i class="fas fa-map-marker-alt me-1"></i>
-                                                    {{ stat.moze.location }}
-                                                </p>
-                                                <div class="row text-center">
-                                                    <div class="col-4">
-                                                        <small class="text-muted d-block">Team</small>
-                                                        <strong>{{ stat.team_count }}</strong>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <small class="text-muted d-block">Comments</small>
-                                                        <strong>{{ stat.comments_count }}</strong>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <small class="text-muted d-block">Status</small>
-                                                        {% if stat.moze.is_active %}
-                                                            <span class="badge bg-success">Active</span>
-                                                        {% else %}
-                                                            <span class="badge bg-secondary">Inactive</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% if stat.last_activity %}
-                                            <div class="border-top pt-2 mt-2">
-                                                <small class="text-muted">
-                                                    Last activity: {{ stat.last_activity.created_at|timesince }} ago
-                                                </small>
-                                            </div>
+                <div class="section-badge">{{ moze_stats|length }} Centers</div>
+            </div>
+
+            {% if moze_stats %}
+                <div class="moze-grid">
+                    {% for stat in moze_stats %}
+                        <div class="moze-item">
+                            <div class="moze-header">
+                                <a href="{% url 'moze:detail' stat.moze.pk %}" class="moze-name">
+                                    {{ stat.moze.name }}
+                                </a>
+                                <div class="moze-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ stat.moze.location }}
+                                </div>
+                            </div>
+                            
+                            <div class="moze-stats">
+                                <div class="moze-stat">
+                                    <div class="moze-stat-label">Team</div>
+                                    <div class="moze-stat-value">{{ stat.team_count }}</div>
+                                </div>
+                                <div class="moze-stat">
+                                    <div class="moze-stat-label">Comments</div>
+                                    <div class="moze-stat-value">{{ stat.comments_count }}</div>
+                                </div>
+                                <div class="moze-stat">
+                                    <div class="moze-stat-label">Status</div>
+                                    <div class="moze-stat-value">
+                                        {% if stat.moze.is_active %}
+                                            <span class="status-badge status-active">Active</span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">Inactive</span>
                                         {% endif %}
                                     </div>
                                 </div>
-                            {% endfor %}
+                            </div>
+
+                            {% if stat.last_activity %}
+                                <div style="border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.75rem;">
+                                    <small style="color: #6b7280;">
+                                        Last activity: {{ stat.last_activity.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-clinic-medical fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No Mozes Found</h5>
-                            <p class="text-muted">Create your first Moze to get started.</p>
-                            <a href="{% url 'moze:create' %}" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i>Create Moze
-                            </a>
-                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-mosque"></i>
+                    </div>
+                    <div class="empty-state-title">No Mozes Found</div>
+                    <div class="empty-state-text">Create your first Moze to get started with management.</div>
+                    {% if user.is_admin or user.is_aamil %}
+                        <a href="{% url 'moze:create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Create Moze
+                        </a>
                     {% endif %}
                 </div>
-            </div>
+            {% endif %}
         </div>
 
-        <!-- Recent Activities & Quick Actions -->
-        <div class="col-lg-4">
+        <!-- Sidebar -->
+        <div>
             <!-- Quick Actions -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-bolt me-2"></i>Quick Actions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        {% if user.is_admin or user.is_aamil %}
-                            <a href="{% url 'moze:create' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-plus me-1"></i>Create New Moze
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'moze:list' %}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-search me-1"></i>Find Mozes
-                        </a>
-                        {% if user.is_admin or user.is_moze_coordinator %}
-                            <a href="{% url 'moze:analytics' %}" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-chart-bar me-1"></i>View Analytics
-                            </a>
-                        {% endif %}
-                        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-warning btn-sm">
-                            <i class="fas fa-users me-1"></i>Manage Team
-                        </a>
+            <div class="quick-actions">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
                     </div>
+                    <div class="section-badge">Tools</div>
+                </div>
+
+                <div class="actions-grid">
+                    {% if user.is_admin or user.is_aamil %}
+                        <a href="{% url 'moze:create' %}" class="action-btn">
+                            <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #10b981, #059669);">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Create New Moze</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Add a new medical center</div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'moze:list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #06b6d4, #0891b2);">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Find Mozes</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Search and filter centers</div>
+                        </div>
+                    </a>
+
+                    {% if user.is_admin or user.is_moze_coordinator %}
+                        <a href="{% url 'moze:analytics' %}" class="action-btn">
+                            <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">View Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Performance insights</div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'accounts:user_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Manage Team</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">User management</div>
+                        </div>
+                    </a>
                 </div>
             </div>
 
             <!-- Recent Activity -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-clock me-2"></i>Recent Activity
-                    </h6>
+            <div class="recent-activity">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Recent Activity</h3>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {% if recent_comments %}
-                        <div class="activity-feed">
-                            {% for comment in recent_comments %}
-                                <div class="activity-item mb-3">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0">
-                                            {% if comment.author.profile_photo %}
-                                                <img src="{{ comment.author.profile_photo.url }}" 
-                                                     alt="{{ comment.author.get_full_name }}"
-                                                     class="rounded-circle" width="32" height="32">
-                                            {% else %}
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
-                                                     style="width: 32px; height: 32px;">
-                                                    <i class="fas fa-user text-muted"></i>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="flex-grow-1 ms-2">
-                                            <div class="small">
-                                                <strong>{{ comment.author.get_full_name }}</strong>
-                                                commented on
-                                                <a href="{% url 'moze:detail' comment.moze.pk %}" 
-                                                   class="text-decoration-none">
-                                                    {{ comment.moze.name }}
-                                                </a>
-                                            </div>
-                                            <div class="small text-muted">
-                                                {{ comment.created_at|timesince }} ago
-                                            </div>
-                                            <div class="small mt-1">
-                                                {{ comment.content|truncatewords:15 }}
-                                            </div>
-                                        </div>
+
+                {% if recent_comments %}
+                    <div class="activity-list">
+                        {% for comment in recent_comments %}
+                            <div class="activity-item">
+                                <div class="activity-avatar">
+                                    {% if comment.author.profile_photo %}
+                                        <img src="{{ comment.author.profile_photo.url }}" 
+                                             alt="{{ comment.author.get_full_name }}"
+                                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                    {% else %}
+                                        <i class="fas fa-user"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        <strong>{{ comment.author.get_full_name }}</strong> commented on
+                                        <a href="{% url 'moze:detail' comment.moze.pk %}" 
+                                           style="color: #06b6d4; text-decoration: none;">
+                                            {{ comment.moze.name }}
+                                        </a>
+                                    </div>
+                                    <div class="activity-time">
+                                        {{ comment.created_at|timesince }} ago
+                                    </div>
+                                    <div class="activity-comment">
+                                        "{{ comment.content|truncatewords:15 }}"
                                     </div>
                                 </div>
-                            {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'moze:list' %}" class="view-all-btn">View All Activities</a>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-clock"></i>
                         </div>
-                        <div class="text-center mt-3">
-                            <a href="{% url 'moze:list' %}" class="btn btn-sm btn-outline-primary">
-                                View All Activities
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">No recent activity</p>
-                        </div>
-                    {% endif %}
-                </div>
+                        <div class="empty-state-title" style="font-size: 1rem;">No Recent Activity</div>
+                        <div class="empty-state-text" style="font-size: 0.875rem;">Activity will appear here when team members interact with Mozes.</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+</main>
 
-{% block extra_css %}
-<style>
-.activity-item {
-    border-left: 2px solid var(--bs-border-color);
-    padding-left: 1rem;
-    position: relative;
-}
+<script>
+// Add interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for stat cards
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Add ripple effect
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: ${size}px;
+                height: ${size}px;
+                left: ${x}px;
+                top: ${y}px;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                pointer-events: none;
+            `;
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
 
-.activity-item:before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: 1rem;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-}
-
-.activity-item:last-child {
-    border-left-color: transparent;
-}
-
-.opacity-50 {
-    opacity: 0.5;
-}
-
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-.card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    transition: box-shadow 0.15s ease-in-out;
-}
-
-.bg-primary, .bg-success, .bg-info, .bg-warning {
-    background: linear-gradient(45deg, var(--bs-primary), var(--primary-color)) !important;
-}
-
-.bg-success {
-    background: linear-gradient(45deg, #28a745, #20c997) !important;
-}
-
-.bg-info {
-    background: linear-gradient(45deg, #17a2b8, #6f42c1) !important;
-}
-
-.bg-warning {
-    background: linear-gradient(45deg, #ffc107, #fd7e14) !important;
-}
-</style>
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
 {% endblock %}
