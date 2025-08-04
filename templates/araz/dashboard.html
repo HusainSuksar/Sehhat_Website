@@ -1,272 +1,866 @@
 {% extends 'base.html' %}
 
-{% block title %}Araz  Dashboard{% endblock %}
+{% block title %}Petitions Dashboard - Umoor Sehhat{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-1">📋 Araz Dashboard</h1>
-            <p class="text-muted mb-0">Community concerns and Araz management</p>
-        </div>
-    </div>
+{% block extra_css %}
+<style>
+    /* Performance-optimized Araz dashboard */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #fce7f3 100%);
+        min-height: 100vh;
+    }
 
-    <!-- Quick Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Araz</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_petitions }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    /* Simplified background */
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #ec4899 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #db2777 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_petitions }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">In Progress</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ in_progress_petitions }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Resolved</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resolved_petitions }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Recent Petitions -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Araiz</h6>
-                    <a href="{% url 'araz:petition_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-list fa-sm"></i> View All
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_petitions %}
-                        <div class="table-responsive">
-                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Category</th>
-                                        <th>Priority</th>
-                                        <th>Status</th>
-                                        <th>Created</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for petition in recent_petitions %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'araz:petition_detail' petition.pk %}">
-                                                {{ petition.title|truncatechars:50 }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            {% if petition.category %}
-                                                <span class="badge badge-secondary" style="background-color: blue;">{{ petition.category.name }}</span>
-                                            {% else %}
-                                                <span class="text-muted">No category</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if petition.priority == 'high' %}
-                                                <span class="badge badge-danger" style="background-color: red;">High</span>
-                                            {% elif petition.priority == 'medium' %}
-                                                <span class="badge badge-warning" style="background-color: orange;">Medium</span>
-                                            {% else %}
-                                                <span class="badge badge-info" style="background-color: greenyellow;">Low</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if petition.status == 'pending' %}
-                                                <span class="badge badge-warning" style="background-color: red;">Pending</span>
-                                            {% elif petition.status == 'in_progress' %}
-                                                <span class="badge badge-info" style="background-color: orange;">In Progress</span>
-                                            {% elif petition.status == 'resolved' %}
-                                                <span class="badge badge-success" style="background-color: green;">Resolved</span>
-                                            {% else %}
-                                                <span class="badge badge-danger" style="background-color: brown;">Rejected</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ petition.created_at|date:"M d, Y" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
-                            <p class="text-muted">No petitions yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions & Statistics -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <a href="{% url 'araz:petition_create' %}" class="btn btn-primary btn-block mb-2">
-                        <i class="fas fa-plus fa-sm"></i> Submit New Araz
-                    </a>
-                    {% if can_manage %}
-                        <a href="{% url 'araz:analytics' %}" class="btn btn-info btn-block mb-2">
-                            <i class="fas fa-chart-bar fa-sm"></i> View Analytics
-                        </a>
-                        <a href="{% url 'araz:export_petitions' %}" class="btn btn-success btn-block">
-                            <i class="fas fa-download fa-sm"></i> Export Data
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Category Statistics -->
-            {% if category_stats %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Categories</h6>
-                </div>
-                <div class="card-body">
-                    {% for stat in category_stats %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ stat.category__name|default:"Uncategorized" }}</span>
-                        <span class="badge badge-primary">{{ stat.count }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- My Assignments (for managers) -->
-            {% if my_assignments %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">My Assignments</h6>
-                </div>
-                <div class="card-body">
-                    {% for assignment in my_assignments %}
-                    <div class="border-left-info pl-3 mb-3">
-                        <a href="{% url 'araz:petition_detail' assignment.petition.pk %}" class="font-weight-bold">
-                            {{ assignment.petition.title|truncatechars:40 }}
-                        </a>
-                        <div class="small text-muted">
-                            Assigned {{ assignment.created_at|timesince }} ago
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <a href="{% url 'araz:my_assignments' %}" class="btn btn-outline-primary btn-sm btn-block">
-                        View All Assignments
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Monthly Trends Chart -->
-    {% if monthly_stats %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Monthly Petition Trends</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="petitionChart" width="100%" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-{% if monthly_stats %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Monthly Trends Chart
-var ctx = document.getElementById('petitionChart').getContext('2d');
-var petitionChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Petitions',
-            data: [{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            backgroundColor: 'rgba(78, 115, 223, 0.1)',
-            borderColor: 'rgba(78, 115, 223, 1)',
-            borderWidth: 2,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
         }
     }
-});
-</script>
-{% endif %}
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #ec4899, #db2777);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #ec4899, #db2777);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+        color: white;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Main Content Sections */
+    .main-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: #ec4899;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #fce7f3;
+        color: #be185d;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Petition Grid */
+    .petition-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .petition-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #ec4899;
+    }
+
+    .petition-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .petition-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .petition-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+    }
+
+    .petition-title:hover {
+        color: #ec4899;
+        text-decoration: none;
+    }
+
+    .petition-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .petition-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .petition-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    .status-under-review {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #ec4899);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #ec4899;
+        background: #f9fafb;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ec4899;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-gavel"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Academic Petitions Portal</h2>
+                <p>Comprehensive petition management system for academic requests and administrative processes.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span>{{ my_petitions|default:'0' }} My Petitions</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Petition System Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-actions">
+            <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Submit Petition
+            </a>
+            <a href="{% url 'araz:petition_list' %}" class="btn btn-outline">
+                <i class="fas fa-list"></i>
+                Browse Petitions
+            </a>
+        </div>
+    </section>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8);">
+                    <i class="fas fa-file-alt" style="color: #ec4899;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +18%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_petitions|default:'--' }}</div>
+                <div class="stat-label">Total Petitions</div>
+                <div class="stat-subtitle">All-time submissions</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +12%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ pending_petitions|default:'--' }}</div>
+                <div class="stat-label">Pending Review</div>
+                <div class="stat-subtitle">Awaiting decision</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ approved_petitions|default:'--' }}</div>
+                <div class="stat-label">Approved</div>
+                <div class="stat-subtitle">Successful requests</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                    <i class="fas fa-user-edit" style="color: #3b82f6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ my_petitions|default:'--' }}</div>
+                <div class="stat-label">My Petitions</div>
+                <div class="stat-subtitle">Personal submissions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- My Recent Petitions -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <h3>My Recent Petitions</h3>
+                    </div>
+                    <div class="section-badge">{{ recent_my_petitions|length|default:'0' }} Recent</div>
+                </div>
+
+                {% if recent_my_petitions %}
+                    <div class="petition-grid">
+                        {% for petition in recent_my_petitions %}
+                            <div class="petition-item">
+                                <div class="petition-header">
+                                    <div>
+                                        <a href="{% url 'araz:petition_detail' petition.pk %}" class="petition-title">
+                                            {{ petition.title }}
+                                        </a>
+                                        <div class="petition-description">{{ petition.description|truncatewords:20|default:"No description available" }}</div>
+                                        <div class="petition-meta">
+                                            <span>
+                                                <i class="fas fa-calendar"></i>
+                                                Submitted {{ petition.created_at|date:"M d, Y" }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-tag"></i>
+                                                {{ petition.category|default:"General" }}
+                                            </span>
+                                            {% if petition.updated_at != petition.created_at %}
+                                                <span>
+                                                    <i class="fas fa-sync"></i>
+                                                    Updated {{ petition.updated_at|date:"M d, Y" }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-{{ petition.status|lower }}">
+                                        {{ petition.get_status_display|default:petition.status|title }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'araz:my_petitions' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                        View All My Petitions
+                    </a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="empty-state-title">No Petitions Submitted</div>
+                        <div class="empty-state-text">Submit your first petition to get started with academic requests.</div>
+                        <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Submit Petition
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent System Petitions (For Admins) -->
+            {% if user.is_admin and recent_petitions %}
+                <div class="main-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <h3>Recent System Petitions</h3>
+                        </div>
+                        <div class="section-badge">{{ recent_petitions|length }} New</div>
+                    </div>
+
+                    <div class="petition-grid">
+                        {% for petition in recent_petitions %}
+                            <div class="petition-item">
+                                <div class="petition-header">
+                                    <div>
+                                        <a href="{% url 'araz:petition_detail' petition.pk %}" class="petition-title">
+                                            {{ petition.title }}
+                                        </a>
+                                        <div class="petition-description">
+                                            By {{ petition.submitted_by.get_full_name }} - {{ petition.description|truncatewords:15 }}
+                                        </div>
+                                        <div class="petition-meta">
+                                            <span>
+                                                <i class="fas fa-calendar"></i>
+                                                {{ petition.created_at|date:"M d, Y" }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-user"></i>
+                                                {{ petition.submitted_by.get_full_name }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-tag"></i>
+                                                {{ petition.category|default:"General" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-{{ petition.status|lower }}">
+                                        {{ petition.get_status_display|default:petition.status|title }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <a href="{% url 'araz:petition_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View All Petitions
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Quick Actions -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="section-badge">Petitions</div>
+                </div>
+
+                <div class="actions-grid">
+                    <a href="{% url 'araz:petition_create' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #10b981;">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit Petition</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">New academic request</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'araz:my_petitions' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #3b82f6;">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">My Petitions</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Track submissions</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'araz:petition_list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Browse Petitions</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">View all requests</div>
+                        </div>
+                    </a>
+
+                    {% if user.is_admin %}
+                        <a href="{% url 'araz:admin_dashboard' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #8b5cf6;">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Admin Panel</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Manage petitions</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'araz:analytics' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #6366f1;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">System insights</div>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Petition Statistics -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3>Petition Stats</h3>
+                    </div>
+                </div>
+
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_petitions|default:'0' }} total petitions</div>
+                            <div class="activity-time">All-time submissions</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ pending_petitions|default:'0' }} pending review</div>
+                            <div class="activity-time">Awaiting decision</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ approved_petitions|default:'0' }} approved</div>
+                            <div class="activity-time">Successful outcomes</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ my_petitions|default:'0' }} my petitions</div>
+                            <div class="activity-time">Personal submissions</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user.is_admin %}
+                    <a href="{% url 'araz:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View Detailed Analytics
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
 {% endblock %}

@@ -1,139 +1,854 @@
 {% extends 'base.html' %}
 
-{% block title %}Surveys Dashboard{% endblock %}
+{% block title %}Surveys Dashboard - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Performance-optimized Surveys dashboard */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+        min-height: 100vh;
+    }
+
+    /* Simplified background */
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #6366f1 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #4f46e5 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        color: white;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Main Content Sections */
+    .main-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: #6366f1;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #e0e7ff;
+        color: #4338ca;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Survey Grid */
+    .survey-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .survey-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #6366f1;
+    }
+
+    .survey-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .survey-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .survey-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+    }
+
+    .survey-title:hover {
+        color: #6366f1;
+        text-decoration: none;
+    }
+
+    .survey-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .survey-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .survey-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-draft {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .status-closed {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #6366f1);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #6366f1;
+        background: #f9fafb;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #6366f1;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-1">📋 Surveys Dashboard</h1>
-            <p class="text-muted mb-0">Community feedback and data collection</p>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-poll"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Community Surveys Dashboard</h2>
+                <p>Comprehensive feedback collection and community data analysis platform.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-poll"></i>
+                        <span>{{ active_surveys|default:'0' }} Active Surveys</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Feedback Collection Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-actions">
+            {% if user.is_admin %}
+                <a href="{% url 'surveys:create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create Survey
+                </a>
+            {% endif %}
+            <a href="{% url 'surveys:list' %}" class="btn btn-outline">
+                <i class="fas fa-list"></i>
+                Browse Surveys
+            </a>
+        </div>
+    </section>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                    <i class="fas fa-poll" style="color: #6366f1;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +12%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_surveys|default:'--' }}</div>
+                <div class="stat-label">Total Surveys</div>
+                <div class="stat-subtitle">All-time surveys</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ active_surveys|default:'--' }}</div>
+                <div class="stat-label">Active Surveys</div>
+                <div class="stat-subtitle">Currently open</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                    <i class="fas fa-user-check" style="color: #3b82f6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +15%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ my_responses|default:'--' }}</div>
+                <div class="stat-label">My Responses</div>
+                <div class="stat-subtitle">Surveys completed</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-down"></i>
+                    -5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ pending_surveys|default:'--' }}</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-subtitle">Awaiting responses</div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                    <h2>{{ total_surveys|default:0 }}</h2>
-                    <h5>Total Surveys</h5>
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- Available Surveys -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3>Available Surveys</h3>
+                    </div>
+                    <div class="section-badge">{{ available_surveys|length|default:'0' }} Open</div>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h2>{{ active_surveys|default:0 }}</h2>
-                    <h5>Active Surveys</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body text-center">
-                    <h2>{{ my_responses|default:0 }}</h2>
-                    <h5>My Responses</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body text-center">
-                    <h2>{{ pending_surveys|default:0 }}</h2>
-                    <h5>Pending</h5>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <!-- Recent Surveys -->
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Recent Surveys</h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_surveys %}
-                        {% for survey in recent_surveys %}
-                        <div class="mb-3 p-3 border-start border-primary">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6><a href="{% url 'surveys:detail' survey.pk %}" class="text-decoration-none">{{ survey.title }}</a></h6>
-                                    <p class="text-muted mb-2">{{ survey.description|truncatewords:15 }}</p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-user"></i> {{ survey.created_by.get_full_name }} | 
-                                        <i class="fas fa-calendar"></i> {{ survey.created_at|date:"M d, Y" }}
-                                    </small>
-                                </div>
-                                <div>
-                                    {% if survey.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
-                                    {% endif %}
+                {% if available_surveys %}
+                    <div class="survey-grid">
+                        {% for survey in available_surveys %}
+                            <div class="survey-item">
+                                <div class="survey-header">
+                                    <div>
+                                        <a href="{% url 'surveys:detail' survey.pk %}" class="survey-title">
+                                            {{ survey.title }}
+                                        </a>
+                                        <div class="survey-description">{{ survey.description|truncatewords:20|default:"No description available" }}</div>
+                                        <div class="survey-meta">
+                                            <span>
+                                                <i class="fas fa-calendar"></i>
+                                                Created {{ survey.created_at|date:"M d, Y" }}
+                                            </span>
+                                            {% if survey.deadline %}
+                                                <span>
+                                                    <i class="fas fa-clock"></i>
+                                                    Due {{ survey.deadline|date:"M d, Y" }}
+                                                </span>
+                                            {% endif %}
+                                            <span>
+                                                <i class="fas fa-users"></i>
+                                                {{ survey.response_count|default:'0' }} responses
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-{{ survey.status|lower }}">
+                                        {{ survey.get_status_display|default:"Active" }}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         {% endfor %}
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-poll fa-4x text-muted mb-3"></i>
-                            <h5 class="text-muted">No surveys available</h5>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-poll"></i>
                         </div>
-                    {% endif %}
+                        <div class="empty-state-title">No Surveys Available</div>
+                        <div class="empty-state-text">Check back later for new surveys to participate in.</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- My Survey Responses -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <h3>My Responses</h3>
+                    </div>
+                    <div class="section-badge">{{ my_responses|default:'0' }} Completed</div>
                 </div>
+
+                {% if recent_responses %}
+                    <div class="survey-grid">
+                        {% for response in recent_responses %}
+                            <div class="survey-item">
+                                <div class="survey-header">
+                                    <div>
+                                        <a href="{% url 'surveys:response_detail' response.pk %}" class="survey-title">
+                                            {{ response.survey.title }}
+                                        </a>
+                                        <div class="survey-description">Completed your response</div>
+                                        <div class="survey-meta">
+                                            <span>
+                                                <i class="fas fa-calendar-check"></i>
+                                                Submitted {{ response.submitted_at|date:"M d, Y" }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-clock"></i>
+                                                {{ response.completion_time|default:"--" }} minutes
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-active">
+                                        Completed
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="empty-state-title" style="font-size: 1rem;">No Responses Yet</div>
+                        <div class="empty-state-text" style="font-size: 0.875rem;">Your survey responses will appear here.</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        {% if pending_surveys > 0 %}
-                            <a href="#" class="btn btn-primary disabled">
-                                <i class="fas fa-clipboard-check"></i> Take Pending Surveys ({{ pending_surveys }})
-                            </a> <!-- Not implemented: needs user-specific survey logic -->
-                        {% endif %}
-                        <a href="{% url 'surveys:list' %}" class="btn btn-outline-info">
-                            <i class="fas fa-chart-bar"></i> View Results
-                        </a>
-                        {% if user.is_admin or user.is_aamil or user.is_moze_coordinator %}
-                            <a href="{% url 'surveys:create' %}" class="btn btn-outline-success">
-                                <i class="fas fa-plus"></i> Create New Survey
-                            </a>
-                        {% endif %}
+        <!-- Sidebar -->
+        <div>
+            <!-- Quick Actions -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
                     </div>
+                    <div class="section-badge">Surveys</div>
+                </div>
+
+                <div class="actions-grid">
+                    {% if user.is_admin %}
+                        <a href="{% url 'surveys:create' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #10b981;">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Create Survey</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">New feedback form</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'surveys:analytics' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #3b82f6;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">View Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Response insights</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'surveys:manage' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #8b5cf6;">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Manage Surveys</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Edit and organize</div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'surveys:list' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Browse Surveys</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Find surveys to take</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'surveys:my_responses' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #6366f1;">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">My Responses</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">View submissions</div>
+                        </div>
+                    </a>
                 </div>
             </div>
 
-            <!-- Analytics for Admins -->
-            {% if analytics_data %}
-            <div class="card">
-                <div class="card-header">
-                    <h5>My Analytics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <h4 class="text-primary">{{ analytics_data.created_surveys|default:0 }}</h4>
-                            <small class="text-muted">Created</small>
+            <!-- Survey Statistics -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-pie"></i>
                         </div>
-                        <div class="col-6 mb-3">
-                            <h4 class="text-success">{{ analytics_data.total_responses|default:0 }}</h4>
-                            <small class="text-muted">Responses</small>
+                        <h3>Survey Stats</h3>
+                    </div>
+                </div>
+
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-poll"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_surveys|default:'0' }} total surveys</div>
+                            <div class="activity-time">All-time collection</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ active_surveys|default:'0' }} currently active</div>
+                            <div class="activity-time">Open for responses</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_responses|default:'0' }} total responses</div>
+                            <div class="activity-time">Community participation</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ my_responses|default:'0' }} my responses</div>
+                            <div class="activity-time">Personal contribution</div>
                         </div>
                     </div>
                 </div>
+
+                {% if user.is_admin %}
+                    <a href="{% url 'surveys:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View Detailed Analytics
+                    </a>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
-</div>
+</main>
 {% endblock %}

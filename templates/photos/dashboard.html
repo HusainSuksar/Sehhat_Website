@@ -1,298 +1,1003 @@
 {% extends 'base.html' %}
 
-{% block title %}Photos Dashboard{% endblock %}
+{% block title %}Photos Dashboard - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Performance-optimized Photos dashboard */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #fef3c7 100%);
+        min-height: 100vh;
+    }
+
+    /* Simplified background */
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #f59e0b 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #d97706 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        color: white;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Action Bar */
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Main Content Sections */
+    .main-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: #f59e0b;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Album Grid */
+    .album-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .album-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #f59e0b;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .album-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .album-cover {
+        width: 100%;
+        height: 160px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .album-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .album-cover-placeholder {
+        color: #9ca3af;
+        font-size: 3rem;
+    }
+
+    .album-info {
+        margin-bottom: 1rem;
+    }
+
+    .album-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .album-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .album-date {
+        color: #9ca3af;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .album-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .album-count {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .album-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .album-action {
+        width: 24px;
+        height: 24px;
+        background: #f59e0b;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .album-action:hover {
+        background: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Photo Grid */
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .photo-item {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .photo-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .photo-thumbnail {
+        width: 100%;
+        height: 150px;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .photo-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-info {
+        padding: 0.75rem;
+    }
+
+    .photo-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .photo-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #f59e0b);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #f59e0b;
+        background: #f9fafb;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f59e0b;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .album-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .photo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-1">📸 Photos Dashboard</h1>
-            <p class="text-muted mb-0">Photo gallery and documentation management</p>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Visual Media Gallery</h2>
+                <p>Professional photo documentation and gallery management system for healthcare memories.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-images"></i>
+                        <span>{{ total_albums|default:'0' }} Albums</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Media Library Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-actions">
+            {% if user.is_admin or user.is_aamil %}
+                <a href="{% url 'photos:album_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Create Album
+                </a>
+            {% endif %}
+            <a href="{% url 'photos:album_list' %}" class="btn btn-outline">
+                <i class="fas fa-images"></i>
+                Browse Gallery
+            </a>
+        </div>
+    </section>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="action-group">
+            {% if user.is_admin or user.is_aamil %}
+                <a href="{% url 'photos:album_create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i>
+                    New Album
+                </a>
+                <a href="{% url 'photos:upload' %}" class="btn btn-outline btn-sm">
+                    <i class="fas fa-upload"></i>
+                    Upload Photos
+                </a>
+            {% endif %}
+            <button class="btn btn-outline btn-sm" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+        <div class="action-group">
+            <a href="{% url 'photos:slideshow' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-play"></i>
+                Slideshow
+            </a>
+            <button class="btn btn-outline btn-sm" onclick="window.print()">
+                <i class="fas fa-print"></i>
+                Print Gallery
+            </button>
         </div>
     </div>
 
-    <!-- Quick Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Albums</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_albums }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-images fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-images" style="color: #f59e0b;"></i>
                 </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +15%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_albums|default:'--' }}</div>
+                <div class="stat-label">Total Albums</div>
+                <div class="stat-subtitle">Photo collections</div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Photos</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_photos }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-camera fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-camera" style="color: #10b981;"></i>
                 </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +22%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_photos|default:'--' }}</div>
+                <div class="stat-label">Total Photos</div>
+                <div class="stat-subtitle">Media files</div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Public Albums</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ public_albums }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-globe fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+                    <i class="fas fa-eye" style="color: #8b5cf6;"></i>
                 </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_views|default:'--' }}</div>
+                <div class="stat-label">Photo Views</div>
+                <div class="stat-subtitle">Gallery visits</div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Recent Uploads</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ recent_uploads }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-upload fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                    <i class="fas fa-hdd" style="color: #3b82f6;"></i>
                 </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ storage_used|default:'--' }}</div>
+                <div class="stat-label">Storage Used</div>
+                <div class="stat-subtitle">{{ storage_limit|default:'Unlimited' }} limit</div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Recent Albums -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Albums</h6>
-                    <a href="{% url 'photos:album_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-list fa-sm"></i> View All
-                    </a>
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- Recent Albums -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3>Recent Albums</h3>
+                    </div>
+                    <div class="section-badge">{{ recent_albums|length|default:'0' }} Albums</div>
                 </div>
-                <div class="card-body">
-                    {% if recent_albums %}
-                        <div class="row">
-                            {% for album in recent_albums %}
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                                        {% if album.photos.first and album.photos.first.image %}
-                                            <img src="{{ album.photos.first.image.url }}" class="img-fluid" style="max-height: 140px; object-fit: cover;">
-                                        {% else %}
-                                            <i class="fas fa-images fa-3x text-gray-300"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div class="card-body p-3">
-                                        <h6 class="card-title mb-1">
-                                            <a href="{% url 'photos:album_detail' album.pk %}">{{ album.name|truncatechars:30 }}</a>
-                                        </h6>
-                                        <p class="card-text small text-muted mb-2">{{ album.description|truncatechars:60 }}</p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">{{ album.photo_count }} photos</small>
-                                            <small class="text-muted">{{ album.created_at|date:"M d" }}</small>
-                                        </div>
+
+                {% if recent_albums %}
+                    <div class="album-grid">
+                        {% for album in recent_albums %}
+                            <a href="{% url 'photos:album_detail' album.pk %}" class="album-item">
+                                <div class="album-cover">
+                                    {% if album.cover_photo %}
+                                        <img src="{{ album.cover_photo.url }}" alt="{{ album.name }}">
+                                    {% else %}
+                                        <i class="fas fa-images album-cover-placeholder"></i>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="album-info">
+                                    <div class="album-name">{{ album.name }}</div>
+                                    <div class="album-description">{{ album.description|truncatewords:10|default:"No description" }}</div>
+                                    <div class="album-date">
+                                        <i class="fas fa-calendar"></i>
+                                        {{ album.created_at|date:"M d, Y" }}
                                     </div>
                                 </div>
-                            </div>
-                            {% endfor %}
+                                
+                                <div class="album-stats">
+                                    <div class="album-count">
+                                        <i class="fas fa-images"></i>
+                                        {{ album.photo_count|default:'0' }} photos
+                                    </div>
+                                    <div class="album-actions">
+                                        {% if user.is_admin or user.is_aamil %}
+                                            <a href="{% url 'photos:album_edit' album.pk %}" class="album-action" onclick="event.stopPropagation();">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'photos:album_slideshow' album.pk %}" class="album-action" onclick="event.stopPropagation();">
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'photos:album_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                        View All Albums
+                    </a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-images"></i>
                         </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-images fa-3x text-gray-300 mb-3"></i>
-                            <p class="text-muted">No albums yet.</p>
-                            <a href="{% url 'photos:album_create' %}" class="btn btn-primary">Create First Album</a>
-                        </div>
-                    {% endif %}
-                </div>
+                        <div class="empty-state-title">No Albums Found</div>
+                        <div class="empty-state-text">Create your first photo album to organize and share memories.</div>
+                        {% if user.is_admin or user.is_aamil %}
+                            <a href="{% url 'photos:album_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Create Album
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Recent Photos -->
-            {% if recent_photos %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Photos</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for photo in recent_photos %}
-                        <div class="col-md-3 col-sm-4 col-6 mb-3">
-                            <div class="card h-100">
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
-                                    <a href="{% url 'photos:photo_detail' photo.pk %}">
-                                        {% if photo.image %}
-                                            <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 110px; object-fit: cover;">
-                                        {% else %}
-                                            <i class="fas fa-image fa-2x text-gray-300"></i>
-                                        {% endif %}
-                                    </a>
-                                </div>
-                                <div class="card-body p-2">
-                                    <h6 class="card-title small mb-1">{{ photo.title|truncatechars:20 }}</h6>
-                                    <small class="text-muted">{{ photo.uploaded_at|date:"M d" }}</small>
-                                </div>
-                            </div>
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-camera"></i>
                         </div>
+                        <h3>Latest Photos</h3>
+                    </div>
+                    <div class="section-badge">{{ recent_photos|length|default:'0' }} New</div>
+                </div>
+
+                {% if recent_photos %}
+                    <div class="photo-grid">
+                        {% for photo in recent_photos %}
+                            <a href="{% url 'photos:photo_detail' photo.pk %}" class="photo-item">
+                                <div class="photo-thumbnail">
+                                    {% if photo.image %}
+                                        <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+                                    {% else %}
+                                        <i class="fas fa-image" style="color: #9ca3af; font-size: 2rem;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="photo-info">
+                                    <div class="photo-title">{{ photo.title|default:"Untitled" }}</div>
+                                    <div class="photo-meta">{{ photo.uploaded_at|date:"M d, Y" }}</div>
+                                </div>
+                            </a>
                         {% endfor %}
                     </div>
-                </div>
+                    <a href="{% url 'photos:photo_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View All Photos
+                    </a>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="empty-state-title" style="font-size: 1rem;">No Photos Uploaded</div>
+                        <div class="empty-state-text" style="font-size: 0.875rem;">Upload photos to start building your gallery.</div>
+                    </div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
 
         <!-- Sidebar -->
-        <div class="col-lg-4">
+        <div>
             <!-- Quick Actions -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="section-badge">Media</div>
                 </div>
-                <div class="card-body">
-                    <a href="{% url 'photos:album_create' %}" class="btn btn-primary btn-block mb-2">
-                        <i class="fas fa-plus fa-sm"></i> Create Album
-                    </a>
-                    <a href="{% url 'photos:search_photos' %}" class="btn btn-info btn-block mb-2">
-                        <i class="fas fa-search fa-sm"></i> Search Photos
-                    </a>
-                    {% if can_manage %}
-                        <a href="{% url 'photos:album_list' %}?privacy=private" class="btn btn-secondary btn-block">
-                            <i class="fas fa-lock fa-sm"></i> Private Albums
+
+                <div class="actions-grid">
+                    {% if user.is_admin or user.is_aamil %}
+                        <a href="{% url 'photos:album_create' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #10b981;">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Create Album</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">New photo collection</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'photos:upload' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #3b82f6;">
+                                <i class="fas fa-upload"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Upload Photos</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Add new images</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'photos:manage' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #8b5cf6;">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Manage Gallery</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Organize photos</div>
+                            </div>
                         </a>
                     {% endif %}
-                </div>
-            </div>
 
-            <!-- Popular Albums -->
-            {% if popular_albums %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Popular Albums</h6>
-                </div>
-                <div class="card-body">
-                    {% for album in popular_albums %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <a href="{% url 'photos:slideshow' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-play"></i>
+                        </div>
                         <div>
-                            <a href="{% url 'photos:album_detail' album.pk %}" class="font-weight-bold">
-                                {{ album.name|truncatechars:25 }}
-                            </a>
-                            <div class="small text-muted">by {{ album.created_by.get_full_name }}</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Slideshow</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">View presentation</div>
                         </div>
-                        <span class="badge badge-primary">{{ album.photo_count }}</span>
-                    </div>
-                    {% endfor %}
+                    </a>
+
+                    <a href="{% url 'photos:search' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #6366f1;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Search Photos</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Find images</div>
+                        </div>
+                    </a>
                 </div>
             </div>
-            {% endif %}
 
-            <!-- Tag Cloud -->
-            {% if popular_tags %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Popular Tags</h6>
-                </div>
-                <div class="card-body">
-                    {% for tag in popular_tags %}
-                        <a href="{% url 'photos:photos_by_tag' tag.name %}" class="badge badge-secondary mr-1 mb-1">
-                            {{ tag.name }} ({{ tag.usage_count }})
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- My Favorites -->
-            {% if my_favorites %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">My Favorites</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for photo in my_favorites %}
-                        <div class="col-6 mb-2">
-                            <div class="card">
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 80px;">
-                                    <a href="{% url 'photos:photo_detail' photo.pk %}">
-                                        <img src="{{ photo.image.url }}" class="img-fluid" style="max-height: 70px; object-fit: cover;">
-                                    </a>
-                                </div>
-                            </div>
+            <!-- Gallery Stats -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-bar"></i>
                         </div>
-                        {% endfor %}
+                        <h3>Gallery Stats</h3>
                     </div>
                 </div>
+
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_albums|default:'0' }} albums created</div>
+                            <div class="activity-time">Photo collections</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_photos|default:'0' }} photos uploaded</div>
+                            <div class="activity-time">Media library</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_views|default:'0' }} gallery views</div>
+                            <div class="activity-time">Visitor engagement</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ storage_used|default:'0' }} storage used</div>
+                            <div class="activity-time">Media files</div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{% url 'photos:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                    View Detailed Analytics
+                </a>
             </div>
-            {% endif %}
         </div>
     </div>
-
-    <!-- Monthly Upload Trends -->
-    {% if monthly_stats %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Monthly Upload Trends</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="uploadChart" width="100%" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-{% if monthly_stats %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Monthly Upload Chart
-var ctx = document.getElementById('uploadChart').getContext('2d');
-var uploadChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: [{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Photos Uploaded',
-            data: [{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-            borderColor: 'rgba(255, 99, 132, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-</script>
-{% endif %}
+</main>
 {% endblock %}
