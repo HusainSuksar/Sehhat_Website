@@ -297,8 +297,8 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
         # Get photos
         photos = moze.photos.filter(is_public=True).order_by('-created_at')[:6]
         
-        # Get local doctors
-        local_doctors = Doctor.objects.filter(hospital__mozes=moze).select_related('user')[:5]
+        # Get local doctors - doctors who have appointments in this moze
+        local_doctors = Doctor.objects.filter(appointments__moze=moze).distinct().select_related('user')[:5]
         
         # Statistics
         context.update({
