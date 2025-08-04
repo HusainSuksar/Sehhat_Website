@@ -1,424 +1,965 @@
 {% extends 'base.html' %}
 
-{% block title %}Students Dashboard{% endblock %}
+{% block title %}Students Dashboard - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Performance-optimized Students dashboard */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #ecfdf5 100%);
+        min-height: 100vh;
+    }
+
+    /* Simplified background */
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #10b981 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #059669 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Action Bar */
+    .action-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Main Content Sections */
+    .main-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: #10b981;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Course Grid */
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .course-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #10b981;
+    }
+
+    .course-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .course-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+    }
+
+    .course-name:hover {
+        color: #10b981;
+        text-decoration: none;
+    }
+
+    .course-code {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .course-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .course-stat {
+        text-align: center;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .course-stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .course-stat-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-enrolled {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-in-progress {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #10b981);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #10b981;
+        background: #f9fafb;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #10b981;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Assignment List */
+    .assignment-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .assignment-item {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-left: 3px solid #10b981;
+    }
+
+    .assignment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .assignment-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .assignment-course {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .assignment-due {
+        font-size: 0.875rem;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .course-grid {
+            grid-template-columns: 1fr;
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-1">🎓 Students Dashboard</h1>
-            <p class="text-muted mb-0">Academic management and course tracking</p>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Academic Excellence Dashboard</h2>
+                <p>Comprehensive learning management and academic progress tracking platform.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-id-card"></i>
+                        <span>Student ID: {{ user.student_profile.student_id|default:"N/A" }}</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Academic Year {{ current_year|default:"2024" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="welcome-actions">
+            <a href="{% url 'students:course_list' %}" class="btn btn-primary">
+                <i class="fas fa-book"></i>
+                My Courses
+            </a>
+            <a href="{% url 'students:grade_report' %}" class="btn btn-outline">
+                <i class="fas fa-chart-line"></i>
+                Grades
+            </a>
+        </div>
+    </section>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="action-group">
+            <a href="{% url 'students:course_enrollment' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i>
+                Enroll Course
+            </a>
+            <a href="{% url 'students:assignment_list' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-tasks"></i>
+                Assignments
+            </a>
+            <button class="btn btn-outline btn-sm" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">
+            <i class="fas fa-print"></i>
+            Print Transcript
+        </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-graduation-cap" style="color: #10b981;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_students|default:'--' }}</div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-subtitle">Enrolled in system</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                    <i class="fas fa-user-check" style="color: #3b82f6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ active_students|default:'--' }}</div>
+                <div class="stat-label">Active Students</div>
+                <div class="stat-subtitle">Currently enrolled</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+                    <i class="fas fa-book" style="color: #8b5cf6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +12%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_courses|default:'--' }}</div>
+                <div class="stat-label">Available Courses</div>
+                <div class="stat-subtitle">Academic programs</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-star" style="color: #f59e0b;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +15%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ my_gpa|default:'--' }}</div>
+                <div class="stat-label">My GPA</div>
+                <div class="stat-subtitle">Current semester</div>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- My Courses -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-book-open"></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
-                        </div>
+                        <h3>My Courses</h3>
                     </div>
+                    <div class="section-badge">{{ enrolled_courses|length|default:'0' }} Enrolled</div>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Students</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_students }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Courses</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-book fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Enrollments</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_enrollments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Student-specific Dashboard (if user is a student) -->
-    {% if student_profile %}
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Current Courses</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.current_courses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-book-open fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.completed_courses }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Assignments</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.pending_assignments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Average Grade</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ my_data.average_grade|floatformat:1 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-star fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <div class="row">
-        <!-- Recent Activities -->
-        <div class="col-lg-8">
-            <!-- Recent Assignments -->
-            {% if recent_assignments %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Assignments</h6>
-                    <a href="{% url 'students:course_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-list fa-sm"></i> View All Courses
-                    </a>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Assignment</th>
-                                    <th>Course</th>
-                                    <th>Due Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for assignment in recent_assignments %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'students:assignment_detail' assignment.pk %}">
-                                            {{ assignment.title|truncatechars:50 }}
+                {% if enrolled_courses %}
+                    <div class="course-grid">
+                        {% for course in enrolled_courses %}
+                            <div class="course-item">
+                                <div class="course-header">
+                                    <div>
+                                        <a href="{% url 'students:course_detail' course.pk %}" class="course-name">
+                                            {{ course.name }}
                                         </a>
-                                    </td>
-                                    <td>{{ assignment.course.name }}</td>
-                                    <td>
-                                        {{ assignment.due_date|date:"M d, Y" }}
-                                        {% if assignment.due_date < today %}
-                                            <span class="badge badge-danger ml-1">Overdue</span>
-                                        {% elif assignment.due_date <= tomorrow %}
-                                            <span class="badge badge-warning ml-1">Due Soon</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if student_profile %}
-                                                                        {% with submitted=False %}
-                                {% for submission in assignment.submissions.all %}
-                                    {% if submission.student == student_profile %}
-                                        <span class="badge badge-success">Submitted</span>
-                                        {% with submitted=True %}{% endwith %}
-                                    {% endif %}
-                                {% endfor %}
-                                {% if not submitted %}
-                                    <span class="badge badge-warning">Pending</span>
+                                        <div class="course-code">
+                                            <i class="fas fa-code"></i>
+                                            {{ course.code }} - {{ course.credits }} Credits
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-{{ course.enrollment_status|lower }}">
+                                        {{ course.get_enrollment_status_display|default:"Enrolled" }}
+                                    </div>
+                                </div>
+                                
+                                <div class="course-stats">
+                                    <div class="course-stat">
+                                        <div class="course-stat-label">Progress</div>
+                                        <div class="course-stat-value">{{ course.progress|default:'0' }}%</div>
+                                    </div>
+                                    <div class="course-stat">
+                                        <div class="course-stat-label">Grade</div>
+                                        <div class="course-stat-value">{{ course.current_grade|default:'--' }}</div>
+                                    </div>
+                                    <div class="course-stat">
+                                        <div class="course-stat-label">Assignments</div>
+                                        <div class="course-stat-value">{{ course.pending_assignments|default:'0' }}</div>
+                                    </div>
+                                </div>
+
+                                {% if course.next_class %}
+                                    <div style="border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.75rem;">
+                                        <small style="color: #6b7280;">
+                                            Next class: {{ course.next_class|date:"M d, H:i" }}
+                                        </small>
+                                    </div>
                                 {% endif %}
-                            {% endwith %}
-                                        {% else %}
-                                            <span class="badge badge-info">View Details</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                            </div>
+                        {% endfor %}
                     </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Recent Submissions -->
-            {% if recent_submissions %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Submissions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Assignment</th>
-                                    <th>Student</th>
-                                    <th>Submitted</th>
-                                    <th>Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for submission in recent_submissions %}
-                                <tr>
-                                    <td>{{ submission.assignment.title|truncatechars:40 }}</td>
-                                    <td>{{ submission.student.user.get_full_name }}</td>
-                                    <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
-                                    <td>
-                                        {% if submission.grade %}
-                                            <span class="badge badge-primary">{{ submission.grade.points }}/{{ submission.assignment.max_points }}</span>
-                                        {% else %}
-                                            <span class="text-muted">Not graded</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Recent Announcements -->
-            {% if recent_announcements %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Announcements</h6>
-                </div>
-                <div class="card-body">
-                    {% for announcement in recent_announcements %}
-                    <div class="border-left-primary pl-3 mb-3">
-                        <div class="font-weight-bold">{{ announcement.title }}</div>
-                        <div class="small text-muted mb-1">
-                            {{ announcement.course.name }} - {{ announcement.created_at|date:"M d, Y" }}
+                    <a href="{% url 'students:course_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                        View All Courses
+                    </a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-book"></i>
                         </div>
-                        <p class="mb-0">{{ announcement.content|truncatechars:100 }}</p>
+                        <div class="empty-state-title">No Courses Enrolled</div>
+                        <div class="empty-state-text">Start your academic journey by enrolling in courses.</div>
+                        <a href="{% url 'students:course_enrollment' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Browse Courses
+                        </a>
                     </div>
-                    {% endfor %}
-                </div>
+                {% endif %}
             </div>
-            {% endif %}
+
+            <!-- Recent Assignments -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h3>Recent Assignments</h3>
+                    </div>
+                    <div class="section-badge">{{ recent_assignments|length|default:'0' }} Pending</div>
+                </div>
+
+                {% if recent_assignments %}
+                    <div class="assignment-list">
+                        {% for assignment in recent_assignments %}
+                            <div class="assignment-item">
+                                <div class="assignment-header">
+                                    <div>
+                                        <div class="assignment-title">{{ assignment.title }}</div>
+                                        <div class="assignment-course">{{ assignment.course.name }}</div>
+                                    </div>
+                                    <div class="assignment-due">
+                                        <i class="fas fa-clock"></i>
+                                        Due: {{ assignment.due_date|date:"M d" }}
+                                    </div>
+                                </div>
+                                
+                                {% if assignment.description %}
+                                    <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; margin-bottom: 0;">
+                                        {{ assignment.description|truncatewords:20 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'students:assignment_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View All Assignments
+                    </a>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="empty-state-title" style="font-size: 1rem;">No Pending Assignments</div>
+                        <div class="empty-state-text" style="font-size: 0.875rem;">All caught up! New assignments will appear here.</div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="col-lg-4">
+        <div>
             <!-- Quick Actions -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="section-badge">Academic</div>
                 </div>
-                <div class="card-body">
-                    {% if student_profile %}
-                        <a href="{% url 'students:my_schedule' %}" class="btn btn-primary btn-block mb-2">
-                            <i class="fas fa-calendar fa-sm"></i> My Schedule
-                        </a>
-                        <a href="{% url 'students:my_grades' %}" class="btn btn-info btn-block mb-2">
-                            <i class="fas fa-star fa-sm"></i> My Grades
-                        </a>
-                        <a href="{% url 'students:attendance_record' %}" class="btn btn-success btn-block">
-                            <i class="fas fa-check fa-sm"></i> Attendance Record
-                        </a>
-                    {% else %}
-                        <a href="{% url 'students:student_list' %}" class="btn btn-primary btn-block mb-2">
-                            <i class="fas fa-users fa-sm"></i> View Students
-                        </a>
-                        <a href="{% url 'students:course_list' %}" class="btn btn-info btn-block mb-2">
-                            <i class="fas fa-book fa-sm"></i> View Courses
-                        </a>
-                        {% if can_manage %}
-                            <a href="{% url 'students:analytics' %}" class="btn btn-success btn-block">
-                                <i class="fas fa-chart-bar fa-sm"></i> View Analytics
-                            </a>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </div>
 
-            <!-- Course Statistics -->
-            {% if course_stats %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Popular Courses</h6>
-                </div>
-                <div class="card-body">
-                    {% for course in course_stats %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="actions-grid">
+                    <a href="{% url 'students:course_enrollment' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #10b981;">
+                            <i class="fas fa-plus"></i>
+                        </div>
                         <div>
-                            <a href="{% url 'students:course_detail' course.pk %}" class="font-weight-bold">
-                                {{ course.name|truncatechars:25 }}
-                            </a>
-                            <div class="small text-muted">{{ course.instructor.get_full_name }}</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Enroll Course</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Join new classes</div>
                         </div>
-                        <span class="badge badge-primary">{{ course.enrollment_count }}</span>
-                    </div>
-                    {% endfor %}
+                    </a>
+
+                    <a href="{% url 'students:grade_report' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #3b82f6;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">View Grades</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Academic performance</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'students:schedule' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #8b5cf6;">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Class Schedule</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Weekly timetable</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'araz:petition_create' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit Petition</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Academic requests</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'students:transcript' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #6366f1;">
+                            <i class="fas fa-file-download"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Download Transcript</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Official records</div>
+                        </div>
+                    </a>
                 </div>
             </div>
-            {% endif %}
 
-            <!-- Upcoming Events -->
-            {% if upcoming_events %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Upcoming Events</h6>
-                </div>
-                <div class="card-body">
-                    {% for event in upcoming_events %}
-                    <div class="border-left-info pl-3 mb-3">
-                        <div class="font-weight-bold">{{ event.title }}</div>
-                        <div class="small text-muted">
-                            {{ event.date|date:"M d, Y" }} at {{ event.time }}
+            <!-- Academic Status -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <p class="small mb-0">{{ event.description|truncatechars:60 }}</p>
+                        <h3>Academic Status</h3>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            {% endif %}
 
-            <!-- Study Resources -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Resources</h6>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">Current GPA: {{ my_gpa|default:'Not calculated' }}</div>
+                            <div class="activity-time">Cumulative average</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ enrolled_courses|length|default:'0' }} courses enrolled</div>
+                            <div class="activity-time">This semester</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ recent_assignments|length|default:'0' }} assignments pending</div>
+                            <div class="activity-time">Due soon</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">Good academic standing</div>
+                            <div class="activity-time">Current status</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <a href="/surveys/" class="btn btn-outline-primary btn-block mb-2">
-                        <i class="fas fa-poll fa-sm"></i> Surveys
-                    </a>
-                    <a href="/photos/" class="btn btn-outline-info btn-block mb-2">
-                        <i class="fas fa-images fa-sm"></i> Photo Gallery
-                    </a>
-                    <a href="/accounts/profile/" class="btn btn-outline-success btn-block">
-                        <i class="fas fa-user fa-sm"></i> My Profile
-                    </a>
-                </div>
+
+                <a href="{% url 'students:profile' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                    View Full Profile
+                </a>
             </div>
         </div>
     </div>
-
-    <!-- Monthly Enrollment Trends -->
-    {% if monthly_stats %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Monthly Enrollment Trends</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="enrollmentChart" width="100%" height="30"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-{% if monthly_stats %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Monthly Enrollment Chart
-var ctx = document.getElementById('enrollmentChart').getContext('2d');
-var enrollmentChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Enrollments',
-            data: [{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            backgroundColor: 'rgba(54, 162, 235, 0.1)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-</script>
-{% endif %}
+</main>
 {% endblock %}

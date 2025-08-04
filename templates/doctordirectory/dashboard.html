@@ -4,75 +4,31 @@
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
+    /* Performance-optimized Doctor dashboard */
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e8eaf6 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
         min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
     }
 
-    /* Animated Background Elements */
-    .bg-animation {
+    /* Simplified background */
+    .bg-pattern {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #8b5cf6 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #7c3aed 0%, transparent 70%);
         pointer-events: none;
         z-index: 0;
-    }
-
-    .bg-orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .bg-orb:nth-child(1) {
-        width: 320px;
-        height: 320px;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1));
-        top: -160px;
-        right: -160px;
-        animation-delay: 0s;
-    }
-
-    .bg-orb:nth-child(2) {
-        width: 320px;
-        height: 320px;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-        bottom: -160px;
-        left: -160px;
-        animation-delay: 2s;
-    }
-
-    .bg-orb:nth-child(3) {
-        width: 384px;
-        height: 384px;
-        background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(234, 88, 12, 0.05));
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        animation-delay: 4s;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) scale(1); }
-        50% { transform: translateY(-20px) scale(1.05); }
     }
 
     /* Main Content */
     .main-content {
         position: relative;
-        z-index: 10;
+        z-index: 1;
         max-width: 1400px;
         margin: 0 auto;
         padding: 2rem 1.5rem;
@@ -84,6 +40,11 @@
         flex-direction: column;
         gap: 2rem;
         margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
 
     @media (min-width: 1024px) {
@@ -101,62 +62,27 @@
     }
 
     .welcome-icon {
-        position: relative;
-        width: 80px;
-        height: 80px;
+        width: 64px;
+        height: 64px;
         background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        border-radius: 24px;
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
-    }
-
-    .welcome-icon::after {
-        content: '';
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .welcome-icon::before {
-        content: '🩺';
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        z-index: 1;
-    }
-
-    .welcome-icon i {
         color: white;
-        font-size: 2.5rem;
+        font-size: 1.5rem;
     }
 
     .welcome-text h2 {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #1f2937, #374151);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #1f2937;
         margin-bottom: 0.5rem;
     }
 
     .welcome-text p {
         color: #6b7280;
-        font-size: 1.125rem;
+        font-size: 1rem;
         margin-bottom: 0.75rem;
     }
 
@@ -178,17 +104,13 @@
         color: #059669;
     }
 
-    .welcome-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-
+    /* Buttons */
     .btn {
         padding: 0.75rem 1.5rem;
-        border-radius: 12px;
+        border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         border: none;
         display: inline-flex;
         align-items: center;
@@ -199,25 +121,22 @@
     .btn-primary {
         background: linear-gradient(135deg, #8b5cf6, #7c3aed);
         color: white;
-        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
     }
 
     .btn-primary:hover {
-        box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
-        transform: translateY(-2px);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         color: white;
     }
 
     .btn-outline {
-        background: rgba(255, 255, 255, 0.8);
+        background: white;
         color: #374151;
         border: 1px solid #d1d5db;
-        backdrop-filter: blur(10px);
     }
 
     .btn-outline:hover {
-        background: white;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: #f9fafb;
         color: #374151;
     }
 
@@ -234,11 +153,10 @@
         flex-wrap: wrap;
         gap: 1rem;
         padding: 1rem;
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(20px);
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
     }
 
@@ -256,42 +174,22 @@
     }
 
     .stat-card {
-        position: relative;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
+        background: white;
+        border-radius: 12px;
         padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        transition: all 0.5s ease;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         cursor: pointer;
-        overflow: hidden;
         text-decoration: none;
         color: inherit;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--card-gradient);
-        opacity: 0;
-        transition: opacity 0.5s ease;
     }
 
     .stat-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         text-decoration: none;
         color: inherit;
-    }
-
-    .stat-card:hover::before {
-        opacity: 0.05;
-    }
-
-    .stat-card:hover .stat-icon {
-        transform: scale(1.1) rotate(3deg);
     }
 
     .stat-header {
@@ -302,14 +200,12 @@
     }
 
     .stat-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.5s ease;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
 
     .stat-trend {
@@ -318,22 +214,11 @@
         gap: 0.25rem;
         font-size: 0.875rem;
         font-weight: 600;
-    }
-
-    .trend-up {
         color: #059669;
     }
 
-    .trend-down {
-        color: #dc2626;
-    }
-
-    .stat-content {
-        margin-bottom: 1rem;
-    }
-
     .stat-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 0.25rem;
@@ -350,66 +235,6 @@
         font-size: 0.75rem;
     }
 
-    /* Period Stats */
-    .period-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 3rem;
-    }
-
-    .period-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .period-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-    }
-
-    .period-stat {
-        text-align: center;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.5);
-        border-radius: 12px;
-    }
-
-    .period-value {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    .period-label {
-        font-size: 0.875rem;
-        color: #6b7280;
-    }
-
-    /* Doctor Stats (Personal) */
-    .doctor-stats {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin-bottom: 3rem;
-    }
-
-    .doctor-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-
     /* Dashboard Grid */
     .dashboard-grid {
         display: grid;
@@ -423,72 +248,13 @@
         }
     }
 
-    /* Recent Appointments */
-    .recent-appointments {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .appointment-item {
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        border-left: 4px solid #8b5cf6;
-        transition: all 0.3s ease;
-    }
-
-    .appointment-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    }
-
-    .appointment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        margin-bottom: 1rem;
-    }
-
-    .appointment-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .appointment-reason {
-        color: #6b7280;
-        margin-bottom: 0.75rem;
-    }
-
-    .appointment-meta {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.875rem;
-        color: #6b7280;
-    }
-
-    .status-badge {
-        padding: 0.25rem 0.75rem;
+    /* Main Content Sections */
+    .main-section {
+        background: white;
         border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    /* Sidebar Components */
-    .sidebar-section {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .section-header {
@@ -505,10 +271,10 @@
     }
 
     .section-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        border-radius: 12px;
+        width: 32px;
+        height: 32px;
+        background: #8b5cf6;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -516,7 +282,7 @@
     }
 
     .section-title h3 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 700;
         color: #1f2937;
     }
@@ -525,9 +291,84 @@
         background: #ede9fe;
         color: #7c3aed;
         padding: 0.25rem 0.75rem;
-        border-radius: 12px;
+        border-radius: 8px;
         font-size: 0.875rem;
         font-weight: 600;
+    }
+
+    /* Appointments Grid */
+    .appointments-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .appointment-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #8b5cf6;
+    }
+
+    .appointment-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .appointment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .appointment-patient {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .appointment-time {
+        color: #6b7280;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
     }
 
     .actions-grid {
@@ -540,91 +381,72 @@
         align-items: center;
         gap: 0.75rem;
         padding: 1rem;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-decoration: none;
         color: #374151;
     }
 
     .action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         text-decoration: none;
         color: #374151;
     }
 
     .action-icon {
-        width: 32px;
-        height: 32px;
-        background: var(--action-gradient);
-        border-radius: 8px;
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #8b5cf6);
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
+        font-size: 0.875rem;
     }
 
-    /* Lists */
-    .info-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .info-item {
+    /* Activity */
+    .activity-item {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        gap: 0.75rem;
         padding: 0.75rem;
-        margin-bottom: 0.5rem;
-        background: rgba(255, 255, 255, 0.5);
         border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #8b5cf6;
+        background: #f9fafb;
     }
 
-    .info-badge {
-        padding: 0.25rem 0.5rem;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: 600;
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: #8b5cf6;
         color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
     }
 
-    /* Data Tables */
-    .data-section {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin-bottom: 3rem;
+    .activity-content {
+        flex: 1;
     }
 
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
     }
 
-    .data-table th,
-    .data-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .data-table th {
-        background: rgba(255, 255, 255, 0.5);
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .data-table tr:hover {
-        background: rgba(255, 255, 255, 0.5);
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
     }
 
     /* Empty States */
@@ -634,13 +456,13 @@
     }
 
     .empty-state-icon {
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: #d1d5db;
         margin-bottom: 1rem;
     }
 
     .empty-state-title {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         font-weight: 600;
         color: #6b7280;
         margin-bottom: 0.5rem;
@@ -651,110 +473,122 @@
         margin-bottom: 1.5rem;
     }
 
-    /* Animations */
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* Quick Stats */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
     }
 
-    .animate-slide-up {
-        animation: slideInUp 0.6s ease-out;
+    .quick-stat {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+    }
+
+    .quick-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .quick-stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-weight: 500;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
         .welcome-text h2 {
-            font-size: 2rem;
+            font-size: 1.5rem;
         }
         
         .stats-grid {
             grid-template-columns: 1fr;
         }
         
-        .period-stats {
-            grid-template-columns: 1fr;
-        }
-        
-        .doctor-stats-grid {
+        .quick-stats {
             grid-template-columns: repeat(2, 1fr);
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Animated Background -->
-<div class="bg-animation">
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
-</div>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
 
 <!-- Main Content -->
 <main class="main-content">
     <!-- Welcome Section -->
-    <section class="welcome-section animate-slide-up">
+    <section class="welcome-section">
         <div class="welcome-content">
             <div class="welcome-icon">
-                <i class="fas fa-user-md"></i>
+                <i class="fas fa-stethoscope"></i>
             </div>
             <div class="welcome-text">
-                <h2>Doctor Directory Dashboard</h2>
-                <p>
-                    {% if doctor_profile %}
-                        Welcome back, Dr. {{ doctor_profile.name }}! 
-                        Manage your practice and patient care efficiently.
-                    {% else %}
-                        Comprehensive medical services management and healthcare analytics.
-                    {% endif %}
-                </p>
+                <h2>Medical Professional Dashboard</h2>
+                <p>Advanced healthcare management and patient care coordination platform.</p>
                 <div class="welcome-meta">
-                    <div class="meta-item">
-                        <i class="fas fa-user-md"></i>
-                        <span>{{ total_doctors }} Doctors</span>
-                    </div>
+                    {% if doctor_profile %}
+                        <div class="meta-item">
+                            <i class="fas fa-user-md"></i>
+                            <span>Dr. {{ doctor_profile.user.get_full_name }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-certificate"></i>
+                            <span>{{ doctor_profile.specialization }}</span>
+                        </div>
+                    {% else %}
+                        <div class="meta-item">
+                            <i class="fas fa-user"></i>
+                            <span>{{ user.get_full_name }}</span>
+                        </div>
+                    {% endif %}
                     <div class="meta-item success">
-                        <i class="fas fa-users"></i>
-                        <span>{{ total_patients_global }} Patients</span>
-                    </div>
-                    <div class="meta-item">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>{{ total_appointments_global }} Appointments</span>
+                        <i class="fas fa-check-circle"></i>
+                        <span>System Online</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="welcome-actions">
-            <a href="{% url 'doctordirectory:analytics' %}" class="btn btn-primary">
-                <i class="fas fa-chart-bar"></i>
-                View Analytics
-            </a>
             {% if user.is_doctor %}
-                <a href="{% url 'doctordirectory:schedule_management' %}" class="btn btn-outline">
-                    <i class="fas fa-calendar"></i>
-                    My Schedule
+                <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus"></i>
+                    New Appointment
                 </a>
             {% endif %}
+            <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline">
+                <i class="fas fa-list"></i>
+                Directory
+            </a>
         </div>
     </section>
 
     <!-- Action Bar -->
     <div class="action-bar">
         <div class="action-group">
-            <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i>
-                Book Appointment
-            </a>
-            <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-outline btn-sm">
-                <i class="fas fa-users"></i>
-                Patients
+            {% if user.is_doctor %}
+                <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i>
+                    Schedule
+                </a>
+            {% endif %}
+            <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-calendar"></i>
+                Appointments
             </a>
             <button class="btn btn-outline btn-sm" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i>
@@ -767,207 +601,201 @@
         </button>
     </div>
 
-    <!-- Global Stats Grid -->
+    <!-- Stats Grid -->
     <div class="stats-grid">
-        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
-                    <i class="fas fa-user-md" style="color: #8b5cf6; font-size: 1.5rem;"></i>
+                    <i class="fas fa-user-md" style="color: #8b5cf6;"></i>
                 </div>
-                <div class="stat-trend trend-up">
+                <div class="stat-trend">
                     <i class="fas fa-arrow-up"></i>
-                    +5%
+                    +{{ total_doctors }}
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_doctors }}</div>
+                <div class="stat-value">{{ total_doctors|default:'--' }}</div>
                 <div class="stat-label">Total Doctors</div>
-                <div class="stat-subtitle">Registered healthcare providers</div>
+                <div class="stat-subtitle">Registered professionals</div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #10b981, #059669);">
+        <div class="stat-card">
             <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
-                    <i class="fas fa-users" style="color: #10b981; font-size: 1.5rem;"></i>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+                    <i class="fas fa-users" style="color: #3b82f6;"></i>
                 </div>
-                <div class="stat-trend trend-up">
-                    <i class="fas fa-arrow-up"></i>
-                    +12%
-                </div>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ total_patients_global }}</div>
-                <div class="stat-label">Total Patients</div>
-                <div class="stat-subtitle">Registered in system</div>
-            </div>
-        </div>
-
-        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #06b6d4, #0891b2);">
-            <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
-                    <i class="fas fa-calendar-check" style="color: #06b6d4; font-size: 1.5rem;"></i>
-                </div>
-                <div class="stat-trend trend-up">
+                <div class="stat-trend">
                     <i class="fas fa-arrow-up"></i>
                     +8%
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_appointments_global }}</div>
-                <div class="stat-label">Total Appointments</div>
-                <div class="stat-subtitle">Scheduled consultations</div>
+                <div class="stat-value">{{ total_patients_global|default:'--' }}</div>
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-subtitle">Registered patients</div>
             </div>
         </div>
 
-        <div class="stat-card" style="--card-gradient: linear-gradient(135deg, #f59e0b, #d97706);">
+        <a href="{% url 'doctordirectory:appointment_list' %}" class="stat-card">
             <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-                    <i class="fas fa-notes-medical" style="color: #f59e0b; font-size: 1.5rem;"></i>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-calendar-check" style="color: #10b981;"></i>
                 </div>
-                <div class="stat-trend trend-up">
+                <div class="stat-trend">
                     <i class="fas fa-arrow-up"></i>
                     +15%
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_medical_records }}</div>
+                <div class="stat-value">{{ total_appointments_global|default:'--' }}</div>
+                <div class="stat-label">Appointments</div>
+                <div class="stat-subtitle">Total scheduled</div>
+            </div>
+        </a>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-file-medical" style="color: #f59e0b;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +22%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_medical_records|default:'--' }}</div>
                 <div class="stat-label">Medical Records</div>
-                <div class="stat-subtitle">Patient documentation</div>
+                <div class="stat-subtitle">Patient files</div>
             </div>
         </div>
     </div>
 
-    <!-- Period Statistics -->
-    <div class="period-stats">
-        <div class="period-card">
-            <div class="section-header">
-                <div class="section-title">
-                    <div class="section-icon">
-                        <i class="fas fa-calendar-week"></i>
-                    </div>
-                    <h3>Weekly Statistics</h3>
-                </div>
-                <div class="section-badge">This Week</div>
+    <!-- Quick Performance Stats -->
+    {% if user.is_doctor and doctor_profile %}
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ weekly_appointments|default:'0' }}</div>
+                <div class="quick-stat-label">This Week</div>
             </div>
-            <div class="period-grid">
-                <div class="period-stat">
-                    <div class="period-value" style="color: #8b5cf6;">{{ weekly_appointments }}</div>
-                    <div class="period-label">Appointments</div>
-                </div>
-                <div class="period-stat">
-                    <div class="period-value" style="color: #10b981;">{{ weekly_patients }}</div>
-                    <div class="period-label">Patients</div>
-                </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ weekly_patients|default:'0' }}</div>
+                <div class="quick-stat-label">New Patients</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ monthly_appointments|default:'0' }}</div>
+                <div class="quick-stat-label">This Month</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ monthly_patients|default:'0' }}</div>
+                <div class="quick-stat-label">Monthly Patients</div>
             </div>
         </div>
-
-        <div class="period-card">
-            <div class="section-header">
-                <div class="section-title">
-                    <div class="section-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h3>Monthly Statistics</h3>
-                </div>
-                <div class="section-badge">This Month</div>
-            </div>
-            <div class="period-grid">
-                <div class="period-stat">
-                    <div class="period-value" style="color: #06b6d4;">{{ monthly_appointments }}</div>
-                    <div class="period-label">Appointments</div>
-                </div>
-                <div class="period-stat">
-                    <div class="period-value" style="color: #f59e0b;">{{ monthly_patients }}</div>
-                    <div class="period-label">Patients</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Doctor-Specific Statistics -->
-    {% if doctor_profile %}
-    <div class="doctor-stats">
-        <div class="section-header">
-            <div class="section-title">
-                <div class="section-icon">
-                    <i class="fas fa-user-doctor"></i>
-                </div>
-                <h3>Your Personal Statistics</h3>
-            </div>
-            <div class="section-badge">Dr. {{ doctor_profile.name }}</div>
-        </div>
-        <div class="doctor-stats-grid">
-            <div class="period-stat">
-                <div class="period-value" style="color: #8b5cf6;">{{ todays_appointments }}</div>
-                <div class="period-label">Today's Appointments</div>
-            </div>
-            <div class="period-stat">
-                <div class="period-value" style="color: #10b981;">{{ weekly_doctor_appointments }}</div>
-                <div class="period-label">This Week</div>
-            </div>
-            <div class="period-stat">
-                <div class="period-value" style="color: #06b6d4;">{{ monthly_doctor_appointments }}</div>
-                <div class="period-label">This Month</div>
-            </div>
-            <div class="period-stat">
-                <div class="period-value" style="color: #f59e0b;">{{ pending_appointments }}</div>
-                <div class="period-label">Pending</div>
-            </div>
-            <div class="period-stat">
-                <div class="period-value" style="color: #6b7280;">{{ total_patients }}</div>
-                <div class="period-label">Your Patients</div>
-            </div>
-            <div class="period-stat">
-                <div class="period-value" style="color: #1f2937;">{{ total_appointments }}</div>
-                <div class="period-label">Total Appointments</div>
-            </div>
-        </div>
-    </div>
     {% endif %}
 
-    <!-- Main Dashboard Grid -->
+    <!-- Dashboard Grid -->
     <div class="dashboard-grid">
-        <!-- Recent Appointments -->
-        <div class="recent-appointments">
-            <div class="section-header">
-                <div class="section-title">
-                    <div class="section-icon">
-                        <i class="fas fa-calendar-check"></i>
+        <!-- Main Content Area -->
+        <div>
+            <!-- Today's Appointments -->
+            {% if user.is_doctor %}
+                <div class="main-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <h3>Today's Schedule</h3>
+                        </div>
+                        <div class="section-badge">{{ todays_appointments|length }} Today</div>
                     </div>
-                    <h3>Recent Appointments</h3>
-                </div>
-                <div class="section-badge">Latest</div>
-            </div>
 
-            {% if recent_appointments %}
-                {% for appointment in recent_appointments %}
-                <div class="appointment-item">
-                    <div class="appointment-header">
-                        <div>
-                            <div class="appointment-title">
-                                {% if not doctor_profile %}Dr. {{ appointment.doctor.name }} - {% endif %}
-                                {{ appointment.patient.user.get_full_name }}
-                            </div>
-                            <div class="appointment-reason">{{ appointment.reason_for_visit }}</div>
-                            <div class="appointment-meta">
-                                <span><i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date }}</span>
-                                <span><i class="fas fa-clock me-1"></i>{{ appointment.appointment_time }}</span>
-                            </div>
+                    {% if todays_appointments %}
+                        <div class="appointments-grid">
+                            {% for appointment in todays_appointments %}
+                                <div class="appointment-item">
+                                    <div class="appointment-header">
+                                        <div>
+                                            <div class="appointment-patient">{{ appointment.patient_name }}</div>
+                                            <div class="appointment-time">
+                                                <i class="fas fa-clock"></i>
+                                                {{ appointment.appointment_date|date:"H:i" }} - {{ appointment.purpose|default:"General Consultation" }}
+                                            </div>
+                                        </div>
+                                        <div class="status-badge status-{{ appointment.status|lower }}">
+                                            {{ appointment.get_status_display }}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if appointment.notes %}
+                                        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb;">
+                                            <small style="color: #6b7280; font-style: italic;">
+                                                {{ appointment.notes|truncatewords:15 }}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
-                        <div class="status-badge" style="background: {% if appointment.status == 'confirmed' %}#d1fae5; color: #065f46{% elif appointment.status == 'pending' %}#fef3c7; color: #92400e{% elif appointment.status == 'completed' %}#dbeafe; color: #1e40af{% else %}#f3f4f6; color: #374151{% endif %};">
-                            {{ appointment.get_status_display }}
+                        <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                            View All Appointments
+                        </a>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="empty-state-title">No Appointments Today</div>
+                            <div class="empty-state-text">Your schedule is clear for today.</div>
+                            <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Schedule Appointment
+                            </a>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
             {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-calendar-times"></i>
+                <!-- Recent Appointments for Admin/General Users -->
+                <div class="main-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h3>Recent Appointments</h3>
+                        </div>
+                        <div class="section-badge">{{ recent_appointments|length }} Recent</div>
                     </div>
-                    <div class="empty-state-title">No Recent Appointments</div>
-                    <div class="empty-state-text">Appointments will appear here when scheduled.</div>
+
+                    {% if recent_appointments %}
+                        <div class="appointments-grid">
+                            {% for appointment in recent_appointments %}
+                                <div class="appointment-item">
+                                    <div class="appointment-header">
+                                        <div>
+                                            <div class="appointment-patient">{{ appointment.patient_name }}</div>
+                                            <div class="appointment-time">
+                                                <i class="fas fa-user-md"></i>
+                                                Dr. {{ appointment.doctor.user.get_full_name }} - {{ appointment.appointment_date|date:"M d, H:i" }}
+                                            </div>
+                                        </div>
+                                        <div class="status-badge status-{{ appointment.status|lower }}">
+                                            {{ appointment.get_status_display }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="empty-state-title">No Recent Appointments</div>
+                            <div class="empty-state-text">Recent appointments will appear here.</div>
+                        </div>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
@@ -987,235 +815,112 @@
                 </div>
 
                 <div class="actions-grid">
+                    {% if user.is_doctor %}
+                        <a href="{% url 'doctordirectory:create_appointment' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #10b981;">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">New Appointment</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Schedule patient visit</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'doctordirectory:patient_list' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #3b82f6;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">My Patients</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">View patient list</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'doctordirectory:schedule_management' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #8b5cf6;">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Schedule</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Manage availability</div>
+                            </div>
+                        </a>
+                    {% endif %}
+
                     <a href="{% url 'doctordirectory:doctor_list' %}" class="action-btn">
-                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                            <i class="fas fa-user-md"></i>
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-search"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">All Doctors</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Find Doctors</div>
                             <div style="font-size: 0.75rem; color: #6b7280;">Browse directory</div>
                         </div>
                     </a>
 
-                    <a href="{% url 'doctordirectory:patient_list' %}" class="action-btn">
-                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #10b981, #059669);">
+                    {% if user.is_admin %}
+                        <a href="{% url 'doctordirectory:analytics' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #6366f1;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Performance insights</div>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>System Status</h3>
+                    </div>
+                </div>
+
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">Healthcare system operational</div>
+                            <div class="activity-time">All services running</div>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">View Patients</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Patient management</div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ total_doctors|default:'0' }} doctors available</div>
+                            <div class="activity-time">Medical professionals</div>
                         </div>
-                    </a>
-
-                    {% if user.is_doctor %}
-                    <a href="{% url 'doctordirectory:schedule_management' %}" class="action-btn">
-                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #06b6d4, #0891b2);">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">My Schedule</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Manage appointments</div>
-                        </div>
-                    </a>
-                    {% endif %}
-
-                    <a href="{% url 'doctordirectory:analytics' %}" class="action-btn">
-                        <div class="action-icon" style="--action-gradient: linear-gradient(135deg, #f59e0b, #d97706);">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Performance insights</div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Top Specialties -->
-            {% if top_specialties %}
-            <div class="sidebar-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <div class="section-icon">
-                            <i class="fas fa-stethoscope"></i>
-                        </div>
-                        <h3>Top Specialties</h3>
                     </div>
-                    <div class="section-badge">Popular</div>
-                </div>
 
-                <ul class="info-list">
-                    {% for specialty in top_specialties %}
-                    <li class="info-item">
-                        <span>{{ specialty.specialty }}</span>
-                        <span class="info-badge">{{ specialty.count }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            <!-- Appointment Status -->
-            {% if appointment_status %}
-            <div class="sidebar-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <div class="section-icon">
-                            <i class="fas fa-chart-pie"></i>
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-shield-alt"></i>
                         </div>
-                        <h3>Appointment Status</h3>
+                        <div class="activity-content">
+                            <div class="activity-text">Data backup completed</div>
+                            <div class="activity-time">Patient records secure</div>
+                        </div>
                     </div>
-                    <div class="section-badge">Overview</div>
                 </div>
 
-                <ul class="info-list">
-                    {% for status in appointment_status %}
-                    <li class="info-item">
-                        <span>{{ status.status|title }}</span>
-                        <span class="info-badge" style="background: #6b7280;">{{ status.count }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                {% if user.is_admin %}
+                    <a href="{% url 'accounts:audit_log_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View System Logs
+                    </a>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
-
-    <!-- Recent Patient Logs -->
-    {% if recent_logs %}
-    <div class="data-section">
-        <div class="section-header">
-            <div class="section-title">
-                <div class="section-icon">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-                <h3>Recent Patient Logs</h3>
-            </div>
-            <div class="section-badge">{{ recent_logs|length }} Records</div>
-        </div>
-
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Patient</th>
-                        <th>ITS ID</th>
-                        <th>Ailment</th>
-                        <th>Doctor</th>
-                        <th>Visit Type</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in recent_logs %}
-                    <tr>
-                        <td><strong>{{ log.patient_name }}</strong></td>
-                        <td><code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">{{ log.patient_its_id }}</code></td>
-                        <td>{{ log.ailment|truncatewords:5 }}</td>
-                        <td>{{ log.seen_by.name }}</td>
-                        <td>
-                            <span class="status-badge" style="background: {% if log.visit_type == 'emergency' %}#fecaca; color: #991b1b{% elif log.visit_type == 'follow_up' %}#fef3c7; color: #92400e{% else %}#dbeafe; color: #1e40af{% endif %};">
-                                {{ log.visit_type|title }}
-                            </span>
-                        </td>
-                        <td>{{ log.timestamp|date:"M d, Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Recent Medical Records -->
-    {% if recent_medical_records %}
-    <div class="data-section">
-        <div class="section-header">
-            <div class="section-title">
-                <div class="section-icon">
-                    <i class="fas fa-notes-medical"></i>
-                </div>
-                <h3>Recent Medical Records</h3>
-            </div>
-            <div class="section-badge">{{ recent_medical_records|length }} Records</div>
-        </div>
-
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Diagnosis</th>
-                        <th>Treatment Plan</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in recent_medical_records %}
-                    <tr>
-                        <td><strong>{{ record.patient.get_full_name }}</strong></td>
-                        <td>{{ record.doctor.name }}</td>
-                        <td>{{ record.diagnosis|truncatewords:5 }}</td>
-                        <td>{{ record.treatment_plan|truncatewords:5 }}</td>
-                        <td>{{ record.created_at|date:"M d, Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 </main>
-
-<script>
-// Add interactivity
-document.addEventListener('DOMContentLoaded', function() {
-    // Add click handlers for stat cards
-    const statCards = document.querySelectorAll('.stat-card');
-    statCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Add ripple effect
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                pointer-events: none;
-            `;
-            
-            this.style.position = 'relative';
-            this.style.overflow = 'hidden';
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-
-    // Add CSS for ripple animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-});
-</script>
 {% endblock %}
