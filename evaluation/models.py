@@ -15,6 +15,17 @@ class EvaluationCriteria(models.Model):
     )
     max_score = models.PositiveIntegerField(default=10, help_text='Maximum score for this criteria')
     
+    # Question type and options
+    QUESTION_TYPE_CHOICES = [
+        ('dropdown', 'Dropdown'),
+        ('multiple_choice', 'Multiple Choice'),
+        ('rating', 'Rating Scale'),
+        ('text', 'Text Input'),
+        ('boolean', 'Yes/No'),
+    ]
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPE_CHOICES, default='rating')
+    is_required = models.BooleanField(default=True)
+    
     # Category for grouping criteria
     CATEGORY_CHOICES = [
         ('infrastructure', 'Infrastructure & Facilities'),
@@ -41,6 +52,34 @@ class EvaluationCriteria(models.Model):
     
     def __str__(self):
         return f"{self.name} (Weight: {self.weight})"
+    
+    def get_answer_options(self):
+        """Get answer options for this criteria"""
+        return self.answer_options.filter(is_active=True).order_by('order')
+
+
+class EvaluationAnswerOption(models.Model):
+    """Answer options for evaluation criteria with weights"""
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE, related_name='answer_options')
+    option_text = models.CharField(max_length=200, help_text='Answer option text')
+    weight = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)],
+        help_text='Score weight for this option (e.g., Option A = 5 pts, B = 3 pts)'
+    )
+    order = models.PositiveIntegerField(default=0, help_text='Display order')
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['criteria', 'order']
+        unique_together = ['criteria', 'option_text']
+        verbose_name = 'Evaluation Answer Option'
+        verbose_name_plural = 'Evaluation Answer Options'
+    
+    def __str__(self):
+        return f"{self.criteria.name} - {self.option_text} (Weight: {self.weight})"
 
 
 # New models for views compatibility

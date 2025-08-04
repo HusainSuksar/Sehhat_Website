@@ -224,7 +224,7 @@ class EvaluationFormDetailView(LoginRequiredMixin, DetailView):
             not user_submission and 
             form.is_active and 
             (form.target_role == user.role or form.target_role == 'all') and
-            (not form.due_date or form.due_date >= timezone.now().date())
+            (not form.due_date or form.due_date >= timezone.now())
         )
         
         # Statistics for managers

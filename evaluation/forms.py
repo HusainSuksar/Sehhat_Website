@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import EvaluationForm, EvaluationCriteria, EvaluationSubmission, EvaluationSession
+from .models import EvaluationForm, EvaluationCriteria, EvaluationSubmission, EvaluationSession, EvaluationAnswerOption
 
 User = get_user_model()
 
@@ -11,7 +11,7 @@ class EvaluationFormCreateForm(forms.ModelForm):
     class Meta:
         model = EvaluationForm
         fields = [
-            'title', 'description', 'form_type', 'target_role',
+            'title', 'description', 'evaluation_type', 'target_role',
             'due_date', 'is_anonymous', 'is_active'
         ]
         widgets = {
@@ -24,7 +24,7 @@ class EvaluationFormCreateForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Describe the purpose of this evaluation...'
             }),
-            'form_type': forms.Select(attrs={
+            'evaluation_type': forms.Select(attrs={
                 'class': 'form-control'
             }),
             'target_role': forms.Select(attrs={
@@ -49,16 +49,20 @@ class EvaluationCriteriaForm(forms.ModelForm):
     class Meta:
         model = EvaluationCriteria
         fields = [
-            'criteria_text', 'criteria_type', 'is_required',
-            'max_score', 'weight', 'order'
+            'name', 'description', 'question_type', 'is_required',
+            'max_score', 'weight', 'category', 'order'
         ]
         widgets = {
-            'criteria_text': forms.Textarea(attrs={
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter the evaluation question...'
+            }),
+            'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Enter the evaluation criteria...'
+                'placeholder': 'Enter the evaluation criteria description...'
             }),
-            'criteria_type': forms.Select(attrs={
+            'question_type': forms.Select(attrs={
                 'class': 'form-control'
             }),
             'is_required': forms.CheckboxInput(attrs={
@@ -71,9 +75,12 @@ class EvaluationCriteriaForm(forms.ModelForm):
             }),
             'weight': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'min': '0',
-                'max': '100',
+                'min': '0.1',
+                'max': '10.0',
                 'step': '0.1'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'order': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -82,8 +89,36 @@ class EvaluationCriteriaForm(forms.ModelForm):
         }
 
 
+class EvaluationAnswerOptionForm(forms.ModelForm):
+    """Form for adding answer options to criteria"""
+    
+    class Meta:
+        model = EvaluationAnswerOption
+        fields = ['option_text', 'weight', 'order', 'is_active']
+        widgets = {
+            'option_text': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter answer option...'
+            }),
+            'weight': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0.0',
+                'max': '10.0',
+                'step': '0.1',
+                'placeholder': 'e.g., 5.0 for Option A, 3.0 for Option B'
+            }),
+            'order': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+
+
 class EvaluationSubmissionForm(forms.ModelForm):
-    """Form for submitting evaluations"""
+    """Form for submitting evaluations with dynamic fields based on criteria"""
     
     class Meta:
         model = EvaluationSubmission
@@ -105,9 +140,9 @@ class EvaluationSubmissionForm(forms.ModelForm):
             for criteria in evaluation_form.criteria.all():
                 field_name = f'criteria_{criteria.id}'
                 
-                if criteria.criteria_type == 'rating':
+                if criteria.question_type == 'rating':
                     self.fields[field_name] = forms.IntegerField(
-                        label=criteria.criteria_text,
+                        label=criteria.name,
                         min_value=1,
                         max_value=criteria.max_score,
                         required=criteria.is_required,
@@ -117,18 +152,42 @@ class EvaluationSubmissionForm(forms.ModelForm):
                             'max': str(criteria.max_score)
                         })
                     )
-                elif criteria.criteria_type == 'text':
+                elif criteria.question_type == 'dropdown':
+                    # Get answer options for dropdown
+                    options = criteria.get_answer_options()
+                    choices = [(opt.id, opt.option_text) for opt in options]
+                    self.fields[field_name] = forms.ChoiceField(
+                        label=criteria.name,
+                        choices=choices,
+                        required=criteria.is_required,
+                        widget=forms.Select(attrs={
+                            'class': 'form-control'
+                        })
+                    )
+                elif criteria.question_type == 'multiple_choice':
+                    # Get answer options for multiple choice
+                    options = criteria.get_answer_options()
+                    choices = [(opt.id, opt.option_text) for opt in options]
+                    self.fields[field_name] = forms.ChoiceField(
+                        label=criteria.name,
+                        choices=choices,
+                        required=criteria.is_required,
+                        widget=forms.RadioSelect(attrs={
+                            'class': 'form-check-input'
+                        })
+                    )
+                elif criteria.question_type == 'text':
                     self.fields[field_name] = forms.CharField(
-                        label=criteria.criteria_text,
+                        label=criteria.name,
                         required=criteria.is_required,
                         widget=forms.Textarea(attrs={
                             'class': 'form-control',
                             'rows': 3
                         })
                     )
-                elif criteria.criteria_type == 'boolean':
+                elif criteria.question_type == 'boolean':
                     self.fields[field_name] = forms.BooleanField(
-                        label=criteria.criteria_text,
+                        label=criteria.name,
                         required=criteria.is_required,
                         widget=forms.CheckboxInput(attrs={
                             'class': 'form-check-input'
@@ -142,8 +201,7 @@ class EvaluationSessionForm(forms.ModelForm):
     class Meta:
         model = EvaluationSession
         fields = [
-            'title', 'description', 'evaluation_forms', 'target_users',
-            'start_date', 'end_date', 'is_active'
+            'title', 'description', 'form', 'start_date', 'end_date', 'is_active'
         ]
         widgets = {
             'title': forms.TextInput(attrs={
@@ -155,13 +213,8 @@ class EvaluationSessionForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Describe this evaluation session...'
             }),
-            'evaluation_forms': forms.SelectMultiple(attrs={
-                'class': 'form-control',
-                'size': '5'
-            }),
-            'target_users': forms.SelectMultiple(attrs={
-                'class': 'form-control',
-                'size': '8'
+            'form': forms.Select(attrs={
+                'class': 'form-control'
             }),
             'start_date': forms.DateTimeInput(attrs={
                 'class': 'form-control',
@@ -180,21 +233,16 @@ class EvaluationSessionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Filter active evaluation forms
-        self.fields['evaluation_forms'].queryset = EvaluationForm.objects.filter(
+        self.fields['form'].queryset = EvaluationForm.objects.filter(
             is_active=True
         )
-        
-        # Filter active users
-        self.fields['target_users'].queryset = User.objects.filter(
-            is_active=True
-        ).exclude(role='student')
 
 
 class EvaluationFilterForm(forms.Form):
     """Form for filtering evaluations"""
     
-    form_type = forms.ChoiceField(
-        choices=[('', 'All Types')] + EvaluationForm.FORM_TYPE_CHOICES,
+    evaluation_type = forms.ChoiceField(
+        choices=[('', 'All Types')] + EvaluationForm.EVALUATION_TYPE_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )

@@ -1,18 +1,53 @@
 from django.contrib import admin
 from .models import (
     EvaluationForm, EvaluationSubmission, EvaluationResponse,
-    EvaluationCriteria, Evaluation, EvaluationSession,
+    EvaluationCriteria, EvaluationAnswerOption, Evaluation, EvaluationSession,
     EvaluationTemplate, TemplateCriteria, EvaluationReport,
     EvaluationHistory
 )
 
+
+class EvaluationAnswerOptionInline(admin.TabularInline):
+    """Inline admin for answer options"""
+    model = EvaluationAnswerOption
+    extra = 3
+    fields = ['option_text', 'weight', 'order', 'is_active']
+
+
 @admin.register(EvaluationCriteria)
 class EvaluationCriteriaAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'weight', 'max_score', 'is_active', 'order']
-    list_filter = ['category', 'is_active', 'created_at']
+    list_display = ['name', 'category', 'question_type', 'weight', 'max_score', 'is_active', 'order']
+    list_filter = ['category', 'question_type', 'is_active', 'is_required', 'created_at']
     search_fields = ['name', 'description']
     ordering = ['category', 'order', 'name']
     readonly_fields = ['created_at', 'updated_at']
+    inlines = [EvaluationAnswerOptionInline]
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'category', 'order')
+        }),
+        ('Question Configuration', {
+            'fields': ('question_type', 'is_required', 'weight', 'max_score')
+        }),
+        ('Status', {
+            'fields': ('is_active',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(EvaluationAnswerOption)
+class EvaluationAnswerOptionAdmin(admin.ModelAdmin):
+    list_display = ['criteria', 'option_text', 'weight', 'order', 'is_active']
+    list_filter = ['is_active', 'criteria__category', 'criteria__question_type']
+    search_fields = ['option_text', 'criteria__name']
+    ordering = ['criteria', 'order']
+    readonly_fields = ['created_at', 'updated_at']
+
 
 @admin.register(EvaluationForm)
 class EvaluationFormAdmin(admin.ModelAdmin):
@@ -22,6 +57,7 @@ class EvaluationFormAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
 
+
 @admin.register(EvaluationSubmission)
 class EvaluationSubmissionAdmin(admin.ModelAdmin):
     list_display = ['form', 'evaluator', 'target_user', 'total_score', 'is_complete', 'submitted_at']
@@ -29,6 +65,7 @@ class EvaluationSubmissionAdmin(admin.ModelAdmin):
     search_fields = ['form__title', 'evaluator__username', 'target_user__username']
     readonly_fields = ['submitted_at', 'updated_at']
     ordering = ['-submitted_at']
+
 
 @admin.register(EvaluationResponse)
 class EvaluationResponseAdmin(admin.ModelAdmin):
@@ -38,6 +75,7 @@ class EvaluationResponseAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at']
     ordering = ['-created_at']
 
+
 @admin.register(Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
     list_display = ['moze', 'evaluator', 'evaluation_period', 'overall_grade', 'overall_score', 'evaluation_date']
@@ -45,6 +83,7 @@ class EvaluationAdmin(admin.ModelAdmin):
     search_fields = ['moze__name', 'evaluator__username']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-evaluation_date']
+
 
 @admin.register(EvaluationSession)
 class EvaluationSessionAdmin(admin.ModelAdmin):
@@ -54,6 +93,7 @@ class EvaluationSessionAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at']
     ordering = ['-created_at']
 
+
 @admin.register(EvaluationTemplate)
 class EvaluationTemplateAdmin(admin.ModelAdmin):
     list_display = ['name', 'evaluation_type', 'is_active', 'is_default', 'created_by']
@@ -61,6 +101,7 @@ class EvaluationTemplateAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['name']
+
 
 @admin.register(EvaluationReport)
 class EvaluationReportAdmin(admin.ModelAdmin):
