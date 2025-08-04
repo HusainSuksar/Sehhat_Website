@@ -534,10 +534,10 @@
                     New Appointment
                 </a>
             {% endif %}
-            <a href="{% url 'mahalshifa:services' %}" class="btn btn-outline">
-                <i class="fas fa-hospital-alt"></i>
-                Medical Services
-            </a>
+                         <a href="{% url 'mahalshifa:hospital_list' %}" class="btn btn-outline">
+                 <i class="fas fa-hospital-alt"></i>
+                 Hospitals
+             </a>
         </div>
     </section>
 
@@ -634,9 +634,9 @@
                             <div class="medical-item">
                                 <div class="medical-header">
                                     <div>
-                                        <a href="{% url 'mahalshifa:record_detail' record.pk %}" class="medical-title">
-                                            {{ record.patient_name }} - {{ record.diagnosis|truncatewords:4 }}
-                                        </a>
+                                                                                 <a href="{% url 'mahalshifa:medical_record_detail' record.pk %}" class="medical-title">
+                                             {{ record.patient_name }} - {{ record.diagnosis|truncatewords:4 }}
+                                         </a>
                                         <div class="medical-description">{{ record.treatment|truncatewords:15|default:"No treatment details" }}</div>
                                         <div class="medical-meta">
                                             <span>
@@ -660,9 +660,9 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <a href="{% url 'mahalshifa:records_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
-                        View All Medical Records
-                    </a>
+                                         <a href="{% url 'mahalshifa:medical_record_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                         View All Medical Records
+                     </a>
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">
@@ -692,9 +692,9 @@
                             <div class="medical-item">
                                 <div class="medical-header">
                                     <div>
-                                        <a href="{% url 'mahalshifa:emergency_detail' case.pk %}" class="medical-title">
-                                            {{ case.patient_name }} - {{ case.emergency_type }}
-                                        </a>
+                                                                                 <a href="{% url 'mahalshifa:appointment_detail' case.pk %}" class="medical-title">
+                                             {{ case.patient_name }} - {{ case.emergency_type }}
+                                         </a>
                                         <div class="medical-description">{{ case.symptoms|truncatewords:15|default:"No symptoms recorded" }}</div>
                                         <div class="medical-meta">
                                             <span>
@@ -752,46 +752,46 @@
                             </div>
                         </a>
 
-                        <a href="{% url 'mahalshifa:emergency_register' %}" class="action-btn">
-                            <div class="action-icon" style="--action-color: #dc2626;">
-                                <i class="fas fa-ambulance"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Emergency Case</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Register emergency</div>
-                            </div>
-                        </a>
+                                                 <a href="{% url 'mahalshifa:medical_record_create' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #dc2626;">
+                                 <i class="fas fa-file-medical"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Medical Record</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Create new record</div>
+                             </div>
+                         </a>
 
-                        <a href="{% url 'mahalshifa:patient_register' %}" class="action-btn">
-                            <div class="action-icon" style="--action-color: #3b82f6;">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Register Patient</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">New patient entry</div>
-                            </div>
-                        </a>
+                         <a href="{% url 'mahalshifa:patient_create' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #3b82f6;">
+                                 <i class="fas fa-user-plus"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Register Patient</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">New patient entry</div>
+                             </div>
+                         </a>
                     {% endif %}
 
-                    <a href="{% url 'mahalshifa:services' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #f59e0b;">
-                            <i class="fas fa-hospital-alt"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Medical Services</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Available services</div>
-                        </div>
-                    </a>
+                                         <a href="{% url 'mahalshifa:hospital_list' %}" class="action-btn">
+                         <div class="action-icon" style="--action-color: #f59e0b;">
+                             <i class="fas fa-hospital-alt"></i>
+                         </div>
+                         <div>
+                             <div style="font-weight: 600; margin-bottom: 0.25rem;">Hospitals</div>
+                             <div style="font-size: 0.75rem; color: #6b7280;">Hospital network</div>
+                         </div>
+                     </a>
 
-                    <a href="{% url 'mahalshifa:departments' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #8b5cf6;">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Departments</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Hospital departments</div>
-                        </div>
-                    </a>
+                                         <a href="{% url 'mahalshifa:patient_list' %}" class="action-btn">
+                         <div class="action-icon" style="--action-color: #8b5cf6;">
+                             <i class="fas fa-users"></i>
+                         </div>
+                         <div>
+                             <div style="font-weight: 600; margin-bottom: 0.25rem;">Patients</div>
+                             <div style="font-size: 0.75rem; color: #6b7280;">Patient directory</div>
+                         </div>
+                     </a>
 
                     {% if user.is_admin %}
                         <a href="{% url 'mahalshifa:analytics' %}" class="action-btn">
