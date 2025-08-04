@@ -19,7 +19,7 @@ from accounts.models import User
 from accounts.permissions import can_user_manage_moze, get_moze_data_for_user
 from mahalshifa.models import Patient, Appointment, MedicalRecord, Doctor as MahalshifaDoctor, Doctor
 from surveys.models import Survey, SurveyResponse
-from evaluation.models import EvaluationForm, EvaluationSubmission
+from evaluation.models import EvaluationForm, EvaluationSubmission, Evaluation
 from araz.models import Petition
 
 
@@ -289,7 +289,7 @@ class MozeDetailView(LoginRequiredMixin, MozeAccessMixin, DetailView):
         doctors = MahalshifaDoctor.objects.filter(appointments__moze=moze).distinct()
         
         # Get evaluations
-        evaluations = moze.evaluations_received.filter(is_published=True).order_by('-evaluation_date')[:5]
+        evaluations = moze.evaluations.filter(is_published=True).order_by('-evaluation_date')[:5]
         
         # Get patient case logs (medical records)
         patient_logs = moze.medical_records.select_related('patient', 'doctor__user').order_by('-consultation_date')[:10]
