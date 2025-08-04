@@ -28,4 +28,7 @@ urlpatterns = [
     
     # User-specific views (only existing views)
     path('my-evaluations/', views.my_evaluations, name='my_evaluations'),
+    
+    # Admin prioritization dashboard
+    path('prioritization/', views.moze_prioritization_dashboard, name='moze_prioritization'),
 ]

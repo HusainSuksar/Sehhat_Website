@@ -13,40 +13,152 @@
         </div>
     </div>
 
-    
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Evaluation</h6>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% for criterion in criteria %}
-                        <div class="form-group">
-                            <label>{{ criterion.name }}</label>
-                            {% if criterion.description %}
-                                <small class="form-text text-muted">{{ criterion.description }}</small>
-                            {% endif %}
-                            <select name="rating_{{ criterion.id }}" class="form-control" required>
-                                <option value="">Select rating...</option>
-                                <option value="5">5 - Excellent</option>
-                                <option value="4">4 - Good</option>
-                                <option value="3">3 - Average</option>
-                                <option value="2">2 - Below Average</option>
-                                <option value="1">1 - Poor</option>
-                            </select>
-                        </div>
-                    {% endfor %}
-                    <div class="form-group">
-                        <label for="comments">Comments (Optional)</label>
-                        <textarea name="comments" class="form-control" rows="4"></textarea>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-success">Submit Evaluation</button>
-                    </div>
-                </form>
-            </div>
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Moze Evaluation Form</h6>
         </div>
+        <div class="card-body">
+            <form method="post" id="evaluation-form">
+                {% csrf_token %}
+                
+                <!-- Moze Selection -->
+                <div class="form-group mb-4">
+                    <label for="target_moze" class="form-label">
+                        <strong>Select Moze to Evaluate:</strong> <span class="text-danger">*</span>
+                    </label>
+                    <select name="target_moze" id="target_moze" class="form-control" required>
+                        <option value="">Choose the Moze you are evaluating...</option>
+                        {% for moze in mozes %}
+                            <option value="{{ moze.id }}">{{ moze.name }} - {{ moze.location }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">Select the medical center (Moze) you are evaluating.</small>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Evaluation Criteria -->
+                <h5 class="mb-3">Evaluation Criteria</h5>
+                {% for criterion in criteria %}
+                    <div class="form-group mb-4">
+                        <label class="form-label">
+                            <strong>{{ criterion.name }}</strong> 
+                            {% if criterion.is_required %}<span class="text-danger">*</span>{% endif %}
+                            <span class="badge badge-secondary">{{ criterion.get_category_display }}</span>
+                        </label>
+                        {% if criterion.description %}
+                            <p class="form-text text-muted mb-2">{{ criterion.description }}</p>
+                        {% endif %}
+                        
+                        {% if criterion.question_type == 'dropdown' or criterion.question_type == 'multiple_choice' %}
+                            <select name="criteria_{{ criterion.id }}" class="form-control" {% if criterion.is_required %}required{% endif %}>
+                                <option value="">Select an option...</option>
+                                {% for option in criterion.get_answer_options %}
+                                    <option value="{{ option.id }}" data-weight="{{ option.weight }}">
+                                        {{ option.option_text }} 
+                                        <span class="text-muted">({{ option.weight }} pts)</span>
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% elif criterion.question_type == 'rating' %}
+                            <select name="criteria_{{ criterion.id }}" class="form-control" {% if criterion.is_required %}required{% endif %}>
+                                <option value="">Select rating...</option>
+                                {% for option in criterion.get_answer_options %}
+                                    <option value="{{ option.id }}" data-weight="{{ option.weight }}">
+                                        {{ option.option_text }} ({{ option.weight }} pts)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% elif criterion.question_type == 'boolean' %}
+                            <select name="criteria_{{ criterion.id }}" class="form-control" {% if criterion.is_required %}required{% endif %}>
+                                <option value="">Select...</option>
+                                {% for option in criterion.get_answer_options %}
+                                    <option value="{{ option.id }}" data-weight="{{ option.weight }}">
+                                        {{ option.option_text }} ({{ option.weight }} pts)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                        
+                        <!-- Optional comment field for each criterion -->
+                        <div class="mt-2">
+                            <textarea name="comment_{{ criterion.id }}" 
+                                      class="form-control" 
+                                      rows="2" 
+                                      placeholder="Additional comments for this criterion (optional)"></textarea>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        No evaluation criteria have been configured yet. Please contact an administrator.
+                    </div>
+                {% endfor %}
+
+                <!-- General Comments -->
+                <div class="form-group mb-4">
+                    <label for="general_comments" class="form-label">
+                        <strong>General Comments</strong>
+                    </label>
+                    <textarea name="general_comments" 
+                              id="general_comments" 
+                              class="form-control" 
+                              rows="4" 
+                              placeholder="Any additional comments or observations about this Moze..."></textarea>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'evaluation:form_detail' form.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Submit Evaluation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form validation feedback
+    const form = document.getElementById('evaluation-form');
+    const selects = form.querySelectorAll('select[required]');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        selects.forEach(function(select) {
+            if (!select.value) {
+                select.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                select.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+    
+    // Remove invalid class on change
+    selects.forEach(function(select) {
+        select.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+</script>
+
+<style>
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+.badge-secondary {
+    background-color: #6c757d;
+}
+</style>
 {% endblock %}

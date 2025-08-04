@@ -7,8 +7,22 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-1">📊 Evaluation Dashboard</h1>
-            <p class="text-muted mb-0">Performance evaluation and feedback management</p>
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h3 mb-1">📊 Evaluation Dashboard</h1>
+                    <p class="text-muted mb-0">Performance evaluation and feedback management</p>
+                </div>
+                {% if user.is_admin or user.role == 'badri_mahal_admin' %}
+                <div>
+                    <a href="{% url 'evaluation:moze_prioritization' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-chart-line"></i> Moze Prioritization
+                    </a>
+                    <a href="{% url 'evaluation:analytics' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 

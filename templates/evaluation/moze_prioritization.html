@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Moze Prioritization Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-chart-line"></i> Moze Prioritization Dashboard
+                </h1>
+                <div>
+                    <a href="{% url 'evaluation:analytics' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </a>
+                    <a href="{% url 'evaluation:form_create' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> New Evaluation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Mozes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_mozes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hospital fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Critical Priority
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ critical_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                High Priority
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ high_priority_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-flag fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Needs Attention
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ needs_attention_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-eye fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Prioritization Table -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Moze Priority Ranking</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                             aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Export Options:</div>
+                            <a class="dropdown-item" href="{% url 'evaluation:export_evaluations' %}">Export to CSV</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Moze</th>
+                                    <th>Grade</th>
+                                    <th>Score</th>
+                                    <th>Last Evaluated</th>
+                                    <th>Manager</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for me in moze_evaluations %}
+                                <tr class="{% if me.priority_level == 'critical' %}table-danger{% elif me.priority_level == 'high' %}table-warning{% endif %}">
+                                    <td>
+                                        {% if me.priority_level == 'critical' %}
+                                            <span class="badge badge-danger">CRITICAL</span>
+                                        {% elif me.priority_level == 'high' %}
+                                            <span class="badge badge-warning">HIGH</span>
+                                        {% elif me.priority_level == 'normal' %}
+                                            <span class="badge badge-success">NORMAL</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">UNKNOWN</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ me.moze.name }}</strong><br>
+                                        <small class="text-muted">{{ me.moze.location }}</small>
+                                    </td>
+                                    <td>
+                                        {% if me.grade %}
+                                            <span class="badge badge-{% if me.grade == 'A+' or me.grade == 'A' %}success{% elif me.grade == 'B' %}primary{% elif me.grade == 'C' %}warning{% else %}danger{% endif %}">
+                                                {{ me.grade }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Not Evaluated</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if me.score %}
+                                            {{ me.score|floatformat:1 }}%
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if me.last_evaluated %}
+                                            {{ me.last_evaluated|date:"M d, Y" }}<br>
+                                            <small class="text-muted">{{ me.days_since_evaluation }} days ago</small>
+                                        {% else %}
+                                            <span class="text-danger">Never</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ me.moze.aamil.get_full_name }}</strong><br>
+                                        {% if me.moze.moze_coordinator %}
+                                            <small class="text-muted">Coord: {{ me.moze.moze_coordinator.get_full_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'evaluation:form_create' %}?moze={{ me.moze.id }}" 
+                                               class="btn btn-primary btn-sm" title="Evaluate">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                            {% if me.latest_evaluation %}
+                                            <a href="#" class="btn btn-info btn-sm" title="View Details" 
+                                               data-toggle="modal" data-target="#evaluationModal{{ me.moze.id }}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No Mozes found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Grade Distribution and Recent Activity -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- Grade Distribution -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Grade Distribution</h6>
+                </div>
+                <div class="card-body">
+                    {% for grade, count in grade_distribution.items %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge badge-{% if grade == 'A+' or grade == 'A' %}success{% elif grade == 'B' %}primary{% elif grade == 'C' %}warning{% else %}danger{% endif %}">
+                                Grade {{ grade }}
+                            </span>
+                            <span>{{ count }} Moze{{ count|pluralize }}</span>
+                        </div>
+                        <div class="progress mt-1" style="height: 10px;">
+                            <div class="progress-bar bg-{% if grade == 'A+' or grade == 'A' %}success{% elif grade == 'B' %}primary{% elif grade == 'C' %}warning{% else %}danger{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {% widthratio count total_mozes 100 %}%"
+                                 aria-valuenow="{{ count }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ total_mozes }}">
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No grades available yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Evaluations</h6>
+                </div>
+                <div class="card-body">
+                    {% for evaluation in recent_evaluations %}
+                    <div class="mb-3 pb-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ evaluation.moze.name }}</strong>
+                                <span class="badge badge-{% if evaluation.overall_grade == 'A+' or evaluation.overall_grade == 'A' %}success{% elif evaluation.overall_grade == 'B' %}primary{% elif evaluation.overall_grade == 'C' %}warning{% else %}danger{% endif %} ml-2">
+                                    {{ evaluation.overall_grade }}
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    by {{ evaluation.evaluator.get_full_name }}<br>
+                                    {{ evaluation.evaluation_date|date:"M d, Y" }}
+                                </small>
+                            </div>
+                            <div class="text-right">
+                                <div class="h6 mb-0">{{ evaluation.overall_score|floatformat:1 }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent evaluations.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evaluation Detail Modals -->
+{% for me in moze_evaluations %}
+{% if me.latest_evaluation %}
+<div class="modal fade" id="evaluationModal{{ me.moze.id }}" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ me.moze.name }} - Evaluation Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Overall Performance</h6>
+                        <p><strong>Grade:</strong> 
+                            <span class="badge badge-{% if me.grade == 'A+' or me.grade == 'A' %}success{% elif me.grade == 'B' %}primary{% elif me.grade == 'C' %}warning{% else %}danger{% endif %}">
+                                {{ me.grade }}
+                            </span>
+                        </p>
+                        <p><strong>Score:</strong> {{ me.score|floatformat:1 }}%</p>
+                        <p><strong>Evaluation Date:</strong> {{ me.last_evaluated|date:"F d, Y" }}</p>
+                        <p><strong>Evaluator:</strong> {{ me.latest_evaluation.evaluator.get_full_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Category Breakdown</h6>
+                        {% for category, score in me.latest_evaluation.get_category_breakdown.items %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ category }}:</span>
+                                <span>{{ score|floatformat:1 }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ score }}%" 
+                                     aria-valuenow="{{ score }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if me.latest_evaluation.strengths %}
+                <div class="mt-3">
+                    <h6>Strengths</h6>
+                    <p>{{ me.latest_evaluation.strengths }}</p>
+                </div>
+                {% endif %}
+                
+                {% if me.latest_evaluation.weaknesses %}
+                <div class="mt-3">
+                    <h6>Areas for Improvement</h6>
+                    <p>{{ me.latest_evaluation.weaknesses }}</p>
+                </div>
+                {% endif %}
+                
+                {% if me.latest_evaluation.recommendations %}
+                <div class="mt-3">
+                    <h6>Recommendations</h6>
+                    <p>{{ me.latest_evaluation.recommendations }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a href="{% url 'evaluation:form_create' %}?moze={{ me.moze.id }}" class="btn btn-primary">
+                    New Evaluation
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        "order": [[ 0, "asc" ]], // Sort by priority
+        "pageLength": 25,
+        "responsive": true
+    });
+});
+</script>
+{% endblock %}

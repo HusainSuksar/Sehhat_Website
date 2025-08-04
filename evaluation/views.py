@@ -16,7 +16,7 @@ from decimal import Decimal
 from .models import (
     EvaluationForm, EvaluationCriteria, EvaluationSubmission, 
     EvaluationResponse, EvaluationSession, EvaluationTemplate,
-    CriteriaRating, EvaluationReport
+    CriteriaRating, EvaluationReport, EvaluationAnswerOption, Evaluation
 )
 from accounts.models import User
 from moze.models import Moze
@@ -313,43 +313,73 @@ def evaluate_form(request, pk):
     if request.method == 'POST':
         # Process evaluation submission
         try:
-            # Create submission
+            # Create submission with Moze selection
             submission = EvaluationSubmission.objects.create(
                 form=form,
                 evaluator=user,
+                target_moze_id=request.POST.get('target_moze'),
+                comments=request.POST.get('general_comments', ''),
                 submitted_at=timezone.now()
             )
             
-            # Process criteria ratings
-            total_score = 0
+            # Process criteria ratings using weighted answer options
+            total_weighted_score = 0
+            total_possible_score = 0
             criteria_count = 0
             
             # Get form criteria - use all active criteria since forms don't have direct criteria relationship
             criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
             
             for criteria_item in criteria:
-                rating_key = f'criteria_{criteria_item.id}'
-                rating_value = request.POST.get(rating_key)
+                option_id = request.POST.get(f'criteria_{criteria_item.id}')
                 
-                if rating_value:
+                if option_id:
                     try:
-                        rating = int(rating_value)
-                        if 1 <= rating <= 5:
-                            CriteriaRating.objects.create(
-                                submission=submission,
-                                criteria=criteria_item,
-                                score=rating
-                            )
-                            total_score += rating
-                            criteria_count += 1
-                    except ValueError:
+                        selected_option = EvaluationAnswerOption.objects.get(
+                            pk=option_id, 
+                            criteria=criteria_item,
+                            is_active=True
+                        )
+                        
+                        # Calculate weighted score
+                        weighted_score = selected_option.weight * criteria_item.weight
+                        total_weighted_score += weighted_score
+                        total_possible_score += criteria_item.max_score * criteria_item.weight
+                        
+                        # Create response record
+                        EvaluationResponse.objects.create(
+                            submission=submission,
+                            criteria=criteria_item,
+                            score=int(selected_option.weight),  # Store the option weight as score
+                            comment=request.POST.get(f'comment_{criteria_item.id}', '')
+                        )
+                        
+                        criteria_count += 1
+                        
+                    except EvaluationAnswerOption.DoesNotExist:
                         continue
             
-            # Calculate average score
-            if criteria_count > 0:
-                submission.total_score = total_score / criteria_count
-                submission.is_complete = True
-                submission.save()
+            # Calculate percentage score
+            if total_possible_score > 0:
+                submission.total_score = (total_weighted_score / total_possible_score) * 100
+            else:
+                submission.total_score = 0
+            
+            submission.is_complete = True
+            submission.save()
+            
+            # Create corresponding Evaluation record for A-E grading if Moze is selected
+            if submission.target_moze:
+                evaluation = Evaluation.objects.create(
+                    moze=submission.target_moze,
+                    evaluator=user,
+                    overall_score=submission.total_score,
+                    evaluation_date=timezone.now().date(),
+                    evaluation_period='special',
+                    is_draft=False
+                )
+                # The save method will automatically calculate the grade
+                evaluation.save()
             
             messages.success(request, "Evaluation submitted successfully!")
             return redirect('evaluation:submission_detail', pk=submission.pk)
@@ -361,9 +391,13 @@ def evaluate_form(request, pk):
     # Get form criteria - use all active criteria since forms don't have direct criteria relationship
     criteria = EvaluationCriteria.objects.filter(is_active=True).order_by('order')
     
+    # Get active Mozes for selection
+    mozes = Moze.objects.filter(is_active=True).order_by('name')
+    
     context = {
         'form': form,
         'criteria': criteria,
+        'mozes': mozes,
     }
     
     return render(request, 'evaluation/evaluate_form.html', context)
@@ -375,11 +409,12 @@ def submission_detail(request, pk):
     submission = get_object_or_404(EvaluationSubmission, pk=pk)
     user = request.user
     
-    # Check permissions
+    # Check basic permissions
     can_view = (
         user == submission.evaluator or
         user == submission.target_user or
         user.is_admin or
+        user.role == 'badri_mahal_admin' or
         user.is_aamil or
         user.is_moze_coordinator
     )
@@ -388,8 +423,42 @@ def submission_detail(request, pk):
         messages.error(request, "You don't have permission to view this submission.")
         return redirect('evaluation:dashboard')
     
+    # Hide results from Moze users (team members of evaluated Moze)
+    can_view_results = True
+    show_score = True
+    show_grade = True
+    
+    # If this submission evaluates a Moze, check if user is part of that Moze's team
+    if submission.target_moze:
+        # Check if user is a team member of the evaluated Moze
+        is_moze_team_member = (
+            user in submission.target_moze.team_members.all() or
+            user == submission.target_moze.aamil or
+            user == submission.target_moze.moze_coordinator
+        )
+        
+        # Hide results from Moze team members unless they're admins
+        if is_moze_team_member and not (user.is_admin or user.role == 'badri_mahal_admin'):
+            can_view_results = False
+            show_score = False
+            show_grade = False
+            messages.info(request, "Evaluation results are confidential and only visible to administrators.")
+    
+    # Get related evaluation if it exists
+    related_evaluation = None
+    if submission.target_moze:
+        related_evaluation = Evaluation.objects.filter(
+            moze=submission.target_moze,
+            evaluator=submission.evaluator,
+            evaluation_date=submission.submitted_at.date()
+        ).first()
+    
     context = {
         'submission': submission,
+        'can_view_results': can_view_results,
+        'show_score': show_score,
+        'show_grade': show_grade,
+        'related_evaluation': related_evaluation,
     }
     
     return render(request, 'evaluation/submission_detail.html', context)
@@ -619,3 +688,117 @@ def my_evaluations(request):
     }
     
     return render(request, 'evaluation/my_evaluations.html', context)
+
+
+@login_required
+def moze_prioritization_dashboard(request):
+    """Admin dashboard for Moze evaluation results and prioritization"""
+    user = request.user
+    
+    # Check permissions - only admins and Badri Mahal admins can access
+    if not (user.is_admin or user.role == 'badri_mahal_admin'):
+        messages.error(request, "Access denied. This dashboard is for administrators only.")
+        return redirect('evaluation:dashboard')
+    
+    # Get latest evaluations for each Moze with prioritization data
+    moze_evaluations = []
+    all_mozes = Moze.objects.filter(is_active=True).select_related('aamil', 'moze_coordinator')
+    
+    for moze in all_mozes:
+        # Get the most recent evaluation
+        latest_eval = moze.evaluations.filter(is_published=True).order_by('-evaluation_date').first()
+        
+        # Get recent submissions for this Moze
+        recent_submissions = EvaluationSubmission.objects.filter(
+            target_moze=moze,
+            is_complete=True
+        ).order_by('-submitted_at')[:3]
+        
+        # Calculate average score from recent submissions
+        avg_submission_score = recent_submissions.aggregate(
+            avg_score=Avg('total_score')
+        )['avg_score'] or 0
+        
+        evaluation_data = {
+            'moze': moze,
+            'latest_evaluation': latest_eval,
+            'recent_submissions': recent_submissions,
+            'submission_count': recent_submissions.count(),
+            'avg_submission_score': round(avg_submission_score, 1),
+            'needs_attention': False,
+            'priority_level': 'normal',
+            'last_evaluated': None,
+            'days_since_evaluation': None,
+        }
+        
+        if latest_eval:
+            evaluation_data.update({
+                'grade': latest_eval.overall_grade,
+                'score': latest_eval.overall_score,
+                'needs_attention': latest_eval.needs_immediate_attention(),
+                'last_evaluated': latest_eval.evaluation_date,
+                'days_since_evaluation': (timezone.now().date() - latest_eval.evaluation_date).days,
+            })
+            
+            # Determine priority level
+            if latest_eval.overall_grade in ['E', 'D']:
+                evaluation_data['priority_level'] = 'critical'
+            elif latest_eval.overall_grade == 'C':
+                evaluation_data['priority_level'] = 'high'
+            elif latest_eval.overall_grade in ['B', 'A']:
+                evaluation_data['priority_level'] = 'normal'
+            else:
+                evaluation_data['priority_level'] = 'unknown'
+        else:
+            # No evaluation yet - high priority
+            evaluation_data['priority_level'] = 'high'
+            evaluation_data['needs_attention'] = True
+        
+        moze_evaluations.append(evaluation_data)
+    
+    # Sort by priority: Critical first, then by lowest scores, then by days since last evaluation
+    def sort_priority(item):
+        priority_order = {'critical': 0, 'high': 1, 'normal': 2, 'unknown': 3}
+        return (
+            priority_order.get(item['priority_level'], 4),
+            -item.get('score', 0),  # Lower scores first (negative for reverse order)
+            -(item.get('days_since_evaluation') or 999)  # More days since evaluation first
+        )
+    
+    moze_evaluations.sort(key=sort_priority)
+    
+    # Statistics for dashboard
+    total_mozes = len(moze_evaluations)
+    critical_count = len([me for me in moze_evaluations if me['priority_level'] == 'critical'])
+    high_priority_count = len([me for me in moze_evaluations if me['priority_level'] == 'high'])
+    needs_attention_count = len([me for me in moze_evaluations if me['needs_attention']])
+    
+    # Recent activity
+    recent_evaluations = Evaluation.objects.filter(
+        is_published=True
+    ).select_related('moze', 'evaluator').order_by('-evaluation_date')[:10]
+    
+    recent_submissions = EvaluationSubmission.objects.filter(
+        is_complete=True,
+        target_moze__isnull=False
+    ).select_related('form', 'evaluator', 'target_moze').order_by('-submitted_at')[:10]
+    
+    # Grade distribution
+    grade_distribution = {}
+    for me in moze_evaluations:
+        if me.get('grade'):
+            grade_distribution[me['grade']] = grade_distribution.get(me['grade'], 0) + 1
+    
+    context = {
+        'moze_evaluations': moze_evaluations,
+        'total_mozes': total_mozes,
+        'critical_count': critical_count,
+        'high_priority_count': high_priority_count,
+        'needs_attention_count': needs_attention_count,
+        'recent_evaluations': recent_evaluations,
+        'recent_submissions': recent_submissions,
+        'grade_distribution': grade_distribution,
+        'high_priority_mozes': [me for me in moze_evaluations if me['priority_level'] in ['critical', 'high']],
+    }
+    
+    return render(request, 'evaluation/moze_prioritization.html', context)

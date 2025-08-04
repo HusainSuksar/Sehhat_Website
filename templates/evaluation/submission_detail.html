@@ -32,9 +32,33 @@
                         <strong>Submitted:</strong> {{ submission.submitted_at|date:"F d, Y g:i A" }}
                     </div>
                     <div class="col-md-6">
-                        <strong>Total Score:</strong> {{ submission.total_score|floatformat:1 }}
+                        {% if show_score %}
+                            <strong>Total Score:</strong> {{ submission.total_score|floatformat:1 }}%
+                            {% if related_evaluation and show_grade %}
+                                <span class="badge badge-{% if related_evaluation.overall_grade == 'A+' or related_evaluation.overall_grade == 'A' %}success{% elif related_evaluation.overall_grade == 'B' %}primary{% elif related_evaluation.overall_grade == 'C' %}warning{% else %}danger{% endif %} ml-2">
+                                    Grade {{ related_evaluation.overall_grade }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <strong>Status:</strong> <span class="text-muted">Evaluation Completed</span>
+                        {% endif %}
                     </div>
                 </div>
+                
+                {% if submission.target_moze %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>Evaluated Moze:</strong> {{ submission.target_moze.name }} - {{ submission.target_moze.location }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if not can_view_results %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Confidential Results:</strong> The detailed results of this evaluation are confidential and only visible to administrators for internal prioritization purposes.
+                </div>
+                {% endif %}
                 {% if submission.comments %}
                 <div class="mb-3">
                     <h6 class="font-weight-bold">Comments:</h6>
