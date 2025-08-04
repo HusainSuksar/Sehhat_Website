@@ -35,7 +35,7 @@ def dashboard(request):
         student_profile = Student.objects.filter(user=user).first()
     
     # Base queryset based on user role
-    if user.role == 'admin':
+    if user.role == 'admin' or user.role == 'badri_mahal_admin' or user.is_admin:
         students = Student.objects.all()
         enrollments = Enrollment.objects.all()
         courses = Course.objects.all()

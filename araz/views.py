@@ -43,9 +43,14 @@ def dashboard(request):
     pending_petitions = petitions.filter(status='pending').count()
     in_progress_petitions = petitions.filter(status='in_progress').count()
     resolved_petitions = petitions.filter(status='resolved').count()
+    approved_petitions = resolved_petitions  # Alias for template compatibility
+    
+    # User-specific petitions
+    my_petitions = petitions.filter(created_by=user).count()
     
     # Recent petitions
     recent_petitions = petitions.select_related('created_by', 'category', 'moze').order_by('-created_at')[:10]
+    recent_my_petitions = petitions.filter(created_by=user).select_related('created_by', 'category', 'moze').order_by('-created_at')[:5]
     
     # Monthly statistics for charts
     monthly_stats = []
@@ -83,7 +88,10 @@ def dashboard(request):
         'pending_petitions': pending_petitions,
         'in_progress_petitions': in_progress_petitions,
         'resolved_petitions': resolved_petitions,
+        'approved_petitions': approved_petitions,
+        'my_petitions': my_petitions,
         'recent_petitions': recent_petitions,
+        'recent_my_petitions': recent_my_petitions,
         'monthly_stats': monthly_stats[::-1],  # Reverse for chronological order
         'category_stats': category_stats,
         'priority_stats': priority_stats,
