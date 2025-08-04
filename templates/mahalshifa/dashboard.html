@@ -1,418 +1,872 @@
 {% extends 'base.html' %}
 
-{% block title %}Mahal Shifa Dashboard{% endblock %}
+{% block title %}Mahal Shifa Dashboard - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Performance-optimized Mahalshifa dashboard */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f7fa 100%);
+        min-height: 100vh;
+    }
+
+    /* Simplified background */
+    .bg-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.03;
+        background: radial-gradient(circle at 25% 25%, #0891b2 0%, transparent 70%),
+                    radial-gradient(circle at 75% 75%, #06b6d4 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Main Content */
+    .main-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (min-width: 1024px) {
+        .welcome-section {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .welcome-content {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .welcome-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #0891b2, #06b6d4);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .welcome-text h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .welcome-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .meta-item.success {
+        color: #059669;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0891b2, #06b6d4);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+        color: white;
+    }
+
+    .btn-outline {
+        background: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-subtitle {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+
+    /* Main Content Sections */
+    .main-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: #0891b2;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .section-title h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+
+    .section-badge {
+        background: #cffafe;
+        color: #0e7490;
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    /* Medical Records Grid */
+    .medical-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .medical-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        border-left: 4px solid #0891b2;
+    }
+
+    .medical-item:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .medical-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .medical-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+        text-decoration: none;
+    }
+
+    .medical-title:hover {
+        color: #0891b2;
+        text-decoration: none;
+    }
+
+    .medical-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .medical-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .medical-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-completed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-urgent {
+        background: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-btn:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #374151;
+    }
+
+    .action-icon {
+        width: 24px;
+        height: 24px;
+        background: var(--action-color, #0891b2);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        border-left: 3px solid #0891b2;
+        background: #f9fafb;
+    }
+
+    .activity-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0891b2;
+        color: white;
+        flex-shrink: 0;
+        font-size: 0.875rem;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: #d1d5db;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .welcome-text h2 {
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-1">🏥 Mahal Shifa Dashboard</h1>
-            <p class="text-muted mb-0">Hospital and medical services management</p>
-        </div>
-    </div>
+<!-- Simplified background pattern -->
+<div class="bg-pattern"></div>
 
-    <!-- Quick Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Today's Appointments</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ todays_appointments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
-                        </div>
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-icon">
+                <i class="fas fa-hospital"></i>
+            </div>
+            <div class="welcome-text">
+                <h2>Mahal Shifa Medical Center</h2>
+                <p>Advanced hospital management and medical services coordination platform.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <span>{{ user.get_full_name|default:user.username }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>{{ todays_appointments|default:'0' }} Today's Appointments</span>
+                    </div>
+                    <div class="meta-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Medical Services Active</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_appointments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Patients</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_patients }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Emergency Cases</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ emergency_cases }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-ambulance fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Secondary Statistics -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Patients</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_patients }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-secondary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Hospitals</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_hospitals }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-hospital fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Lab Tests</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_lab_tests }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-vial fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_appointments }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Recent Appointments -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Appointments</h6>
-                    <a href="{% url 'mahalshifa:appointment_list' %}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-list fa-sm"></i> View All
-                    </a>
-                </div>
-                <div class="card-body">
-                    {% if recent_appointments %}
-                        <div class="table-responsive">
-                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th>Patient</th>
-                                        <th>Doctor</th>
-                                        <th>Date & Time</th>
-                                        <th>Type</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for appointment in recent_appointments %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'mahalshifa:patient_detail' appointment.patient.pk %}">
-                                                {{ appointment.patient.user.get_full_name }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <!-- Doctor detail view not implemented --><span>
-                                                                                                  {{ appointment.doctor.user.get_full_name }}
-                                              </span>
-                                        </td>
-                                        <td>
-                                            {{ appointment.appointment_date|date:"M d, Y" }}
-                                            <br><small class="text-muted">{{ appointment.appointment_time }}</small>
-                                        </td>
-                                        <td>
-                                            {% if appointment.appointment_type == 'emergency' %}
-                                                <span class="badge badge-danger">Emergency</span>
-                                            {% elif appointment.appointment_type == 'urgent' %}
-                                                <span class="badge badge-warning">Urgent</span>
-                                            {% else %}
-                                                <span class="badge badge-info">Regular</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if appointment.status == 'scheduled' %}
-                                                <span class="badge badge-warning">Scheduled</span>
-                                            {% elif appointment.status == 'completed' %}
-                                                <span class="badge badge-success">Completed</span>
-                                            {% elif appointment.status == 'cancelled' %}
-                                                <span class="badge badge-danger">Cancelled</span>
-                                            {% else %}
-                                                <span class="badge badge-info">{{ appointment.get_status_display }}</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-calendar-alt fa-3x text-gray-300 mb-3"></i>
-                            <p class="text-muted">No appointments yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Recent Admissions -->
-            {% if recent_admissions %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Recent Admissions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Patient</th>
-                                    <th>Room</th>
-                                    <th>Hospital</th>
-                                    <th>Admission Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for admission in recent_admissions %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'mahalshifa:patient_detail' admission.patient.pk %}">
-                                            {{ admission.patient.user.get_full_name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ admission.room.room_number }} - {{ admission.room.room_type }}</td>
-                                    <td>{{ admission.hospital.name }}</td>
-                                    <td>{{ admission.admission_date|date:"M d, Y" }}</td>
-                                    <td>
-                                        {% if admission.discharge_date %}
-                                            <span class="badge badge-success">Discharged</span>
-                                        {% else %}
-                                            <span class="badge badge-warning">Admitted</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <div class="welcome-actions">
+            {% if user.is_admin %}
+                <a href="{% url 'mahalshifa:appointment_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    New Appointment
+                </a>
             {% endif %}
+            <a href="{% url 'mahalshifa:services' %}" class="btn btn-outline">
+                <i class="fas fa-hospital-alt"></i>
+                Medical Services
+            </a>
+        </div>
+    </section>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+                    <i class="fas fa-calendar-day" style="color: #0891b2;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +15%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ todays_appointments|default:'--' }}</div>
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-subtitle">Scheduled for today</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ pending_appointments|default:'--' }}</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-subtitle">Awaiting confirmation</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                    <i class="fas fa-user-md" style="color: #10b981;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +5%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ available_doctors|default:'--' }}</div>
+                <div class="stat-label">Available Doctors</div>
+                <div class="stat-subtitle">On duty today</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+                    <i class="fas fa-bed" style="color: #8b5cf6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-down"></i>
+                    -2%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ available_beds|default:'--' }}</div>
+                <div class="stat-label">Available Beds</div>
+                <div class="stat-subtitle">Hospital capacity</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- Recent Medical Records -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <h3>Recent Medical Records</h3>
+                    </div>
+                    <div class="section-badge">{{ recent_records|length|default:'0' }} Recent</div>
+                </div>
+
+                {% if recent_records %}
+                    <div class="medical-grid">
+                        {% for record in recent_records %}
+                            <div class="medical-item">
+                                <div class="medical-header">
+                                    <div>
+                                        <a href="{% url 'mahalshifa:record_detail' record.pk %}" class="medical-title">
+                                            {{ record.patient_name }} - {{ record.diagnosis|truncatewords:4 }}
+                                        </a>
+                                        <div class="medical-description">{{ record.treatment|truncatewords:15|default:"No treatment details" }}</div>
+                                        <div class="medical-meta">
+                                            <span>
+                                                <i class="fas fa-calendar"></i>
+                                                {{ record.date|date:"M d, Y" }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-user-md"></i>
+                                                Dr. {{ record.doctor.name }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-tag"></i>
+                                                {{ record.department|default:"General" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-{{ record.status|lower }}">
+                                        {{ record.get_status_display|default:record.status|title }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'mahalshifa:records_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                        View All Medical Records
+                    </a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <div class="empty-state-title">No Medical Records</div>
+                        <div class="empty-state-text">Recent medical records and patient files will appear here.</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Emergency Cases -->
+            <div class="main-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                        <h3>Emergency Cases</h3>
+                    </div>
+                    <div class="section-badge">{{ emergency_cases|length|default:'0' }} Active</div>
+                </div>
+
+                {% if emergency_cases %}
+                    <div class="medical-grid">
+                        {% for case in emergency_cases %}
+                            <div class="medical-item">
+                                <div class="medical-header">
+                                    <div>
+                                        <a href="{% url 'mahalshifa:emergency_detail' case.pk %}" class="medical-title">
+                                            {{ case.patient_name }} - {{ case.emergency_type }}
+                                        </a>
+                                        <div class="medical-description">{{ case.symptoms|truncatewords:15|default:"No symptoms recorded" }}</div>
+                                        <div class="medical-meta">
+                                            <span>
+                                                <i class="fas fa-clock"></i>
+                                                {{ case.arrival_time|date:"H:i" }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                {{ case.priority|title }} Priority
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="status-badge status-urgent">
+                                        Emergency
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="padding: 2rem 1rem;">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                        <div class="empty-state-title" style="font-size: 1rem;">No Emergency Cases</div>
+                        <div class="empty-state-text" style="font-size: 0.875rem;">Emergency cases will appear here when active.</div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="col-lg-4">
+        <div>
             <!-- Quick Actions -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="section-badge">Medical</div>
                 </div>
-                <div class="card-body">
-                    <a href="{% url 'mahalshifa:appointment_create' %}" class="btn btn-primary btn-block mb-2">
-                        <i class="fas fa-plus fa-sm"></i> Schedule Appointment
-                    </a>
-                    <a href="{% url 'mahalshifa:patient_list' %}" class="btn btn-info btn-block mb-2">
-                        <i class="fas fa-users fa-sm"></i> View Patients
-                    </a>
-                    {% if can_manage %}
-                        <a href="{% url 'mahalshifa:analytics' %}" class="btn btn-success btn-block mb-2">
-                            <i class="fas fa-chart-bar fa-sm"></i> View Analytics
+
+                <div class="actions-grid">
+                    {% if user.is_admin %}
+                        <a href="{% url 'mahalshifa:appointment_create' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #10b981;">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">New Appointment</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Schedule patient visit</div>
+                            </div>
                         </a>
-                        <a href="{% url 'mahalshifa:inventory_management' %}" class="btn btn-warning btn-block">
-                            <i class="fas fa-boxes fa-sm"></i> Manage Inventory
+
+                        <a href="{% url 'mahalshifa:emergency_register' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #dc2626;">
+                                <i class="fas fa-ambulance"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Emergency Case</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Register emergency</div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'mahalshifa:patient_register' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #3b82f6;">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Register Patient</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">New patient entry</div>
+                            </div>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'mahalshifa:services' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #f59e0b;">
+                            <i class="fas fa-hospital-alt"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Medical Services</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Available services</div>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'mahalshifa:departments' %}" class="action-btn">
+                        <div class="action-icon" style="--action-color: #8b5cf6;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Departments</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">Hospital departments</div>
+                        </div>
+                    </a>
+
+                    {% if user.is_admin %}
+                        <a href="{% url 'mahalshifa:analytics' %}" class="action-btn">
+                            <div class="action-icon" style="--action-color: #6366f1;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">Hospital insights</div>
+                            </div>
                         </a>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Department Statistics -->
-            {% if dept_stats %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Departments</h6>
-                </div>
-                <div class="card-body">
-                    {% for dept in dept_stats %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ dept.name }}</span>
-                        <span class="badge badge-primary">{{ dept.appointment_count }} appointments</span>
+            <!-- Hospital Status */
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h3>Hospital Status</h3>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            {% endif %}
 
-            <!-- Monthly Trends (Mini Chart) -->
-            {% if monthly_stats %}
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Appointment Trends</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="appointmentTrendChart" width="100%" height="150"></canvas>
-                </div>
-            </div>
-            {% endif %}
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ todays_appointments|default:'0' }} appointments today</div>
+                            <div class="activity-time">Scheduled visits</div>
+                        </div>
+                    </div>
 
-            <!-- Recent System Activity -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">System Status</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="mr-3">
-                            <div class="icon-circle bg-success">
-                                <i class="fas fa-server text-white"></i>
-                            </div>
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-user-md"></i>
                         </div>
-                        <div>
-                            <div class="small font-weight-bold">System Online</div>
-                            <div class="small text-muted">All services operational</div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ available_doctors|default:'0' }} doctors on duty</div>
+                            <div class="activity-time">Medical staff</div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="mr-3">
-                            <div class="icon-circle bg-primary">
-                                <i class="fas fa-database text-white"></i>
-                            </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-bed"></i>
                         </div>
-                        <div>
-                            <div class="small font-weight-bold">Database Connected</div>
-                            <div class="small text-muted">Response time: ~50ms</div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ available_beds|default:'0' }} beds available</div>
+                            <div class="activity-time">Hospital capacity</div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <div class="mr-3">
-                            <div class="icon-circle bg-info">
-                                <i class="fas fa-users text-white"></i>
-                            </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="fas fa-ambulance"></i>
                         </div>
-                        <div>
-                            <div class="small font-weight-bold">Active Users</div>
-                            <div class="small text-muted">{{ user_role }} - Online</div>
+                        <div class="activity-content">
+                            <div class="activity-text">{{ emergency_cases|length|default:'0' }} emergency cases</div>
+                            <div class="activity-time">Active emergencies</div>
                         </div>
                     </div>
                 </div>
+
+                {% if user.is_admin %}
+                    <a href="{% url 'mahalshifa:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View Hospital Analytics
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
-</div>
-
-{% if monthly_stats %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Appointment Trends Chart
-var ctx = document.getElementById('appointmentTrendChart').getContext('2d');
-var appointmentChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [{% for stat in monthly_stats %}'{{ stat.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-        datasets: [{
-            label: 'Appointments',
-            data: [{% for stat in monthly_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
-            backgroundColor: 'rgba(78, 115, 223, 0.1)',
-            borderColor: 'rgba(78, 115, 223, 1)',
-            borderWidth: 2,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                display: false
-            },
-            x: {
-                display: false
-            }
-        }
-    }
-});
-</script>
-{% endif %}
-
-<style>
-.icon-circle {
-    height: 2.5rem;
-    width: 2.5rem;
-    border-radius: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-</style>
+</main>
 {% endblock %}

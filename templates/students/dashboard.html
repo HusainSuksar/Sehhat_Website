@@ -607,7 +607,7 @@
                 <i class="fas fa-book"></i>
                 My Courses
             </a>
-            <a href="{% url 'students:grade_report' %}" class="btn btn-outline">
+            <a href="{% url 'students:my_grades' %}" class="btn btn-outline">
                 <i class="fas fa-chart-line"></i>
                 Grades
             </a>
@@ -617,14 +617,14 @@
     <!-- Action Bar -->
     <div class="action-bar">
         <div class="action-group">
-            <a href="{% url 'students:course_enrollment' %}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i>
-                Enroll Course
-            </a>
-            <a href="{% url 'students:assignment_list' %}" class="btn btn-outline btn-sm">
-                <i class="fas fa-tasks"></i>
-                Assignments
-            </a>
+                         <a href="{% url 'students:course_list' %}" class="btn btn-primary btn-sm">
+                 <i class="fas fa-plus"></i>
+                 Browse Courses
+             </a>
+             <a href="{% url 'students:my_grades' %}" class="btn btn-outline btn-sm">
+                 <i class="fas fa-tasks"></i>
+                 My Grades
+             </a>
             <button class="btn btn-outline btn-sm" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i>
                 Refresh
@@ -850,55 +850,55 @@
                 </div>
 
                 <div class="actions-grid">
-                    <a href="{% url 'students:course_enrollment' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #10b981;">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Enroll Course</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Join new classes</div>
-                        </div>
-                    </a>
+                                             <a href="{% url 'students:course_list' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #10b981;">
+                                 <i class="fas fa-book"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Browse Courses</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Available courses</div>
+                             </div>
+                         </a>
 
-                    <a href="{% url 'students:grade_report' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #3b82f6;">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">View Grades</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Academic performance</div>
-                        </div>
-                    </a>
+                         <a href="{% url 'students:my_grades' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #3b82f6;">
+                                 <i class="fas fa-chart-line"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">View Grades</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Academic performance</div>
+                             </div>
+                         </a>
 
-                    <a href="{% url 'students:schedule' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #8b5cf6;">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Class Schedule</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Weekly timetable</div>
-                        </div>
-                    </a>
+                         <a href="{% url 'students:my_schedule' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #8b5cf6;">
+                                 <i class="fas fa-calendar"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Class Schedule</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Weekly timetable</div>
+                             </div>
+                         </a>
 
-                    <a href="{% url 'araz:petition_create' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #f59e0b;">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit Petition</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Academic requests</div>
-                        </div>
-                    </a>
+                         <a href="{% url 'araz:petition_create' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #f59e0b;">
+                                 <i class="fas fa-file-alt"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit Petition</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Academic requests</div>
+                             </div>
+                         </a>
 
-                    <a href="{% url 'students:transcript' %}" class="action-btn">
-                        <div class="action-icon" style="--action-color: #6366f1;">
-                            <i class="fas fa-file-download"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Download Transcript</div>
-                            <div style="font-size: 0.75rem; color: #6b7280;">Official records</div>
-                        </div>
-                    </a>
+                         <a href="{% url 'students:analytics' %}" class="action-btn">
+                             <div class="action-icon" style="--action-color: #6366f1;">
+                                 <i class="fas fa-chart-bar"></i>
+                             </div>
+                             <div>
+                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
+                                 <div style="font-size: 0.75rem; color: #6b7280;">Academic insights</div>
+                             </div>
+                         </a>
                 </div>
             </div>
 
@@ -955,9 +955,9 @@
                     </div>
                 </div>
 
-                <a href="{% url 'students:profile' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
-                    View Full Profile
-                </a>
+                                 <a href="{% url 'students:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                     View Analytics
+                 </a>
             </div>
         </div>
     </div>

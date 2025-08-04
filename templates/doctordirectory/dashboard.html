@@ -586,10 +586,10 @@
                     Schedule
                 </a>
             {% endif %}
-            <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-outline btn-sm">
-                <i class="fas fa-calendar"></i>
-                Appointments
-            </a>
+                         <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline btn-sm">
+                 <i class="fas fa-user-md"></i>
+                 Doctors
+             </a>
             <button class="btn btn-outline btn-sm" onclick="location.reload()">
                 <i class="fas fa-sync-alt"></i>
                 Refresh
@@ -637,22 +637,22 @@
             </div>
         </div>
 
-        <a href="{% url 'doctordirectory:appointment_list' %}" class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
-                    <i class="fas fa-calendar-check" style="color: #10b981;"></i>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-arrow-up"></i>
-                    +15%
-                </div>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ total_appointments_global|default:'--' }}</div>
-                <div class="stat-label">Appointments</div>
-                <div class="stat-subtitle">Total scheduled</div>
-            </div>
-        </a>
+                 <div class="stat-card">
+             <div class="stat-header">
+                 <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+                     <i class="fas fa-calendar-check" style="color: #10b981;"></i>
+                 </div>
+                 <div class="stat-trend">
+                     <i class="fas fa-arrow-up"></i>
+                     +15%
+                 </div>
+             </div>
+             <div class="stat-content">
+                 <div class="stat-value">{{ total_appointments_global|default:'--' }}</div>
+                 <div class="stat-label">Appointments</div>
+                 <div class="stat-subtitle">Total scheduled</div>
+             </div>
+         </div>
 
         <div class="stat-card">
             <div class="stat-header">
@@ -738,9 +738,9 @@
                                 </div>
                             {% endfor %}
                         </div>
-                        <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
-                            View All Appointments
-                        </a>
+                                                 <a href="{% url 'doctordirectory:doctor_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                             View All Doctors
+                         </a>
                     {% else %}
                         <div class="empty-state">
                             <div class="empty-state-icon">
