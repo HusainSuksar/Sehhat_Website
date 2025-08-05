@@ -97,29 +97,21 @@ def dashboard(request):
     total_patients = patients.count()
     active_patients = patients.filter(is_active=True).count()
     
-    # Doctor and hospital statistics
+    # Mahal Shifa and doctor statistics
+    total_mahal_shifa = hospitals.count()  # Count of Mahal Shifa centers
     available_doctors = 0
-    available_beds = 0
+    
     if user.is_admin:
-        # For admin users, show all doctors and beds
+        # For admin users, show all doctors
         from .models import Doctor as MahalshifaDoctor
         available_doctors = MahalshifaDoctor.objects.filter(is_available=True).count()
-        # Calculate available beds from all hospitals
-        available_beds = sum(hospital.total_beds - hospital.occupied_beds for hospital in hospitals if hasattr(hospital, 'total_beds') and hasattr(hospital, 'occupied_beds'))
-        if available_beds == 0:
-            # Fallback: estimate based on hospitals
-            available_beds = hospitals.count() * 20  # Assume 20 beds per hospital average
     else:
-        # For non-admin users, show relevant doctors/beds
+        # For non-admin users, show relevant doctors
         try:
             from .models import Doctor as MahalshifaDoctor
             available_doctors = MahalshifaDoctor.objects.filter(hospital__in=hospitals, is_available=True).count()
-            available_beds = sum(hospital.total_beds - hospital.occupied_beds for hospital in hospitals if hasattr(hospital, 'total_beds') and hasattr(hospital, 'occupied_beds'))
-            if available_beds == 0:
-                available_beds = hospitals.count() * 20
         except:
             available_doctors = 0
-            available_beds = 0
     
     # Recent appointments
     recent_appointments = appointments.select_related(
@@ -168,13 +160,13 @@ def dashboard(request):
     
     context = {
         'hospitals': hospitals,
+        'total_mahal_shifa': total_mahal_shifa,
+        'available_doctors': available_doctors,
         'total_patients': total_patients,
         'active_patients': active_patients,
         'todays_appointments': todays_appointments,
         'pending_appointments': pending_appointments,
         'completed_appointments': completed_appointments,
-        'available_doctors': available_doctors,
-        'available_beds': available_beds,
         'total_records': total_records,
         'recent_appointments': recent_appointments,
         'recent_records': recent_records,

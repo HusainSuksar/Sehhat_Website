@@ -543,40 +543,25 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
+        <!-- 1. Mahal Shifa Count (First) -->
         <div class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
-                    <i class="fas fa-calendar-day" style="color: #0891b2;"></i>
+                    <i class="fas fa-hospital" style="color: #0891b2;"></i>
                 </div>
                 <div class="stat-trend">
                     <i class="fas fa-arrow-up"></i>
-                    +15%
+                    +3%
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ todays_appointments|default:'--' }}</div>
-                <div class="stat-label">Today's Appointments</div>
-                <div class="stat-subtitle">Scheduled for today</div>
+                <div class="stat-value">{{ total_mahal_shifa|default:'--' }}</div>
+                <div class="stat-label">Mahal Shifa Centers</div>
+                <div class="stat-subtitle">Active medical centers</div>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
-                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
-                </div>
-                <div class="stat-trend">
-                    <i class="fas fa-arrow-up"></i>
-                    +8%
-                </div>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ pending_appointments|default:'--' }}</div>
-                <div class="stat-label">Pending</div>
-                <div class="stat-subtitle">Awaiting confirmation</div>
-            </div>
-        </div>
-
+        <!-- 2. Available Doctors (Second) -->
         <div class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
@@ -594,20 +579,39 @@
             </div>
         </div>
 
+        <!-- 3. Pending Appointments (Third) -->
         <div class="stat-card">
             <div class="stat-header">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
-                    <i class="fas fa-bed" style="color: #8b5cf6;"></i>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
                 </div>
                 <div class="stat-trend">
-                    <i class="fas fa-arrow-down"></i>
-                    -2%
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ available_beds|default:'--' }}</div>
-                <div class="stat-label">Available Beds</div>
-                <div class="stat-subtitle">Hospital capacity</div>
+                <div class="stat-value">{{ pending_appointments|default:'--' }}</div>
+                <div class="stat-label">Pending Appointments</div>
+                <div class="stat-subtitle">Awaiting confirmation</div>
+            </div>
+        </div>
+
+        <!-- 4. Today's Appointments (Fourth) -->
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+                    <i class="fas fa-calendar-day" style="color: #8b5cf6;"></i>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
+                    +15%
+                </div>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ todays_appointments|default:'--' }}</div>
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-subtitle">Scheduled for today</div>
             </div>
         </div>
     </div>
