@@ -1,0 +1,25 @@
+[Unit]
+Description=Umoor Sehhat Django Application
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=notify
+User=umoor_sehhat
+Group=umoor_sehhat
+WorkingDirectory=/var/www/umoor_sehhat
+Environment=DJANGO_SETTINGS_MODULE=umoor_sehhat.settings_production
+EnvironmentFile=/var/www/umoor_sehhat/.env.production
+ExecStart=/var/www/umoor_sehhat/venv/bin/gunicorn --bind unix:/var/www/umoor_sehhat/umoor_sehhat.sock --workers 3 --timeout 120 --keepalive 5 --max-requests 1000 --max-requests-jitter 100 umoor_sehhat.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=3
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/umoor_sehhat /var/log/umoor_sehhat /var/backups/umoor_sehhat
+
+[Install]
+WantedBy=multi-user.target
