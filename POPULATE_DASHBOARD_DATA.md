@@ -5,7 +5,14 @@ Dashboard shows `"--"` instead of numbers because the PythonAnywhere MySQL datab
 
 ## ✅ **SOLUTION:**
 
-### **Option 1: Quick Fix (Recommended)**
+### **Step 1: Setup Environment (First Time Only)**
+```bash
+cd ~/umoor_sehhat
+cp .env.pythonanywhere.example .env
+nano .env  # Update with your MySQL password and username
+```
+
+### **Step 2: Quick Fix (Recommended)**
 Run this single command in your PythonAnywhere Bash console:
 
 ```bash
@@ -18,8 +25,8 @@ This will:
 - ✅ Create minimal sample data if missing
 - ✅ Show before/after statistics
 
-### **Option 2: Full Sample Data**
-If you want comprehensive test data:
+### **Step 3: Full Sample Data (Optional)**
+If you want comprehensive test data instead of minimal:
 
 ```bash
 cd ~/umoor_sehhat
