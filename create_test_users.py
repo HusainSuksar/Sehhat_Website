@@ -12,7 +12,7 @@ import django
 from django.contrib.auth import get_user_model
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere_local')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere')
 django.setup()
 
 User = get_user_model()
