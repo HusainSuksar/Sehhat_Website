@@ -523,7 +523,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_users|default:'--' }}</div>
+                <div class="stat-value">{% if total_users is not None %}{{ total_users }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Total Users</div>
                 <div class="stat-subtitle">Active system users</div>
             </div>
@@ -540,7 +540,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_students|default:'--' }}</div>
+                <div class="stat-value">{% if total_students is not None %}{{ total_students }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Students</div>
                 <div class="stat-subtitle">Enrolled students</div>
             </div>
@@ -557,7 +557,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_doctors|default:'--' }}</div>
+                <div class="stat-value">{% if total_doctors is not None %}{{ total_doctors }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Doctors</div>
                 <div class="stat-subtitle">Certified doctors</div>
             </div>
@@ -574,7 +574,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_hospitals|default:'--' }}</div>
+                <div class="stat-value">{% if total_hospitals is not None %}{{ total_hospitals }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Hospitals</div>
                 <div class="stat-subtitle">Partner hospitals</div>
             </div>
@@ -591,7 +591,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_moze|default:'--' }}</div>
+                <div class="stat-value">{% if total_moze is not None %}{{ total_moze }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Moze Centers</div>
                 <div class="stat-subtitle">Service centers</div>
             </div>
@@ -608,7 +608,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_surveys|default:'--' }}</div>
+                <div class="stat-value">{% if total_surveys is not None %}{{ total_surveys }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Surveys</div>
                 <div class="stat-subtitle">Completed surveys</div>
             </div>
@@ -625,7 +625,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_petitions|default:'--' }}</div>
+                <div class="stat-value">{% if total_petitions is not None %}{{ total_petitions }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Araiz</div>
                 <div class="stat-subtitle">Petition requests</div>
             </div>
@@ -642,7 +642,7 @@
                 </div>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ total_albums|default:'--' }}</div>
+                <div class="stat-value">{% if total_albums is not None %}{{ total_albums }}{% else %}--{% endif %}</div>
                 <div class="stat-label">Photo Albums</div>
                 <div class="stat-subtitle">Media collections</div>
             </div>
