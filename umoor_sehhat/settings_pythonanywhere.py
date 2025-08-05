@@ -2,10 +2,10 @@
 PythonAnywhere settings for Umoor Sehhat
 """
 from .settings import *
-from decouple import config
+import os
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = False
 
 # PythonAnywhere specific allowed hosts
 ALLOWED_HOSTS = [
@@ -18,23 +18,24 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='yourusername$umoor_sehhat'),
-        'USER': config('DB_USER', default='yourusername'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='yourusername.mysql.pythonanywhere-services.com'),
+        'NAME': 'yourusername$umoor_sehhat',  # Replace yourusername
+        'USER': 'yourusername',  # Replace yourusername
+        'PASSWORD': 'your-mysql-password',  # Replace with actual password
+        'HOST': 'yourusername.mysql.pythonanywhere-services.com',  # Replace yourusername
         'OPTIONS': {
             'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
 
 # Static files configuration for PythonAnywhere
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/yourusername/umoor_sehhat/staticfiles'
+STATIC_ROOT = '/home/yourusername/umoor_sehhat/staticfiles'  # Replace yourusername
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/yourusername/umoor_sehhat/media'
+MEDIA_ROOT = '/home/yourusername/umoor_sehhat/media'  # Replace yourusername
 
 # Security settings for testing
 SECURE_SSL_REDIRECT = False  # PythonAnywhere handles HTTPS
@@ -57,22 +58,24 @@ TIME_ZONE = 'Asia/Karachi'
 # Test mode flag
 TEST_MODE = True
 
-# Logging for debugging
+# Logging for debugging (simplified for testing)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/yourusername/umoor_sehhat/debug.log',
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': True,
         },
     },
 }
+
+# Override secret key for testing (generate a new one)
+SECRET_KEY = 'django-insecure-pythonanywhere-test-key-replace-with-real-key-in-production'

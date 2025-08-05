@@ -4,20 +4,18 @@ Test User Creation Script for Umoor Sehhat
 This script creates representative users for testing all functionalities
 without requiring actual ITS database integration.
 
-Run with: python manage.py shell < create_test_users.py
+Run with: python manage.py shell --settings=umoor_sehhat.settings_pythonanywhere < create_test_users.py
 """
 
 import os
 import django
 from django.contrib.auth import get_user_model
-from faker import Faker
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere_local')
 django.setup()
 
 User = get_user_model()
-fake = Faker()
 
 def create_test_users():
     """Create comprehensive test users for all roles"""
@@ -57,7 +55,6 @@ def create_test_users():
             'last_name': 'Hassan',
             'role': 'student',
             'password': 'test123456',
-            'student_id': 'STD001',
         },
         {
             'username': 'student_002',
@@ -66,7 +63,6 @@ def create_test_users():
             'last_name': 'Ahmed',
             'role': 'student',
             'password': 'test123456',
-            'student_id': 'STD002',
         },
         {
             'username': 'student_003',
@@ -75,7 +71,6 @@ def create_test_users():
             'last_name': 'Sheikh',
             'role': 'student',
             'password': 'test123456',
-            'student_id': 'STD003',
         },
         
         # Doctors
@@ -86,8 +81,6 @@ def create_test_users():
             'last_name': 'Rashid',
             'role': 'doctor',
             'password': 'test123456',
-            'license_number': 'DOC001',
-            'specialization': 'General Medicine',
         },
         {
             'username': 'doctor_002',
@@ -96,8 +89,6 @@ def create_test_users():
             'last_name': 'Malik',
             'role': 'doctor',
             'password': 'test123456',
-            'license_number': 'DOC002',
-            'specialization': 'Cardiology',
         },
         
         # Aamils (Moze Managers)
@@ -108,7 +99,6 @@ def create_test_users():
             'last_name': 'Rahman',
             'role': 'aamil',
             'password': 'test123456',
-            'department': 'Moze Management',
         },
         {
             'username': 'aamil_002',
@@ -117,7 +107,6 @@ def create_test_users():
             'last_name': 'Siddique',
             'role': 'aamil',
             'password': 'test123456',
-            'department': 'Moze Management',
         },
         
         # Moze Coordinators
@@ -128,7 +117,6 @@ def create_test_users():
             'last_name': 'Qureshi',
             'role': 'moze_coordinator',
             'password': 'test123456',
-            'department': 'Academic Affairs',
         },
         {
             'username': 'coordinator_002',
@@ -137,7 +125,6 @@ def create_test_users():
             'last_name': 'Tariq',
             'role': 'moze_coordinator',
             'password': 'test123456',
-            'department': 'Student Affairs',
         },
         
         # Regular Users (for general access)
@@ -164,15 +151,18 @@ def create_test_users():
     for user_data in test_users:
         password = user_data.pop('password')
         
-        user = User.objects.create_user(
-            username=user_data['username'],
-            email=user_data['email'],
-            password=password,
-            **{k: v for k, v in user_data.items() if k not in ['username', 'email']}
-        )
-        
-        created_users.append(user)
-        print(f"✅ Created {user.role}: {user.username} ({user.first_name} {user.last_name})")
+        try:
+            user = User.objects.create_user(
+                username=user_data['username'],
+                email=user_data['email'],
+                password=password,
+                **{k: v for k, v in user_data.items() if k not in ['username', 'email']}
+            )
+            
+            created_users.append(user)
+            print(f"✅ Created {user.role}: {user.username} ({user.first_name} {user.last_name})")
+        except Exception as e:
+            print(f"❌ Error creating user {user_data['username']}: {e}")
     
     return created_users
 
@@ -180,117 +170,121 @@ def create_additional_test_data():
     """Create additional test data for relationships"""
     print("\n🔗 Creating additional test data...")
     
-    # Import models
-    from moze.models import Moze
-    from evaluation.models import EvaluationForm, EvaluationQuestion, EvaluationAnswerOption
-    
-    # Get users
-    aamils = User.objects.filter(role='aamil')
-    coordinators = User.objects.filter(role='moze_coordinator')
-    
-    # Create some Moze records
-    moze_data = [
-        {
-            'name': 'Mohammad Bilal',
-            'email': 'bilal@test.com',
-            'phone': '+92-300-1234567',
-            'address': 'Karachi, Pakistan',
-            'aamil': aamils.first() if aamils.exists() else None,
-            'moze_coordinator': coordinators.first() if coordinators.exists() else None,
-        },
-        {
-            'name': 'Ahmed Raza',
-            'email': 'ahmed@test.com',
-            'phone': '+92-300-7654321',
-            'address': 'Lahore, Pakistan',
-            'aamil': aamils.last() if aamils.count() > 1 else aamils.first(),
-            'moze_coordinator': coordinators.last() if coordinators.count() > 1 else coordinators.first(),
-        },
-        {
-            'name': 'Usman Ghani',
-            'email': 'usman@test.com',
-            'phone': '+92-300-9876543',
-            'address': 'Islamabad, Pakistan',
-            'aamil': aamils.first() if aamils.exists() else None,
-            'moze_coordinator': coordinators.first() if coordinators.exists() else None,
-        }
-    ]
-    
-    for moze_info in moze_data:
-        moze, created = Moze.objects.get_or_create(
-            name=moze_info['name'],
-            defaults=moze_info
-        )
-        if created:
-            print(f"✅ Created Moze: {moze.name}")
-    
-    # Create sample evaluation form
-    admin_user = User.objects.filter(role='badri_mahal_admin').first()
-    if admin_user:
-        form, created = EvaluationForm.objects.get_or_create(
-            title='Moze Performance Evaluation',
-            defaults={
-                'description': 'Comprehensive evaluation form for Moze performance assessment',
-                'target_role': 'all',
-                'created_by': admin_user,
-                'is_active': True,
-            }
-        )
+    try:
+        # Import models
+        from moze.models import Moze
+        from evaluation.models import EvaluationForm, EvaluationQuestion, EvaluationAnswerOption
         
-        if created:
-            print(f"✅ Created evaluation form: {form.title}")
-            
-            # Create sample questions
-            questions_data = [
-                {
-                    'text': 'How would you rate the overall performance?',
-                    'question_type': 'multiple_choice',
-                    'order': 1,
-                },
-                {
-                    'text': 'What is the attendance level?',
-                    'question_type': 'dropdown',
-                    'order': 2,
-                },
-                {
-                    'text': 'How effective is the communication?',
-                    'question_type': 'multiple_choice',
-                    'order': 3,
+        # Get users
+        aamils = User.objects.filter(role='aamil')
+        coordinators = User.objects.filter(role='moze_coordinator')
+        
+        # Create some Moze records
+        moze_data = [
+            {
+                'name': 'Mohammad Bilal',
+                'email': 'bilal@test.com',
+                'phone': '+92-300-1234567',
+                'address': 'Karachi, Pakistan',
+                'aamil': aamils.first() if aamils.exists() else None,
+                'moze_coordinator': coordinators.first() if coordinators.exists() else None,
+            },
+            {
+                'name': 'Ahmed Raza',
+                'email': 'ahmed@test.com',
+                'phone': '+92-300-7654321',
+                'address': 'Lahore, Pakistan',
+                'aamil': aamils.last() if aamils.count() > 1 else aamils.first(),
+                'moze_coordinator': coordinators.last() if coordinators.count() > 1 else coordinators.first(),
+            },
+            {
+                'name': 'Usman Ghani',
+                'email': 'usman@test.com',
+                'phone': '+92-300-9876543',
+                'address': 'Islamabad, Pakistan',
+                'aamil': aamils.first() if aamils.exists() else None,
+                'moze_coordinator': coordinators.first() if coordinators.exists() else None,
+            }
+        ]
+        
+        for moze_info in moze_data:
+            moze, created = Moze.objects.get_or_create(
+                name=moze_info['name'],
+                defaults=moze_info
+            )
+            if created:
+                print(f"✅ Created Moze: {moze.name}")
+        
+        # Create sample evaluation form
+        admin_user = User.objects.filter(role='badri_mahal_admin').first()
+        if admin_user:
+            form, created = EvaluationForm.objects.get_or_create(
+                title='Moze Performance Evaluation',
+                defaults={
+                    'description': 'Comprehensive evaluation form for Moze performance assessment',
+                    'target_role': 'all',
+                    'created_by': admin_user,
+                    'is_active': True,
                 }
-            ]
+            )
             
-            for q_data in questions_data:
-                question = EvaluationQuestion.objects.create(
-                    form=form,
-                    **q_data
-                )
+            if created:
+                print(f"✅ Created evaluation form: {form.title}")
                 
-                # Create answer options with weights
-                if question.question_type == 'multiple_choice':
-                    options = [
-                        ('Excellent', 5),
-                        ('Good', 4),
-                        ('Average', 3),
-                        ('Poor', 2),
-                        ('Very Poor', 1),
-                    ]
-                else:  # dropdown
-                    options = [
-                        ('Always Present', 5),
-                        ('Usually Present', 4),
-                        ('Sometimes Present', 3),
-                        ('Rarely Present', 2),
-                        ('Never Present', 1),
-                    ]
+                # Create sample questions
+                questions_data = [
+                    {
+                        'text': 'How would you rate the overall performance?',
+                        'question_type': 'multiple_choice',
+                        'order': 1,
+                    },
+                    {
+                        'text': 'What is the attendance level?',
+                        'question_type': 'dropdown',
+                        'order': 2,
+                    },
+                    {
+                        'text': 'How effective is the communication?',
+                        'question_type': 'multiple_choice',
+                        'order': 3,
+                    }
+                ]
                 
-                for option_text, weight in options:
-                    EvaluationAnswerOption.objects.create(
-                        question=question,
-                        text=option_text,
-                        weight=weight
+                for q_data in questions_data:
+                    question = EvaluationQuestion.objects.create(
+                        form=form,
+                        **q_data
                     )
-                
-                print(f"✅ Created question: {question.text[:50]}...")
+                    
+                    # Create answer options with weights
+                    if question.question_type == 'multiple_choice':
+                        options = [
+                            ('Excellent', 5),
+                            ('Good', 4),
+                            ('Average', 3),
+                            ('Poor', 2),
+                            ('Very Poor', 1),
+                        ]
+                    else:  # dropdown
+                        options = [
+                            ('Always Present', 5),
+                            ('Usually Present', 4),
+                            ('Sometimes Present', 3),
+                            ('Rarely Present', 2),
+                            ('Never Present', 1),
+                        ]
+                    
+                    for option_text, weight in options:
+                        EvaluationAnswerOption.objects.create(
+                            question=question,
+                            text=option_text,
+                            weight=weight
+                        )
+                    
+                    print(f"✅ Created question: {question.text[:50]}...")
+    
+    except Exception as e:
+        print(f"❌ Error creating additional test data: {e}")
 
 def print_login_credentials():
     """Print login credentials for testing"""
