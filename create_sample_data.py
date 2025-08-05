@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 
 # Setup Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere_local')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings_pythonanywhere')
 django.setup()
 
 from accounts.models import User
