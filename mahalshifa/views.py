@@ -778,26 +778,27 @@ def create_appointment(request):
         if form.is_valid():
             appointment = form.save(commit=False)
             appointment.booked_by = request.user
-    
-         # 🔽 Add this based on your logic
+            
+            # Determine the moze based on user role
             if request.user.role == 'aamil':
                 appointment.moze = request.user.managed_mozes.first()
             elif request.user.role == 'moze_coordinator':
-                  appointment.moze = request.user.coordinated_mozes.first()
-            elif request.user.role == 'badri_mahal_admin':  # as you mentioned earlier
-                 appointment.moze = Moze.objects.first()  # or allow selecting from all
-    
+                appointment.moze = request.user.coordinated_mozes.first()
+            elif request.user.role == 'badri_mahal_admin':
+                appointment.moze = Moze.objects.first()
+            else:
+                # For admin and other roles, use the first available moze
+                appointment.moze = Moze.objects.first()
+            
             if appointment.moze is None:
-             messages.error(request, "Unable to determine Moze for this appointment.")
-             return redirect('mahalshifa:appointment_list')
+                messages.error(request, "Unable to determine Moze for this appointment.")
+                return redirect('mahalshifa:appointment_list')
+                
             appointment.save()
             messages.success(request, 'Appointment created successfully!')
             return redirect('mahalshifa:appointment_detail', pk=appointment.pk)
     else:
         form = AppointmentForm()
-    
-        
-
     
     context = {
         'form': form,
