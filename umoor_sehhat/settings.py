@@ -241,11 +241,11 @@ AUTHENTICATION_BACKENDS = [
 ANONYMOUS_USER_NAME = 'anonymous'
 
 # =============================================================================
-# API INTEGRATION SETTINGS
+# USER API INTEGRATION SETTINGS
 # =============================================================================
 
-# Beeceptor API Configuration
-BEECEPTOR_API_URL = os.getenv('BEECEPTOR_API_URL', 'https://your-endpoint.free.beeceptor.com')
+# User API Configuration (e.g., ITS system)
+USER_API_URL = os.getenv('USER_API_URL', 'https://its-api.example.com')
 
 # API Timeouts (in seconds)
 API_TIMEOUT = int(os.getenv('API_TIMEOUT', '30'))
