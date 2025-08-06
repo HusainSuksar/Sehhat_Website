@@ -262,8 +262,9 @@ def take_survey(request, pk):
         responses = {}
         questions = survey.questions
         
-        for question in questions:
-            question_id = str(question['id'])
+        for i, question in enumerate(questions):
+            # Use index as question_id if 'id' field doesn't exist
+            question_id = str(question.get('id', i))
             response_value = None
             
             if question['type'] == 'multiple_choice':

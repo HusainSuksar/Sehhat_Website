@@ -15,6 +15,7 @@
                     <form method="post">
                         {% csrf_token %}
                         {% for question in questions %}
+                            {% with question_id=forloop.counter0 %}
                             <div class="form-group">
                                 <label class="font-weight-bold">
                                     {{ question.question }}
@@ -24,26 +25,26 @@
                                 </label>
                                 
                                 {% if question.type == 'text' %}
-                                    <input type="text" name="question_{{ question.id }}" class="form-control" 
+                                    <input type="text" name="question_{{ question_id }}" class="form-control" 
                                            {% if question.required %}required{% endif %}>
                                     
                                 {% elif question.type == 'textarea' %}
-                                    <textarea name="question_{{ question.id }}" class="form-control" rows="4" 
+                                    <textarea name="question_{{ question_id }}" class="form-control" rows="4" 
                                               {% if question.required %}required{% endif %}></textarea>
                                     
                                 {% elif question.type == 'email' %}
-                                    <input type="email" name="question_{{ question.id }}" class="form-control" 
+                                    <input type="email" name="question_{{ question_id }}" class="form-control" 
                                            {% if question.required %}required{% endif %}>
                                     
                                 {% elif question.type == 'number' %}
-                                    <input type="number" name="question_{{ question.id }}" class="form-control" 
+                                    <input type="number" name="question_{{ question_id }}" class="form-control" 
                                            {% if question.required %}required{% endif %}>
                                     
                                 {% elif question.type == 'multiple_choice' %}
                                     {% for option in question.options %}
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" 
-                                                   name="question_{{ question.id }}" value="{{ option }}" 
+                                                   name="question_{{ question_id }}" value="{{ option }}" 
                                                    {% if question.required %}required{% endif %}>
                                             <label class="form-check-label">{{ option }}</label>
                                         </div>
@@ -53,20 +54,20 @@
                                     {% for option in question.options %}
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" 
-                                                   name="question_{{ question.id }}" value="{{ option }}">
+                                                   name="question_{{ question_id }}" value="{{ option }}">
                                             <label class="form-check-label">{{ option }}</label>
                                         </div>
                                     {% endfor %}
                                     
                                 {% elif question.type == 'rating' %}
                                     <div class="btn-group" role="group">
-                                        {% for option in question.options %}
+                                        {% for i in "12345" %}
                                             <input type="radio" class="btn-check" 
-                                                   name="question_{{ question.id }}" value="{{ option }}" 
-                                                   id="rating_{{ question.id }}_{{ option }}" 
+                                                   name="question_{{ question_id }}" value="{{ i }}" 
+                                                   id="rating_{{ question_id }}_{{ i }}" 
                                                    {% if question.required %}required{% endif %}>
-                                            <label class="btn btn-outline-primary" for="rating_{{ question.id }}_{{ option }}">
-                                                {{ option }}
+                                            <label class="btn btn-outline-primary" for="rating_{{ question_id }}_{{ i }}">
+                                                {{ i }}
                                             </label>
                                         {% endfor %}
                                     </div>
@@ -74,20 +75,21 @@
                                 {% elif question.type == 'yes_no' %}
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" 
-                                               name="question_{{ question.id }}" value="Yes" 
-                                               id="yes_{{ question.id }}" 
+                                               name="question_{{ question_id }}" value="Yes" 
+                                               id="yes_{{ question_id }}" 
                                                {% if question.required %}required{% endif %}>
-                                        <label class="form-check-label" for="yes_{{ question.id }}">Yes</label>
+                                        <label class="form-check-label" for="yes_{{ question_id }}">Yes</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" 
-                                               name="question_{{ question.id }}" value="No" 
-                                               id="no_{{ question.id }}" 
+                                               name="question_{{ question_id }}" value="No" 
+                                               id="no_{{ question_id }}" 
                                                {% if question.required %}required{% endif %}>
-                                        <label class="form-check-label" for="no_{{ question.id }}">No</label>
+                                        <label class="form-check-label" for="no_{{ question_id }}">No</label>
                                     </div>
                                 {% endif %}
                             </div>
+                            {% endwith %}
                         {% endfor %}
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'surveys:detail' survey.pk %}" class="btn btn-secondary">Cancel</a>

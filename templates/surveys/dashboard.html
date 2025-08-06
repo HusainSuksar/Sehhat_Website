@@ -746,7 +746,8 @@
                             </div>
                         </a>
 
-                        <a href="{% url 'surveys:analytics' %}" class="action-btn">
+                        {% if recent_surveys %}
+                        <a href="{% url 'surveys:analytics' recent_surveys.0.id %}" class="action-btn">
                             <div class="action-icon" style="--action-color: #3b82f6;">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
@@ -755,6 +756,17 @@
                                 <div style="font-size: 0.75rem; color: #6b7280;">Response insights</div>
                             </div>
                         </a>
+                        {% else %}
+                        <div class="action-btn" style="opacity: 0.5; cursor: not-allowed;">
+                            <div class="action-icon" style="--action-color: #6b7280;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">View Analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">No surveys available</div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <a href="{% url 'surveys:manage' %}" class="action-btn">
                             <div class="action-icon" style="--action-color: #8b5cf6;">
@@ -842,8 +854,8 @@
                     </div>
                 </div>
 
-                {% if user.is_admin %}
-                    <a href="{% url 'surveys:analytics' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                {% if user.is_admin and recent_surveys %}
+                    <a href="{% url 'surveys:analytics' recent_surveys.0.id %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
                         View Detailed Analytics
                     </a>
                 {% endif %}

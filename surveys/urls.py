@@ -12,6 +12,7 @@ urlpatterns = [
     # Survey management
     path('create/', views.SurveyCreateView.as_view(), name='create'),
     path('<int:pk>/edit/', views.SurveyEditView.as_view(), name='edit'),
+    path('manage/', views.SurveyListView.as_view(), name='manage'),
     
     # Taking surveys
     path('<int:pk>/take/', views.take_survey, name='take_survey'),
