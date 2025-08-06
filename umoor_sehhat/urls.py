@@ -55,8 +55,11 @@ urlpatterns = [
     path('araz/', include('araz.urls')),
     path('students/', include('students.urls')),
     
-    # API URLs (if needed)
-    path('api/', include('rest_framework.urls')),
+    # API Integration URLs
+    path('api/', include('accounts.urls_api')),
+    
+    # DRF URLs (if needed)
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 # Serve media files during development

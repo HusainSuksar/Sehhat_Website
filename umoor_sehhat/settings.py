@@ -238,3 +238,70 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 ANONYMOUS_USER_NAME = 'anonymous'
+
+# =============================================================================
+# API INTEGRATION SETTINGS
+# =============================================================================
+
+# Beeceptor API Configuration
+BEECEPTOR_API_URL = os.getenv('BEECEPTOR_API_URL', 'https://your-endpoint.free.beeceptor.com')
+
+# API Timeouts (in seconds)
+API_TIMEOUT = int(os.getenv('API_TIMEOUT', '30'))
+API_CACHE_TIMEOUT = int(os.getenv('API_CACHE_TIMEOUT', '300'))  # 5 minutes
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
+        },
+    }
+}
+
+# Logging Configuration for API Integration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'api.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'services.api_service': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'services.data_service': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Create logs directory if it doesn't exist
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOGS_DIR, exist_ok=True)
