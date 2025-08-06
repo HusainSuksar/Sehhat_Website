@@ -8,7 +8,7 @@ from django.utils import timezone
 
 
 class User(AbstractUser):
-    """Custom User model extending AbstractUser with role-based access"""
+    """Custom User model extending AbstractUser with role-based access and ITS integration"""
     
     ROLE_CHOICES = [
         ('aamil', 'Aamil'),
@@ -18,7 +18,24 @@ class User(AbstractUser):
         ('badri_mahal_admin', 'Badri Mahal Admin'),
     ]
     
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+    
+    MARITAL_STATUS_CHOICES = [
+        ('single', 'Single'),
+        ('married', 'Married'),
+        ('divorced', 'Divorced'),
+        ('widowed', 'Widowed'),
+    ]
+    
+    # Core fields
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    
+    # ITS API Fields (21 fields total)
+    # 1. ITS ID
     its_id = models.CharField(
         max_length=8, 
         unique=True, 
@@ -31,16 +48,86 @@ class User(AbstractUser):
         )],
         help_text='8-digit ITS ID'
     )
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    profile_photo = models.URLField(blank=True, null=True)
-    arabic_name = models.CharField(max_length=100, blank=True, null=True)
+    
+    # 2-3. Full Name & Arabic Full Name (first_name, last_name inherited from AbstractUser)
+    arabic_full_name = models.CharField(max_length=200, blank=True, null=True, help_text='Arabic Full Name')
+    
+    # 4. Prefix
+    prefix = models.CharField(max_length=20, blank=True, null=True, help_text='Title prefix (Mr, Mrs, Dr, etc.)')
+    
+    # 5. Age, Gender
     age = models.PositiveIntegerField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
+    
+    # 6. Marital Status, Misaq
+    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, null=True)
+    misaq = models.CharField(max_length=100, blank=True, null=True, help_text='Misaq information')
+    
+    # 7. Occupation
+    occupation = models.CharField(max_length=100, blank=True, null=True)
+    
+    # 8. Qualification
+    qualification = models.CharField(max_length=200, blank=True, null=True)
+    
+    # 9. Idara
+    idara = models.CharField(max_length=100, blank=True, null=True, help_text='Administrative division')
+    
+    # 10. Category
+    category = models.CharField(max_length=50, blank=True, null=True)
+    
+    # 11. Organization
+    organization = models.CharField(max_length=200, blank=True, null=True)
+    
+    # 12. Email ID (email inherited from AbstractUser)
+    
+    # 13. Mobile No.
+    mobile_number = models.CharField(max_length=15, blank=True, null=True)
+    
+    # 14. WhatsApp No.
+    whatsapp_number = models.CharField(max_length=15, blank=True, null=True)
+    
+    # 15. Address
+    address = models.TextField(blank=True, null=True)
+    
+    # 16. Jamaat, Jamiaat
+    jamaat = models.CharField(max_length=100, blank=True, null=True)
+    jamiaat = models.CharField(max_length=100, blank=True, null=True)
+    
+    # 17. Nationality
+    nationality = models.CharField(max_length=50, blank=True, null=True)
+    
+    # 18. Vatan
+    vatan = models.CharField(max_length=100, blank=True, null=True, help_text='Original homeland')
+    
+    # 19. City, Country
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    
+    # 20. Hifz Sanad
+    hifz_sanad = models.CharField(max_length=100, blank=True, null=True, help_text='Quran memorization certificate')
+    
+    # 21. Photograph
+    photograph = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    
+    # Additional existing fields
+    phone_number = models.CharField(max_length=15, blank=True, null=True)  # Keeping for backward compatibility
+    profile_photo = models.URLField(blank=True, null=True)  # Keeping for backward compatibility
     verified_certificate = models.FileField(upload_to='certificates/', blank=True, null=True)
     specialty = models.CharField(max_length=100, blank=True, null=True)
-    
-    # Additional fields for different roles
     college = models.CharField(max_length=100, blank=True, null=True)  # For students
     specialization = models.CharField(max_length=100, blank=True, null=True)  # For students
+    
+    # ITS sync metadata
+    its_last_sync = models.DateTimeField(blank=True, null=True, help_text='Last time data was synced from ITS API')
+    its_sync_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('synced', 'Synced'),
+            ('failed', 'Failed'),
+        ],
+        default='pending'
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -49,8 +136,8 @@ class User(AbstractUser):
         return f"{self.get_full_name()} ({self.get_role_display()})"
     
     def get_full_name(self):
-        if self.arabic_name:
-            return self.arabic_name
+        if self.arabic_full_name:
+            return self.arabic_full_name
         return super().get_full_name() or self.username
     
     @property

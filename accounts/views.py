@@ -237,7 +237,7 @@ class VerifyITSView(LoginRequiredMixin, TemplateView):
         mock_database = {
             '12345678': {
                 'name': 'Ahmed Ali',
-                'arabic_name': 'أحمد علي',
+                'arabic_full_name': 'أحمد علي',
                 'age': 25,
                 'photo_url': '/media/profile_photos/default.jpg',
                 'email': 'ahmed.ali@example.com',
@@ -245,7 +245,7 @@ class VerifyITSView(LoginRequiredMixin, TemplateView):
             },
             '87654321': {
                 'name': 'Fatima Hassan',
-                'arabic_name': 'فاطمة حسن',
+                'arabic_full_name': 'فاطمة حسن',
                 'age': 23,
                 'photo_url': '/media/profile_photos/default.jpg',
                 'email': 'fatima.hassan@example.com',

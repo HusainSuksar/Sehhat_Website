@@ -109,14 +109,14 @@ class UserProfileForm(forms.ModelForm):
         model = User
         fields = [
             'first_name', 'last_name', 'email', 'phone_number', 
-            'arabic_name', 'profile_photo', 'specialty', 'college', 'specialization'
+            'arabic_full_name', 'profile_photo', 'specialty', 'college', 'specialization'
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'arabic_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'arabic_full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'profile_photo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'specialty': forms.TextInput(attrs={'class': 'form-control'}),
             'college': forms.TextInput(attrs={'class': 'form-control'}),
@@ -147,7 +147,7 @@ class UserEditForm(forms.ModelForm):
         model = User
         fields = [
             'username', 'first_name', 'last_name', 'email', 'its_id', 'role',
-            'phone_number', 'arabic_name', 'age', 'specialty', 'college', 
+            'phone_number', 'arabic_full_name', 'age', 'specialty', 'college', 
             'specialization', 'is_active', 'is_staff'
         ]
         widgets = {
@@ -158,7 +158,7 @@ class UserEditForm(forms.ModelForm):
             'its_id': forms.TextInput(attrs={'class': 'form-control'}),
             'role': forms.Select(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'arabic_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'arabic_full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'age': forms.NumberInput(attrs={'class': 'form-control'}),
             'specialty': forms.TextInput(attrs={'class': 'form-control'}),
             'college': forms.TextInput(attrs={'class': 'form-control'}),

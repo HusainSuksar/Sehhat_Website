@@ -27,7 +27,7 @@ class Command(BaseCommand):
                         'its_id': user_data.get('its_id'),
                         'phone_number': user_data.get('phone_number'),
                         'profile_photo': user_data.get('profile_photo'),
-                        'arabic_name': user_data.get('arabic_name'),
+                        'arabic_full_name': user_data.get('arabic_full_name'),
                         'age': user_data.get('age'),
                         'college': user_data.get('college'),
                         'specialization': user_data.get('specialization'),

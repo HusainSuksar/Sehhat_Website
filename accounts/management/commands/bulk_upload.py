@@ -101,7 +101,7 @@ class Command(BaseCommand):
     def import_users(self, csv_file, dry_run, send_emails, skip_existing):
         """
         Import users from CSV
-        Expected columns: first_name, last_name, email, role, its_id, phone_number, arabic_name
+                        Expected columns: first_name, last_name, email, role, its_id, phone_number, arabic_full_name
         """
         results = {'success': 0, 'skipped': 0, 'errors': 0, 'error_details': []}
         
@@ -156,7 +156,7 @@ class Command(BaseCommand):
                                 role=row['role'],
                                 its_id=its_id if its_id else None,
                                 phone_number=row.get('phone_number', '').strip() or None,
-                                arabic_name=row.get('arabic_name', '').strip() or None,
+                                arabic_full_name=row.get('arabic_full_name', '').strip() or None,
                                 password=temp_password
                             )
                             

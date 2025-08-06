@@ -56,7 +56,7 @@ urlpatterns = [
     path('students/', include('students.urls')),
     
     # API Integration URLs
-    path('api/', include('accounts.urls_api')),
+    path('api/accounts/', include('accounts.api_urls')),
     
     # DRF URLs (if needed)
     path('api-auth/', include('rest_framework.urls')),

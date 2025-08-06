@@ -9,18 +9,18 @@ from .models import AuditLog, User, UserProfile
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'date_joined', 'get_full_name_display')
     list_filter = ('role', 'is_active', 'is_staff', 'is_superuser', 'date_joined')
-    search_fields = ('username', 'first_name', 'last_name', 'email', 'its_id', 'arabic_name')
+    search_fields = ('username', 'first_name', 'last_name', 'email', 'its_id', 'arabic_full_name')
     ordering = ('username',)
     
     fieldsets = UserAdmin.fieldsets + (
         ('Custom Fields', {
-            'fields': ('role', 'its_id', 'phone_number', 'arabic_name', 'age', 'specialty', 'college', 'specialization', 'profile_photo', 'verified_certificate')
+            'fields': ('role', 'its_id', 'phone_number', 'arabic_full_name', 'age', 'specialty', 'college', 'specialization', 'profile_photo', 'verified_certificate')
         }),
     )
     
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Custom Fields', {
-            'fields': ('role', 'its_id', 'phone_number', 'arabic_name', 'age', 'specialty', 'college', 'specialization')
+            'fields': ('role', 'its_id', 'phone_number', 'arabic_full_name', 'age', 'specialty', 'college', 'specialization')
         }),
     )
     
