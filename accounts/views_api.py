@@ -9,6 +9,16 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.contrib import messages
+
+# Import services using absolute imports from project root
+import sys
+import os
+from pathlib import Path
+
+# Get the project root directory
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
 from services.data_service import data_service
 from services.api_service import api_service
 
