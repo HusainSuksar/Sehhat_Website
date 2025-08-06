@@ -48,21 +48,21 @@
                     <div class="col-md-6">
                         <strong>Type:</strong>
                         {% if appointment.appointment_type == 'emergency' %}
-                            <span class="badge badge-danger ml-2">Emergency</span>
+                            <span class="badge badge-danger ml-2" style="background-color: red;">Emergency</span>
                         {% elif appointment.appointment_type == 'urgent' %}
-                            <span class="badge badge-warning ml-2">Urgent</span>
+                            <span class="badge badge-warning ml-2" style="background-color: red;">Urgent</span>
                         {% else %}
-                            <span class="badge badge-info ml-2">Regular</span>
+                            <span class="badge badge-info ml-2" style="background-color: blue;">Regular</span>
                         {% endif %}
                     </div>
                     <div class="col-md-6">
                         <strong>Status:</strong>
                         {% if appointment.status == 'scheduled' %}
-                            <span class="badge badge-warning ml-2">Scheduled</span>
+                            <span class="badge badge-warning ml-2" style="background-color: blue;">Scheduled</span>
                         {% elif appointment.status == 'completed' %}
-                            <span class="badge badge-success ml-2">Completed</span>
+                            <span class="badge badge-success ml-2" style="background-color: green;">Completed</span>
                         {% elif appointment.status == 'cancelled' %}
-                            <span class="badge badge-danger ml-2">Cancelled</span>
+                            <span class="badge badge-danger ml-2" style="background-color: red;">Cancelled</span>
                         {% endif %}
                     </div>
                 </div>
