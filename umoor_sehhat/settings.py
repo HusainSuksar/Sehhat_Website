@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'araz',
     'students',
     'guardian',
+    'services',
 ]
 
 MIDDLEWARE = [

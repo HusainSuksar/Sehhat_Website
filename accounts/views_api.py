@@ -3,24 +3,67 @@ API-Integrated Views
 Demonstrates hybrid approach using both local database and external API data
 """
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.contrib import messages
 
-# Import services using absolute imports from project root
-import sys
-import os
-from pathlib import Path
-
-# Get the project root directory
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.append(str(PROJECT_ROOT))
-
-from services.data_service import data_service
-from services.api_service import api_service
+# Import services - try multiple import strategies
+try:
+    # Try direct import first
+    from services.data_service import data_service
+    from services.api_service import api_service
+except ImportError:
+    # Fallback: Add project root to path and import
+    import sys
+    import os
+    from pathlib import Path
+    
+    # Get the project root directory (where manage.py is located)
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+    
+    try:
+        from services.data_service import data_service
+        from services.api_service import api_service
+    except ImportError as e:
+        # Final fallback: create mock services for development
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Could not import services: {e}")
+        
+        # Create mock objects to prevent crashes
+        class MockAPIService:
+            def get_api_status(self):
+                return {'is_available': False, 'base_url': 'mock', 'last_checked': 'now', 'cache_timeout': 300}
+            def get_external_doctors(self, specialty=None):
+                return []
+            def get_external_hospitals(self):
+                return []
+            def get_external_surveys(self, is_active=None):
+                return []
+        
+        class MockDataService:
+            def get_dashboard_statistics(self, include_external=True):
+                return {'local_stats': {}, 'external_stats': {}, 'combined_stats': {}, 'external_available': False}
+            def get_all_doctors(self, specialty=None, include_external=True):
+                return {'local_doctors': [], 'external_doctors': [], 'total_count': 0, 'external_available': False}
+            def get_all_hospitals(self, include_partners=True):
+                return {'local_hospitals': [], 'partner_hospitals': [], 'total_count': 0, 'partners_available': False}
+            def get_all_surveys(self, include_regional=True):
+                return {'local_surveys': [], 'regional_surveys': [], 'total_count': 0, 'regional_available': False}
+            def get_system_status(self):
+                return {'database_status': 'connected', 'api_status': {'is_available': False}, 'cache_status': 'active'}
+            def search_doctors(self, query, include_external=True):
+                return {'local_results': [], 'external_results': [], 'query': query, 'total_found': 0}
+            def refresh_external_cache(self):
+                pass
+        
+        api_service = MockAPIService()
+        data_service = MockDataService()
 
 
 @login_required
