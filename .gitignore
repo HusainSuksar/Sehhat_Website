@@ -29,6 +29,7 @@ ENV/
 # Django
 *.log
 local_settings.py
+db.sqlite3
 db.sqlite3-journal
 
 # Media files (optional - uncomment if you don't want to track uploaded files)
@@ -53,34 +54,54 @@ staticfiles/
 ehthumbs.db
 Thumbs.db
 
-# Testing
+# Testing & Sample Data
 test_*.py
 *_test.py
 coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+*test_data*.py
+*sample*.py
+*fake_data*.py
+comprehensive_test_data*.py
+create_test_data.py
+cleanup_*_data.py
+
+# PythonAnywhere & Production
+*pythonanywhere*
+*production*
+settings_pythonanywhere.py
+settings_production.py
+.env.pythonanywhere*
+.env.production*
+requirements_pythonanywhere.txt
+requirements_production.txt
+deploy_pythonanywhere.sh
+pythonanywhere_*.py
+health_check.py
+manage_database.py
+
+# Deployment & Infrastructure
+deploy*.sh
+quick_setup.sh
+backup/
+monitoring/
+nginx/
+systemd/
+services/
 
 # Documentation (temporary files)
 *TESTING_GUIDE.md
-*MACBOOK_TESTING_GUIDE.md
-TEMPLATE_TESTING_REPORT.md
-PHASE*.md
-TEMPLATE_COMPLETION_SUMMARY.md
-*APP_ACTION_PLAN.md
-*MANUAL_TESTING_GUIDE.md
-*TESTING_STRATEGY.md
-TESTING_GUIDE.md
-MACBOOK_SETUP_AND_TESTING_GUIDE.md
-
-# Temporary files
-*.txt
-!requirements.txt
-cookies.txt
-csrf_token.txt
-login_result.txt
-api_testing_system.py
-quick_test_data.py
+*SETUP_GUIDE.md
+*DEPLOYMENT_GUIDE.md
+*PYTHONANYWHERE*.md
+*PRODUCTION*.md
+API_TESTING_GUIDE.md
+OFFLINE_SETUP_GUIDE.md
+QUICK_FIX_INSTRUCTIONS.md
+POPULATE_DASHBOARD_DATA.md
+PHOTOS_FAKE_DATA*.md
 
 # Security
 .env
@@ -88,8 +109,3 @@ quick_test_data.py
 .env.development.local
 .env.test.local
 .env.production.local
-
-echo "db.sqlite3" >> .gitignore
-git rm --cached db.sqlite3
-git commit -m "Stop tracking db.sqlite3"db.sqlite3
-db.sqlite3
