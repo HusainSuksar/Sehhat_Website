@@ -16,6 +16,7 @@ urlpatterns = [
     
     # Taking surveys
     path('<int:pk>/take/', views.take_survey, name='take_survey'),
+    path('my-responses/', views.my_survey_responses, name='my_responses'),
     
     # Analytics and reports
     path('<int:pk>/analytics/', views.survey_analytics, name='analytics'),

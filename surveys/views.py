@@ -22,9 +22,11 @@ from accounts.models import User
 class SurveyAccessMixin(UserPassesTestMixin):
     """Mixin to check if user has access to survey management"""
     def test_func(self):
-        return (self.request.user.role == "admin" or 
-                self.request.user.role == "aamil" or 
-                self.request.user.role == "moze_coordinator")
+        user = self.request.user
+        return (user.is_admin or user.is_superuser or
+                user.role == "admin" or 
+                user.role == "aamil" or 
+                user.role == "moze_coordinator")
 
 
 @login_required
@@ -33,7 +35,7 @@ def survey_dashboard(request):
     user = request.user
     
     # Get user's accessible surveys
-    if user.role == "admin":
+    if user.is_admin or user.is_superuser or user.role == "admin":
         surveys = Survey.objects.all()
     elif user.role == "aamil" or user.role == "moze_coordinator":
         surveys = Survey.objects.filter(
@@ -65,7 +67,7 @@ def survey_dashboard(request):
     
     # Analytics for admins/coordinators
     analytics_data = {}
-    if user.role == "admin" or user.role == "aamil" or user.role == "moze_coordinator":
+    if user.is_admin or user.is_superuser or user.role == "admin" or user.role == "aamil" or user.role == "moze_coordinator":
         created_surveys = surveys.filter(created_by=user)
         analytics_data = {
             'created_surveys': created_surveys.count(),
@@ -112,7 +114,7 @@ class SurveyListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         # Base queryset based on user role
-        if user.role == "admin":
+        if user.is_admin or user.is_superuser or user.role == "admin":
             queryset = Survey.objects.all()
         elif user.role == "aamil" or user.role == "moze_coordinator":
             queryset = Survey.objects.filter(
@@ -179,7 +181,7 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.role == "admin":
+        if user.is_admin or user.is_superuser or user.role == "admin":
             return Survey.objects.all()
         elif user.role == "aamil" or user.role == "moze_coordinator":
             return Survey.objects.filter(
@@ -214,7 +216,7 @@ class SurveyDetailView(LoginRequiredMixin, DetailView):
         )
         
         # Survey statistics for creators
-        if user == survey.created_by or user.role == "admin":
+        if user == survey.created_by or user.is_admin or user.is_superuser or user.role == "admin":
             total_responses = survey.responses.count()
             target_users = User.objects.filter(role__in=survey.target_role).count()
             
@@ -319,6 +321,27 @@ def take_survey(request, pk):
     return render(request, 'surveys/take_survey.html', context)
 
 
+@login_required
+def my_survey_responses(request):
+    """View user's survey responses"""
+    user = request.user
+    
+    # Get all responses by the current user
+    my_responses = SurveyResponse.objects.filter(respondent=user).select_related('survey')
+    
+    # Pagination
+    paginator = Paginator(my_responses, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'responses': page_obj,
+        'total_responses': my_responses.count(),
+    }
+    
+    return render(request, 'surveys/my_responses.html', context)
+
+
 class SurveyCreateView(LoginRequiredMixin, SurveyAccessMixin, CreateView):
     """Create a new survey"""
     model = Survey
@@ -360,7 +383,7 @@ class SurveyEditView(LoginRequiredMixin, SurveyAccessMixin, UpdateView):
     
     def get_queryset(self):
         user = self.request.user
-        if user.role == "admin":
+        if user.is_admin or user.is_superuser or user.role == "admin":
             return Survey.objects.all()
         else:
             return Survey.objects.filter(created_by=user)
@@ -420,8 +443,9 @@ def survey_analytics(request, pk):
     
     # Question-wise analysis
     question_analytics = []
-    for question in survey.questions:
-        question_id = str(question['id'])
+    for i, question in enumerate(survey.questions):
+        # Use index as question_id if 'id' field doesn't exist
+        question_id = str(question.get('id', i))
         question_responses = []
         
         for response in responses:
