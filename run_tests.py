@@ -59,16 +59,37 @@ def main():
             app_index = int(app_choice) - 1
             if 0 <= app_index < len(apps):
                 app_name = apps[app_index]
+                
+                # Try multiple approaches
+                print(f"\n🔧 Testing {app_name} app with different methods...")
+                
+                # Method 1: Direct test file
                 success = run_command(
-                    f"python -m pytest {app_name}/tests/ -v", 
-                    f"Testing {app_name} app"
+                    f"python -m pytest {app_name}/tests/test_api.py -v --tb=short", 
+                    f"Testing {app_name}/tests/test_api.py with pytest"
                 )
+                
                 if not success:
-                    # Fallback to Django test runner for single app
+                    # Method 2: Django test runner with specific module
                     success = run_command(
-                        f"python manage.py test {app_name} --verbosity=2",
-                        f"Testing {app_name} app (Django runner)"
+                        f"python manage.py test {app_name}.tests.test_api --verbosity=1",
+                        f"Testing {app_name}.tests.test_api with Django runner"
                     )
+                
+                if not success:
+                    # Method 3: Run individual test file directly
+                    success = run_command(
+                        f"cd {app_name}/tests && python -m pytest test_api.py -v",
+                        f"Testing {app_name} test file directly"
+                    )
+                
+                if not success:
+                    print(f"⚠️  All test methods failed for {app_name}. This might be due to:")
+                    print(f"   - Missing dependencies")
+                    print(f"   - Database issues")
+                    print(f"   - Import path conflicts")
+                    print(f"   Try: python test_all_apis.py for endpoint testing instead")
+                    
             else:
                 print("❌ Invalid app number")
                 sys.exit(1)
@@ -78,16 +99,38 @@ def main():
             
     elif choice == "3":
         # All unit tests with different approaches
-        print("⚠️  Trying different test runners due to potential path issues...")
+        print("⚠️  Due to Python path issues with Django's test discovery,")
+        print("    we'll use alternative approaches...")
         
-        # Try pytest first
-        success = run_command("python -m pytest --tb=short", "Running all tests with pytest")
+        # Method 1: Try pytest with specific test files
+        print("\n🔧 Method 1: Testing with pytest on specific files")
+        apps = ["accounts", "araz", "doctordirectory", "mahalshifa", "students", 
+                "moze", "evaluation", "surveys", "photos"]
         
-        if not success:
-            # Try Django test runner with specific apps
-            apps = ["accounts.tests.test_api", "araz.tests.test_api", "doctordirectory.tests.test_api"]
-            for app in apps[:3]:  # Test first 3 apps
-                run_command(f"python manage.py test {app} --verbosity=1", f"Testing {app}")
+        passed_apps = []
+        failed_apps = []
+        
+        for app in apps:
+            success = run_command(
+                f"python -m pytest {app}/tests/test_api.py -v --tb=line", 
+                f"Testing {app} API"
+            )
+            if success:
+                passed_apps.append(app)
+            else:
+                failed_apps.append(app)
+        
+        print(f"\n📊 Pytest Results:")
+        print(f"✅ Passed: {len(passed_apps)} apps - {passed_apps}")
+        print(f"❌ Failed: {len(failed_apps)} apps - {failed_apps}")
+        
+        if failed_apps:
+            print(f"\n🔧 Method 2: Trying Django test runner for failed apps")
+            for app in failed_apps[:3]:  # Try first 3 failed apps
+                run_command(
+                    f"python manage.py test {app}.tests.test_api --verbosity=1", 
+                    f"Django runner: {app}"
+                )
     
     elif choice == "4":
         # Server status check

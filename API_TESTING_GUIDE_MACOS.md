@@ -346,18 +346,24 @@ Password: test123
 ### **Issue 2: Python Import Errors**
 **Error**: `ImportError: 'tests' module incorrectly imported`
 
-**Solutions**:
+**Solutions** (in order of preference):
 ```bash
-# Option 1: Use the interactive test runner
+# Option 1: Use the single app test runner (RECOMMENDED)
+python test_single_app.py accounts
+python test_single_app.py araz
+
+# Option 2: Use the interactive test runner
 python run_tests.py
 
-# Option 2: Test individual apps
-python manage.py test accounts.tests.test_api --verbosity=1
-
-# Option 3: Install pytest and use it instead
+# Option 3: Install pytest and test specific files
 pip install pytest pytest-django
-python -m pytest accounts/tests/ -v
+python -m pytest accounts/tests/test_api.py -v
+
+# Option 4: Use endpoint testing instead of unit tests
+python test_all_apis.py
 ```
+
+**Why this happens**: Django's test discovery conflicts with the `tests` directory structure on some Python versions. The solutions above bypass this issue.
 
 ### **Issue 3: Server Not Running**
 **Error**: Connection refused or server not found
