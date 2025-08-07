@@ -118,15 +118,26 @@ class DuaArazDetailAPIView(ArazAccessMixin, generics.RetrieveUpdateDestroyAPIVie
     def get_permissions(self):
         """Custom permissions for different actions"""
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            # Only allow updates/deletes by the patient, assigned doctor, or admin
-            obj = self.get_object()
-            user = self.request.user
-            
-            if (user.is_admin or user.is_superuser or 
-                obj.patient_user == user or 
-                (obj.assigned_doctor and obj.assigned_doctor.user == user)):
-                return [permissions.IsAuthenticated()]
-            else:
+            # Get araz ID from URL kwargs to avoid recursion
+            try:
+                araz_id = self.kwargs.get('pk')
+                if araz_id:
+                    user = self.request.user
+                    # Check if user has permission without calling get_object()
+                    if user.is_admin or user.is_superuser:
+                        return [permissions.IsAuthenticated()]
+                    
+                    # Get araz without triggering permission check
+                    try:
+                        araz = DuaAraz.objects.get(pk=araz_id)
+                        if (araz.patient_user == user or 
+                            (araz.assigned_doctor and araz.assigned_doctor.user == user)):
+                            return [permissions.IsAuthenticated()]
+                    except DuaAraz.DoesNotExist:
+                        pass
+                
+                return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+            except (ValueError, TypeError):
                 return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
         
         return super().get_permissions()
@@ -278,15 +289,26 @@ class PetitionDetailAPIView(PetitionAccessMixin, generics.RetrieveUpdateDestroyA
     def get_permissions(self):
         """Custom permissions for different actions"""
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            obj = self.get_object()
-            user = self.request.user
-            
-            # Allow updates by creator, assignees, or admins
-            if (user.is_admin or user.is_superuser or 
-                obj.created_by == user or 
-                obj.assignments.filter(assigned_to=user, is_active=True).exists()):
-                return [permissions.IsAuthenticated()]
-            else:
+            # Get petition ID from URL kwargs to avoid recursion
+            try:
+                petition_id = self.kwargs.get('pk')
+                if petition_id:
+                    user = self.request.user
+                    # Check if user has permission without calling get_object()
+                    if user.is_admin or user.is_superuser:
+                        return [permissions.IsAuthenticated()]
+                    
+                    # Get petition without triggering permission check
+                    try:
+                        petition = Petition.objects.get(pk=petition_id)
+                        if (petition.created_by == user or 
+                            petition.assignments.filter(assigned_to=user, is_active=True).exists()):
+                            return [permissions.IsAuthenticated()]
+                    except Petition.DoesNotExist:
+                        pass
+                
+                return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+            except (ValueError, TypeError):
                 return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
         
         return super().get_permissions()
@@ -714,13 +736,59 @@ def araz_dashboard_api(request):
     """Get comprehensive Araz dashboard data"""
     user = request.user
     
-    # Get Araz stats
-    araz_stats_response = araz_stats_api(request)
-    araz_stats = araz_stats_response.data
+    # Get Araz stats using ArazAccessMixin logic
+    if user.is_admin or user.is_superuser:
+        araz_queryset = DuaAraz.objects.all()
+    elif user.role in ['aamil', 'moze_coordinator']:
+        araz_queryset = DuaAraz.objects.filter(
+            Q(patient_user=user) | Q(assigned_doctor__user=user)
+        ).distinct()
+    elif user.role == 'doctor':
+        araz_queryset = DuaAraz.objects.filter(
+            Q(assigned_doctor__user=user) | Q(preferred_doctor__user=user) | Q(patient_user=user)
+        ).distinct()
+    else:
+        araz_queryset = DuaAraz.objects.filter(patient_user=user)
     
-    # Get petition stats
-    petition_stats_response = petition_stats_api(request)
-    petition_stats = petition_stats_response.data
+    # Calculate Araz stats
+    total_araz = araz_queryset.count()
+    pending_araz = araz_queryset.filter(status='pending').count()
+    in_progress_araz = araz_queryset.filter(status='in_progress').count()
+    completed_araz = araz_queryset.filter(status='completed').count()
+    emergency_araz = araz_queryset.filter(urgency_level='emergency').count()
+    
+    araz_stats = {
+        'total': total_araz,
+        'pending': pending_araz,
+        'in_progress': in_progress_araz,
+        'completed': completed_araz,
+        'emergency': emergency_araz,
+    }
+    
+    # Get Petition stats using PetitionAccessMixin logic
+    if user.is_admin or user.is_superuser:
+        petition_queryset = Petition.objects.all()
+    elif user.role in ['aamil', 'moze_coordinator']:
+        petition_queryset = Petition.objects.filter(
+            Q(created_by=user) | Q(assignments__assigned_to=user, assignments__is_active=True)
+        ).distinct()
+    else:
+        petition_queryset = Petition.objects.filter(created_by=user)
+    
+    # Calculate Petition stats
+    total_petitions = petition_queryset.count()
+    pending_petitions = petition_queryset.filter(status='pending').count()
+    in_progress_petitions = petition_queryset.filter(status='in_progress').count()
+    completed_petitions = petition_queryset.filter(status='completed').count()
+    urgent_petitions = petition_queryset.filter(priority='urgent').count()
+    
+    petition_stats = {
+        'total': total_petitions,
+        'pending': pending_petitions,
+        'in_progress': in_progress_petitions,
+        'completed': completed_petitions,
+        'urgent': urgent_petitions,
+    }
     
     # Get recent items
     if user.is_admin or user.is_superuser:
