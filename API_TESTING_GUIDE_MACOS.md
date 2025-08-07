@@ -24,21 +24,29 @@ This guide provides step-by-step instructions for testing all 9 Django app APIs 
 ## 🚀 MacBook Setup Instructions
 
 ### 1. Prerequisites
+
+**⚠️ CRITICAL: You must activate the virtual environment first!**
+
 ```bash
-# Install Python 3.8+ if not already installed
-brew install python3
+# Navigate to your project directory
+cd /path/to/your/Sehhat_Website
 
-# Clone the repository
-git clone https://github.com/HusainSuksar/Sehhat_Website.git
-cd Sehhat_Website
-
-# Create virtual environment
-python3 -m venv venv
+# Activate virtual environment (REQUIRED!)
 source venv/bin/activate
 
-# Install dependencies
+# Verify you're in the virtual environment
+which python  # Should show: /path/to/Sehhat_Website/venv/bin/python
+
+# Verify Django is installed
+python -c "import django; print(f'Django {django.get_version()} installed')"
+
+# If Django not found, install dependencies:
 pip install -r requirements.txt
 ```
+
+**🔍 Virtual Environment Check:**
+- Prompt should show `(venv)` at the beginning
+- If not, run `source venv/bin/activate` again
 
 ### 2. Database Setup
 ```bash
@@ -65,13 +73,27 @@ python manage.py runserver 8080
 
 ## 🧪 Testing All APIs
 
-### Method 1: Run All Tests at Once
-```bash
-# Test all apps simultaneously
-python manage.py test --verbosity=2
+### Method 1: Simple Testing (RECOMMENDED) ⭐
 
-# Test specific patterns
-python manage.py test *.tests.test_api --verbosity=1
+**Option A: Simple Test Runner** - Handles virtual environment issues
+```bash
+python test_simple.py
+```
+
+**Option B: API Endpoint Testing** - Quick verification
+```bash
+python test_all_apis.py
+```
+
+**Option C: Interactive Test Runner** - Multiple options
+```bash
+python run_tests.py
+```
+
+### Method 2: Traditional Django Testing (May have import issues)
+```bash
+# ⚠️ This may fail with import errors - use Method 1 instead
+python manage.py test --verbosity=2
 ```
 
 ### Method 2: Test Each App Individually
@@ -333,6 +355,21 @@ POST /api/photos/photos/{id}/toggle-like/ # Like/unlike photo
 ---
 
 ## ⚠️ **Troubleshooting Common Issues**
+
+### **Issue 0: Virtual Environment Not Activated** 🚨
+**Error**: `ModuleNotFoundError: No module named 'django'` or `python: command not found`
+
+**Solution**: Activate the virtual environment first!
+```bash
+# ALWAYS run this first:
+cd /path/to/your/Sehhat_Website
+source venv/bin/activate
+
+# Verify it worked (should show venv path):
+which python
+
+# Your prompt should show (venv) at the beginning
+```
 
 ### **Issue 1: Authentication Failed**
 **Error**: `❌ Authentication failed: 400 - Invalid credentials`
