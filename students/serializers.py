@@ -107,7 +107,8 @@ class CourseSerializer(serializers.ModelSerializer):
 class EnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer(read_only=True)
     student_id = serializers.PrimaryKeyRelatedField(
-        queryset=Student.objects.all(), write_only=True, source='student'
+        queryset=Student.objects.all(), write_only=True, source='student',
+        required=False, allow_null=True  # Allow view to set this for students
     )
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(
