@@ -321,10 +321,15 @@ class SubmissionListCreateAPIView(generics.ListCreateAPIView):
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
     
-    def perform_create(self, serializer):
-        user = self.request.user
+    def create(self, request, *args, **kwargs):
+        # Check permission BEFORE serializer validation
+        user = request.user
         if user.role != 'student':
             raise PermissionDenied("Only students can create submissions.")
+        return super().create(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        user = self.request.user
         try:
             student = Student.objects.get(user=user)
             serializer.save(student=student)
