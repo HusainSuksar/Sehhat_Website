@@ -3,10 +3,17 @@
 Debug Students 400 Errors
 Capture actual error messages from failing tests
 """
-
 import os
 import sys
-import django
+
+# 🔧 Setup Django BEFORE any Django-related imports
+def setup_django():
+    """Setup Django environment"""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings')
+    import django
+    django.setup()
+
+setup_django()
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -14,10 +21,6 @@ from rest_framework import status
 from django.urls import reverse
 from datetime import date, timedelta
 
-def setup_django():
-    """Setup Django environment"""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings')
-    django.setup()
 
 def debug_announcement_test():
     """Debug the announcement creation test to see actual error"""
