@@ -64,6 +64,7 @@ urlpatterns = [
     path('api/moze/', include('moze.api_urls')),
     path('api/evaluation/', include('evaluation.api_urls')),
     path('api/surveys/', include('surveys.api_urls')),
+    path('api/photos/', include('photos.api_urls')),
     
     # DRF URLs (if needed)
     path('api-auth/', include('rest_framework.urls')),
