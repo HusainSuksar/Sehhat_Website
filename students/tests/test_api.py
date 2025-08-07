@@ -675,7 +675,7 @@ class AnnouncementAPITests(StudentsAPITestCase):
         data = {
             'title': 'New Assignment Posted',
             'content': 'Please check the new assignment in CS101',
-            'course': self.course.id,
+            'course_id': self.course.id,
             'is_published': True,
             'is_urgent': False
         }
