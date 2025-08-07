@@ -101,7 +101,7 @@ class APITester:
         # Define test cases
         test_cases = [
             # Accounts API
-            ("GET", "/api/accounts/profile/me/", None, 200),
+            ("GET", "/api/accounts/me/", None, 200),
             ("GET", "/api/accounts/users/", None, 200),
             ("GET", "/api/accounts/stats/", None, 200),
             
@@ -113,7 +113,7 @@ class APITester:
             # DoctorDirectory API
             ("GET", "/api/doctordirectory/dashboard/", None, 200),
             ("GET", "/api/doctordirectory/doctors/", None, 200),
-            ("GET", "/api/doctordirectory/specializations/", None, 200),
+            ("GET", "/api/doctordirectory/services/", None, 200),
             
             # MahalShifa API
             ("GET", "/api/mahalshifa/dashboard/", None, 200),
@@ -128,7 +128,7 @@ class APITester:
             # Moze API
             ("GET", "/api/moze/dashboard/", None, 200),
             ("GET", "/api/moze/mozes/", None, 200),
-            ("GET", "/api/moze/team-members/", None, 200),
+            ("GET", "/api/moze/teams/", None, 200),
             
             # Evaluation API
             ("GET", "/api/evaluation/dashboard/", None, 200),
@@ -137,7 +137,7 @@ class APITester:
             
             # Surveys API
             ("GET", "/api/surveys/dashboard/", None, 200),
-            ("GET", "/api/surveys/surveys/", None, 200),
+            ("GET", "/api/surveys/reminders/", None, 200),
             ("GET", "/api/surveys/analytics/", None, 200),
             
             # Photos API
