@@ -176,7 +176,7 @@ python manage.py test photos.tests.test_api --verbosity=2
 ```bash
 curl -X POST http://localhost:8000/api/accounts/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "your_password"}'
+  -d '{"username": "admin", "password": "test123"}'
 ```
 
 #### 2. **Test Authenticated Endpoints**
@@ -215,7 +215,7 @@ curl -X POST http://localhost:8000/api/photos/photos/ \
    
    {
      "username": "admin",
-     "password": "your_password"
+     "password": "test123"
    }
    ```
 
@@ -239,7 +239,7 @@ curl -X POST http://localhost:8000/api/photos/photos/ \
 brew install httpie
 
 # Login
-http POST localhost:8000/api/accounts/auth/login/ username=admin password=your_password
+http POST localhost:8000/api/accounts/auth/login/ username=admin password=test123
 
 # Use token
 http GET localhost:8000/api/accounts/profile/me/ "Authorization:Bearer YOUR_TOKEN"
@@ -328,6 +328,57 @@ GET  /api/photos/photos/                 # List photos
 POST /api/photos/photos/                 # Upload photo
 GET  /api/photos/albums/                 # List albums
 POST /api/photos/photos/{id}/toggle-like/ # Like/unlike photo
+```
+
+---
+
+## ⚠️ **Troubleshooting Common Issues**
+
+### **Issue 1: Authentication Failed**
+**Error**: `❌ Authentication failed: 400 - Invalid credentials`
+
+**Solution**: Use the correct default credentials:
+```bash
+Username: admin
+Password: test123
+```
+
+### **Issue 2: Python Import Errors**
+**Error**: `ImportError: 'tests' module incorrectly imported`
+
+**Solutions**:
+```bash
+# Option 1: Use the interactive test runner
+python run_tests.py
+
+# Option 2: Test individual apps
+python manage.py test accounts.tests.test_api --verbosity=1
+
+# Option 3: Install pytest and use it instead
+pip install pytest pytest-django
+python -m pytest accounts/tests/ -v
+```
+
+### **Issue 3: Server Not Running**
+**Error**: Connection refused or server not found
+
+**Solution**:
+```bash
+# Start the Django server first
+python manage.py runserver
+
+# Then run tests in another terminal
+python test_all_apis.py
+```
+
+### **Issue 4: Database Not Set Up**
+**Error**: Database errors or missing data
+
+**Solution**:
+```bash
+# Reset and populate database
+python manage.py migrate
+python manage.py shell -c "exec(open('populate_sample_data.py').read())"
 ```
 
 ---

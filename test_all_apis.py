@@ -14,7 +14,7 @@ from datetime import datetime
 BASE_URL = "http://localhost:8000"
 TEST_USER = {
     "username": "admin",
-    "password": "admin123"  # Change this to your admin password
+    "password": "test123"  # Default password from populate_sample_data.py
 }
 
 class APITester:
