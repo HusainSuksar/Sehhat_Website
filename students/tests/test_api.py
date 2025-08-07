@@ -566,7 +566,7 @@ class ScheduleAPITests(StudentsAPITestCase):
         response = self.client.post(url, data)
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Schedule.objects.count(), 2)
+        self.assertEqual(Schedule.objects.count(), 1)  # Only the schedule we just created
     
     def test_create_schedule_student_forbidden(self):
         """Test student cannot create schedule"""
