@@ -384,7 +384,7 @@ class MozeCommentAPITests(MozeAPITestCase):
     def test_update_comment_author(self):
         """Test comment author can update their comment"""
         self.client.force_authenticate(user=self.aamil_user)
-        url = reverse('comment_detail', kwargs={'pk': self.comment.pk})
+        url = reverse('moze_comment_detail', kwargs={'pk': self.comment.pk})
         data = {
             'content': 'Updated comment content'
         }
@@ -409,7 +409,7 @@ class MozeCommentAPITests(MozeAPITestCase):
         
         # Check that the reply is properly nested
         self.client.force_authenticate(user=self.aamil_user)
-        comment_url = reverse('comment_detail', kwargs={'pk': self.comment.pk})
+        comment_url = reverse('moze_comment_detail', kwargs={'pk': self.comment.pk})
         comment_response = self.client.get(comment_url)
         self.assertEqual(len(comment_response.data['replies']), 1)
 

@@ -24,7 +24,7 @@ urlpatterns = [
     
     # Comments System
     path('comments/', api_views.MozeCommentListCreateAPIView.as_view(), name='moze_comment_list_create'),
-    path('comments/<int:pk>/', api_views.MozeCommentDetailAPIView.as_view(), name='comment_detail'),
+    path('comments/<int:pk>/', api_views.MozeCommentDetailAPIView.as_view(), name='moze_comment_detail'),
     
     # Statistics
     path('stats/mozes/', api_views.moze_stats_api, name='moze_stats_api'),
