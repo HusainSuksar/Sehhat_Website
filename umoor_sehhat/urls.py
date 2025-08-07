@@ -57,6 +57,7 @@ urlpatterns = [
     
     # API Integration URLs
     path('api/accounts/', include('accounts.api_urls')),
+    path('api/araz/', include('araz.api_urls')),
     
     # DRF URLs (if needed)
     path('api-auth/', include('rest_framework.urls')),
