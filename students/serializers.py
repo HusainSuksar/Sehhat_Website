@@ -106,9 +106,39 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer(read_only=True)
-    # student_id field removed - view handles student assignment based on user role
-    # For students: automatically set to current user's student record
-    # For admins: would need separate admin enrollment endpoint or different serializer
+    student_id = serializers.PrimaryKeyRelatedField(
+        queryset=Student.objects.all(), write_only=True, source='student',
+        required=False, allow_null=True
+    )
+    
+    def to_internal_value(self, data):
+        """Override to handle conditional student_id requirement"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+            # For student users, don't require student_id (view will set it)
+            if user.role == 'student' and 'student_id' not in data:
+                # Temporarily add a placeholder to pass validation
+                data = data.copy()
+                data['student_id'] = None
+        
+        # Continue with normal validation
+        return super().to_internal_value(data)
+    
+    def validate(self, attrs):
+        """Final validation and cleanup"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+            # For student users, remove the placeholder student
+            if user.role == 'student' and attrs.get('student') is None:
+                attrs.pop('student', None)
+            # For non-student users, student_id is required
+            elif user.role != 'student' and not attrs.get('student'):
+                raise serializers.ValidationError({
+                    'student_id': 'This field is required for admin enrollments.'
+                })
+        return attrs
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(
         queryset=Course.objects.all(), write_only=True, source='course'
@@ -120,7 +150,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = [
-            'id', 'student', 'course', 'course_id', 'status',
+            'id', 'student', 'student_id', 'course', 'course_id', 'status',
             'status_display', 'enrolled_date', 'completion_date', 'grade',
             'days_enrolled', 'is_active'
         ]
