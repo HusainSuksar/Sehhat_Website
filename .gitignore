@@ -55,7 +55,7 @@ ehthumbs.db
 Thumbs.db
 
 # Testing & Sample Data
-test_*.py
+# test_*.py  # Commented out to allow test_api.py files
 *_test.py
 coverage.xml
 *.cover
