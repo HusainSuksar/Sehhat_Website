@@ -944,7 +944,7 @@ class PermissionTests(StudentsAPITestCase):
         )
         
         self.client.force_authenticate(user=self.instructor_user)
-        url = reverse('submission_detail', kwargs={'pk': submission.id})
+        url = reverse('student_submission_detail', kwargs={'pk': submission.id})
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
