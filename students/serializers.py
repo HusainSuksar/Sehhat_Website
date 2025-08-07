@@ -257,7 +257,8 @@ class GradeSerializer(serializers.ModelSerializer):
     )
     graded_by = UserBasicSerializer(read_only=True)
     graded_by_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='graded_by'
+        queryset=User.objects.all(), write_only=True, source='graded_by',
+        required=False, allow_null=True  # View sets this to current user
     )
     
     class Meta:
@@ -313,7 +314,8 @@ class AttendanceSerializer(serializers.ModelSerializer):
     )
     recorded_by = UserBasicSerializer(read_only=True)
     recorded_by_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='recorded_by'
+        queryset=User.objects.all(), write_only=True, source='recorded_by',
+        required=False, allow_null=True  # View sets this to current user
     )
     status_display = serializers.SerializerMethodField()
     
@@ -388,7 +390,8 @@ class StudentGroupSerializer(serializers.ModelSerializer):
     )
     created_by = UserBasicSerializer(read_only=True)
     created_by_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='created_by'
+        queryset=User.objects.all(), write_only=True, source='created_by',
+        required=False, allow_null=True  # View sets this to current user
     )
     members = GroupMembershipSerializer(many=True, read_only=True, source='groupmembership_set')
     group_type_display = serializers.SerializerMethodField()
@@ -417,7 +420,8 @@ class StudentGroupSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     organizer = UserBasicSerializer(read_only=True)
     organizer_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='organizer'
+        queryset=User.objects.all(), write_only=True, source='organizer',
+        required=False, allow_null=True  # View sets this to current user
     )
     event_type_display = serializers.SerializerMethodField()
     duration_hours = serializers.SerializerMethodField()
