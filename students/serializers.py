@@ -303,7 +303,8 @@ class AttendanceSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     author = UserBasicSerializer(read_only=True)
     author_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='author'
+        queryset=User.objects.all(), write_only=True, source='author',
+        required=False, allow_null=True  # Allow view to set this
     )
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(

@@ -7,24 +7,27 @@ Capture actual error messages from failing tests
 import os
 import sys
 import django
+from datetime import date, timedelta
+
+# Setup Django FIRST before any other imports
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings')
+django.setup()
+
+# Now import Django/DRF components after setup
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
-from datetime import date, timedelta
 
 def setup_django():
-    """Setup Django environment"""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'umoor_sehhat.settings')
-    django.setup()
+    """Django already set up at module level"""
+    pass
 
 def debug_announcement_test():
     """Debug the announcement creation test to see actual error"""
-    setup_django()
-    
-    # Import models after Django setup
-    from students.models import Course, Student, Moze
+    # Import models - Django already set up
+    from students.models import Course, Student, Announcement
     from moze.models import Moze
     User = get_user_model()
     
@@ -58,11 +61,11 @@ def debug_announcement_test():
         address='123 Test Street'
     )
     
-    # Create Course
+    # Create Course with unique code to avoid conflicts
     course = Course.objects.create(
-        code='CS101',
-        name='Introduction to Computer Science',
-        description='Basic computer science concepts',
+        code='DEBUG_CS101',
+        name='Debug Introduction to Computer Science',
+        description='Debug test course',
         credits=3,
         level='beginner',
         instructor=instructor_user,
@@ -102,8 +105,6 @@ def debug_announcement_test():
 
 def debug_enrollment_test():
     """Debug the enrollment creation test"""
-    setup_django()
-    
     from students.models import Course, Student, Enrollment
     from moze.models import Moze
     User = get_user_model()
@@ -150,10 +151,10 @@ def debug_enrollment_test():
         expected_graduation=date.today() + timedelta(days=730)
     )
     
-    # Create Course
+    # Create Course with unique code to avoid conflicts
     course = Course.objects.create(
-        code='CS201',
-        name='Data Structures',
+        code='DEBUG_CS201',
+        name='Debug Data Structures',
         credits=3,
         level='intermediate',
         instructor=instructor_user,
@@ -198,11 +199,16 @@ def main():
     
     try:
         # Clean up any existing test data
-        setup_django()
+        from students.models import Course, Student, Enrollment, Announcement
+        from moze.models import Moze
         User = get_user_model()
+        
+        # Clean up all test data
+        Course.objects.filter(code__startswith='DEBUG_').delete()
         User.objects.filter(username__startswith='admin_user').delete()
         User.objects.filter(username__startswith='instructor_user').delete()
         User.objects.filter(username__startswith='student_user').delete()
+        Moze.objects.filter(name__startswith='Test Moze').delete()
         
         # Debug individual tests
         print("\n1. ANNOUNCEMENT TEST DEBUG:")
