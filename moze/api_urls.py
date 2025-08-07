@@ -23,7 +23,7 @@ urlpatterns = [
     path('teams/search/', api_views.TeamSearchAPIView.as_view(), name='team_search'),
     
     # Comments System
-    path('comments/', api_views.MozeCommentListCreateAPIView.as_view(), name='comment_list_create'),
+    path('comments/', api_views.MozeCommentListCreateAPIView.as_view(), name='moze_comment_list_create'),
     path('comments/<int:pk>/', api_views.MozeCommentDetailAPIView.as_view(), name='comment_detail'),
     
     # Statistics

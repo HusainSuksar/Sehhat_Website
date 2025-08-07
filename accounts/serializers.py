@@ -128,7 +128,7 @@ class LoginSerializer(serializers.Serializer):
     """
     Serializer for user login
     """
-    username = serializers.CharField()
+    username = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True)
     its_id = serializers.CharField(required=False, help_text="Alternative login with ITS ID")
     
@@ -144,6 +144,12 @@ class LoginSerializer(serializers.Serializer):
                 username = user.username
             except User.DoesNotExist:
                 raise serializers.ValidationError("Invalid ITS ID")
+        
+        if not username and not its_id:
+            raise serializers.ValidationError("Must include username or ITS ID")
+        
+        if not password:
+            raise serializers.ValidationError("Password is required")
         
         if username and password:
             user = authenticate(username=username, password=password)

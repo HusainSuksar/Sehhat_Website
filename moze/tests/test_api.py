@@ -350,7 +350,7 @@ class MozeCommentAPITests(MozeAPITestCase):
     def test_list_comments_team_member(self):
         """Test team member can list comments from accessible mozes"""
         self.client.force_authenticate(user=self.team_member_user)
-        url = reverse('comment_list_create')
+        url = reverse('moze_comment_list_create')
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -359,7 +359,7 @@ class MozeCommentAPITests(MozeAPITestCase):
     def test_create_comment_aamil(self):
         """Test aamil can create comment"""
         self.client.force_authenticate(user=self.aamil_user)
-        url = reverse('comment_list_create')
+        url = reverse('moze_comment_list_create')
         data = {
             'moze': self.moze.id,
             'content': 'New comment from aamil'
@@ -372,7 +372,7 @@ class MozeCommentAPITests(MozeAPITestCase):
     def test_create_comment_unauthorized_user(self):
         """Test unauthorized user cannot comment"""
         self.client.force_authenticate(user=self.regular_user)
-        url = reverse('comment_list_create')
+        url = reverse('moze_comment_list_create')
         data = {
             'moze': self.moze.id,
             'content': 'Unauthorized comment'
@@ -397,7 +397,7 @@ class MozeCommentAPITests(MozeAPITestCase):
     def test_create_reply_comment(self):
         """Test creating a reply to a comment"""
         self.client.force_authenticate(user=self.coordinator_user)
-        url = reverse('comment_list_create')
+        url = reverse('moze_comment_list_create')
         data = {
             'moze': self.moze.id,
             'parent': self.comment.id,
