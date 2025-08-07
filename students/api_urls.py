@@ -26,7 +26,7 @@ urlpatterns = [
     path('assignments/', api_views.AssignmentListCreateAPIView.as_view(), name='assignment_list_create'),
     path('assignments/<int:pk>/', api_views.AssignmentDetailAPIView.as_view(), name='assignment_detail'),
     
-    path('submissions/', api_views.SubmissionListCreateAPIView.as_view(), name='submission_list_create'),
+    path('submissions/', api_views.SubmissionListCreateAPIView.as_view(), name='student_submission_list_create'),
     path('submissions/<int:pk>/', api_views.SubmissionDetailAPIView.as_view(), name='submission_detail'),
     
     # Grading and Assessment

@@ -182,7 +182,8 @@ def debug_submission_test():
     # Test the API call
     client = APIClient()
     client.force_authenticate(user=student_user)
-    url = reverse('submission_list_create')
+    url = reverse('student_submission_list_create')
+    print(f"🔍 Resolved URL: {url}")  # Debug the actual URL
     
     data = {
         'assignment_id': assignment.id,

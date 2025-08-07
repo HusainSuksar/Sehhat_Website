@@ -207,8 +207,33 @@ class SubmissionSerializer(serializers.ModelSerializer):
     )
     student = StudentSerializer(read_only=True)
     student_id = serializers.PrimaryKeyRelatedField(
-        queryset=Student.objects.all(), write_only=True, source='student', required=False
+        queryset=Student.objects.all(), write_only=True, source='student',
+        required=False, allow_null=True
     )
+    
+    def to_internal_value(self, data):
+        """Override to handle student_id for student users"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+            # For student users, don't require student_id (view will set it)
+            if user.role == 'student' and 'student_id' not in data:
+                # Temporarily add a placeholder to pass validation
+                data = data.copy()
+                data['student_id'] = None
+        
+        # Continue with normal validation
+        return super().to_internal_value(data)
+    
+    def validate(self, attrs):
+        """Final validation and cleanup"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+            # For student users, remove the placeholder student
+            if user.role == 'student' and attrs.get('student') is None:
+                attrs.pop('student', None)
+        return attrs
     graded_by = UserBasicSerializer(read_only=True)
     days_since_submission = serializers.SerializerMethodField()
     grade_letter = serializers.SerializerMethodField()

@@ -397,7 +397,7 @@ class SubmissionAPITests(StudentsAPITestCase):
         )
         
         self.client.force_authenticate(user=self.student_user)
-        url = reverse('submission_list_create')
+        url = reverse('student_submission_list_create')
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -414,7 +414,7 @@ class SubmissionAPITests(StudentsAPITestCase):
         )
         
         self.client.force_authenticate(user=self.instructor_user)
-        url = reverse('submission_list_create')
+        url = reverse('student_submission_list_create')
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -423,7 +423,7 @@ class SubmissionAPITests(StudentsAPITestCase):
     def test_create_submission_student(self):
         """Test student can create submission"""
         self.client.force_authenticate(user=self.student_user)
-        url = reverse('submission_list_create')
+        url = reverse('student_submission_list_create')
         data = {
             'assignment_id': self.assignment.id,
             'content': 'Here is my solution',
@@ -437,7 +437,7 @@ class SubmissionAPITests(StudentsAPITestCase):
     def test_create_submission_non_student_forbidden(self):
         """Test non-student cannot create submission"""
         self.client.force_authenticate(user=self.instructor_user)
-        url = reverse('submission_list_create')
+        url = reverse('student_submission_list_create')
         data = {
             'assignment_id': self.assignment.id,
             'content': 'Should not be allowed',
