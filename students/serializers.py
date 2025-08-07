@@ -106,10 +106,9 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer(read_only=True)
-    student_id = serializers.PrimaryKeyRelatedField(
-        queryset=Student.objects.all(), write_only=True, source='student',
-        required=False, allow_null=True  # Allow view to set this for students
-    )
+    # student_id field removed - view handles student assignment based on user role
+    # For students: automatically set to current user's student record
+    # For admins: would need separate admin enrollment endpoint or different serializer
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(
         queryset=Course.objects.all(), write_only=True, source='course'
@@ -121,7 +120,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = [
-            'id', 'student', 'student_id', 'course', 'course_id', 'status',
+            'id', 'student', 'course', 'course_id', 'status',
             'status_display', 'enrolled_date', 'completion_date', 'grade',
             'days_enrolled', 'is_active'
         ]
