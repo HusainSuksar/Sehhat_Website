@@ -58,7 +58,7 @@ class CustomLoginView(FormView):
     def get_success_url_for_user(self, user):
         """Get redirect URL based on user role"""
         if user.is_admin:
-            return reverse_lazy('accounts:user_management')
+            return reverse_lazy('accounts:dashboard')
         elif user.is_aamil:
             return reverse_lazy('moze:dashboard')
         elif user.is_moze_coordinator:

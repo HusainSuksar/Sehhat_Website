@@ -30,7 +30,7 @@ def generate_secret_key():
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or generate_secret_key()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')  # Default to True for development
 
 # Security settings for production
 if not DEBUG:
@@ -43,10 +43,10 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
-    ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+    ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if os.environ.get('DJANGO_ALLOWED_HOSTS') else ['localhost', '127.0.0.1']
 else:
-    # Development settings
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+    # Development settings - allow all hosts for development
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '*']
 
 # Application definition
 
@@ -250,7 +250,8 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 # CSRF settings
 CSRF_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True
+CSRF_USE_SESSIONS = False  # Disable to fix middleware conflicts
+CSRF_COOKIE_SAMESITE = 'Strict'
 
 # Logging configuration
 LOGGING = {

@@ -407,13 +407,24 @@ def bulk_its_sync_api(request):
     })
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])  # Allow public access for testing
 def test_its_api(request):
     """
     Test endpoint for the Mock ITS API
     Handles different actions: fetch_user, search_users, validate_id, create_user
     """
+    
+    # Handle GET request for API status
+    if request.method == 'GET':
+        return JsonResponse({
+            'success': True,
+            'message': 'Mock ITS API is working',
+            'available_actions': ['fetch_user', 'search_users', 'validate_id', 'create_user'],
+            'status': 'active'
+        })
+    
+    # Handle POST request for actions
     try:
         data = json.loads(request.body)
         action = data.get('action')
