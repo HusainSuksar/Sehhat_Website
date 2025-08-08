@@ -656,3 +656,8 @@ def user_delete(request, pk):
         return JsonResponse({'error': 'User not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': f'Failed to delete user: {str(e)}'}, status=500)
+
+
+def test_its_api_view(request):
+    """View for testing the Mock ITS API"""
+    return render(request, 'accounts/test_its_api.html')

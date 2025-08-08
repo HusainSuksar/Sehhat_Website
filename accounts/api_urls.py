@@ -30,4 +30,7 @@ urlpatterns = [
     # Statistics and audit endpoints
     path('stats/', api_views.user_stats_api, name='user_stats'),
     path('audit-logs/', api_views.AuditLogListAPIView.as_view(), name='audit_logs'),
+    path('user-stats/', api_views.user_stats_api, name='user_stats_api'),
+    path('sync-its/', api_views.sync_its_data, name='sync_its_data'),
+    path('test-its/', api_views.test_its_api, name='test_its_api'),
 ]

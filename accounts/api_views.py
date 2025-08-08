@@ -12,6 +12,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from rest_framework.permissions import AllowAny
+from .services import MockITSService
+from django.http import JsonResponse
+import json
 
 from .models import User, UserProfile, AuditLog
 from .serializers import (
@@ -396,3 +400,103 @@ def bulk_its_sync_api(request):
         'message': f'Processed {len(its_ids)} ITS IDs',
         'results': results
     })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Allow public access for testing
+def test_its_api(request):
+    """
+    Test endpoint for the Mock ITS API
+    Handles different actions: fetch_user, search_users, validate_id, create_user
+    """
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        
+        if action == 'fetch_user':
+            its_id = data.get('its_id')
+            if not its_id:
+                return JsonResponse({'success': False, 'error': 'ITS ID is required'})
+            
+            user_data = MockITSService.fetch_user_data(its_id)
+            if user_data:
+                return JsonResponse({'success': True, 'data': user_data})
+            else:
+                return JsonResponse({'success': False, 'error': 'User not found or invalid ITS ID'})
+        
+        elif action == 'search_users':
+            query = data.get('query')
+            if not query:
+                return JsonResponse({'success': False, 'error': 'Search query is required'})
+            
+            results = MockITSService.search_users(query, limit=5)
+            return JsonResponse({'success': True, 'data': results})
+        
+        elif action == 'validate_id':
+            its_id = data.get('its_id')
+            if not its_id:
+                return JsonResponse({'success': False, 'error': 'ITS ID is required'})
+            
+            is_valid = MockITSService.validate_its_id(its_id)
+            message = None
+            if not is_valid:
+                if len(its_id) != 8:
+                    message = f"Must be exactly 8 digits (got {len(its_id)})"
+                elif not its_id.isdigit():
+                    message = "Must contain only digits"
+            
+            return JsonResponse({
+                'success': True,
+                'valid': is_valid,
+                'its_id': its_id,
+                'message': message
+            })
+        
+        elif action == 'create_user':
+            its_id = data.get('its_id')
+            if not its_id:
+                return JsonResponse({'success': False, 'error': 'ITS ID is required'})
+            
+            # Fetch ITS data
+            its_data = MockITSService.fetch_user_data(its_id)
+            if not its_data:
+                return JsonResponse({'success': False, 'error': 'Invalid ITS ID or user not found'})
+            
+            # Create or get Django user
+            user, created = User.objects.get_or_create(
+                its_id=its_id,
+                defaults={
+                    'username': its_data['email'],
+                    'email': its_data['email'],
+                    'first_name': its_data['first_name'],
+                    'last_name': its_data['last_name'],
+                    'mobile_number': its_data['mobile_number'],
+                    'qualification': its_data['qualification'],
+                    'city': its_data['city'],
+                    'organization': its_data['organization'],
+                    'role': 'student',
+                }
+            )
+            
+            user_data = {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'city': user.city,
+                'mobile_number': user.mobile_number,
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'created': created,
+                'user': user_data
+            })
+        
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid action'})
+    
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

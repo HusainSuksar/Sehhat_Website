@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from django.urls import include
 
 app_name = 'accounts'
 
@@ -46,4 +47,16 @@ urlpatterns = [
     
     # Modern user directory
     path('user-directory/', views.user_directory, name='user_directory'),
+
+    path('user-management/', views.user_management_view, name='user_management'),
+    path('profile/', views.profile_view, name='profile'),
+    path('audit-logs/', views.audit_logs_view, name='audit_logs'),
+    path('test-its-api/', views.test_its_api_view, name='test_its_api'),
+    
+    # AJAX endpoints
+    path('ajax/users/', views.ajax_users_list, name='ajax_users_list'),
+    path('ajax/users/<int:user_id>/delete/', views.ajax_delete_user, name='ajax_delete_user'),
+    
+    # API URLs
+    path('api/', include('accounts.api_urls')),
 ]
