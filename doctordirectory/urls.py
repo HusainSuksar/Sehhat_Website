@@ -5,7 +5,7 @@ app_name = 'doctordirectory'
 
 urlpatterns = [
     # Dashboard and main views
-    path('dashboard', views.dashboard, name='dashboard'),
+    path('', views.dashboard, name='dashboard'),
     
     # Doctor management (only existing views)
     path('doctors/', views.DoctorListView.as_view(), name='doctor_list'),
