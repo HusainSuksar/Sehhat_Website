@@ -71,10 +71,11 @@ class APITester:
                 'csrfmiddlewaretoken': csrf_token
             }
             
-            response = self.session.post(f"{BASE_URL}/accounts/login/", data=login_data)
+            response = self.session.post(f"{BASE_URL}/accounts/login/", data=login_data, allow_redirects=False)
             
             if response.status_code == 302:  # Redirect after successful login
-                self.log_test(f"ITS Login ({user_type})", True, f"Successful login with ITS ID {user_creds['its_id']}")
+                redirect_url = response.headers.get('Location', '')
+                self.log_test(f"ITS Login ({user_type})", True, f"Successful login with ITS ID {user_creds['its_id']} → {redirect_url}")
                 return True
             else:
                 self.log_test(f"ITS Login ({user_type})", False, f"Login failed: {response.status_code}")
@@ -89,10 +90,10 @@ class APITester:
         print(f"\n👤 Testing Accounts APIs...")
         
         endpoints = [
-            ('/accounts/api/users/', 'GET', 'User list'),
-            ('/accounts/api/profile/', 'GET', 'User profile'),
-            ('/accounts/api/sync-its/', 'POST', 'ITS sync'),
-            ('/accounts/api/test-its/', 'GET', 'ITS test'),
+            ('/api/users/', 'GET', 'User list'),
+            ('/api/profile/', 'GET', 'User profile'),
+            ('/api/sync-its/', 'POST', 'ITS sync'),
+            ('/api/test-its/', 'GET', 'ITS test'),
         ]
         
         for endpoint, method, description in endpoints:
@@ -138,68 +139,68 @@ class APITester:
         
         # 2. Araz APIs
         araz_endpoints = [
-            ('/araz/api/petitions/', 'GET', 'Petition list'),
-            ('/araz/api/categories/', 'GET', 'Petition categories'),
-            ('/araz/api/petitions/1/', 'GET', 'Petition detail'),
+            ('/api/araz/petitions/', 'GET', 'Petition list'),
+            ('/api/araz/categories/', 'GET', 'Petition categories'),
+            ('/api/araz/petitions/1/', 'GET', 'Petition detail'),
         ]
         self.test_app_apis('Araz', araz_endpoints)
         
         # 3. Doctor Directory APIs
         doctor_endpoints = [
-            ('/doctordirectory/api/doctors/', 'GET', 'Doctor list'),
-            ('/doctordirectory/api/patients/', 'GET', 'Patient list'),
-            ('/doctordirectory/api/appointments/', 'GET', 'Appointment list'),
-            ('/doctordirectory/api/medical-records/', 'GET', 'Medical records'),
+            ('/api/doctordirectory/doctors/', 'GET', 'Doctor list'),
+            ('/api/doctordirectory/patients/', 'GET', 'Patient list'),
+            ('/api/doctordirectory/appointments/', 'GET', 'Appointment list'),
+            ('/api/doctordirectory/medical-records/', 'GET', 'Medical records'),
         ]
         self.test_app_apis('Doctor Directory', doctor_endpoints)
         
         # 4. MahalShifa APIs
         mahalshifa_endpoints = [
-            ('/mahalshifa/api/hospitals/', 'GET', 'Hospital list'),
-            ('/mahalshifa/api/doctors/', 'GET', 'MahalShifa doctors'),
-            ('/mahalshifa/api/patients/', 'GET', 'MahalShifa patients'),
-            ('/mahalshifa/api/departments/', 'GET', 'Hospital departments'),
+            ('/api/mahalshifa/hospitals/', 'GET', 'Hospital list'),
+            ('/api/mahalshifa/doctors/', 'GET', 'MahalShifa doctors'),
+            ('/api/mahalshifa/patients/', 'GET', 'MahalShifa patients'),
+            ('/api/mahalshifa/departments/', 'GET', 'Hospital departments'),
         ]
         self.test_app_apis('MahalShifa', mahalshifa_endpoints)
         
         # 5. Students APIs
         students_endpoints = [
-            ('/students/api/students/', 'GET', 'Student list'),
-            ('/students/api/courses/', 'GET', 'Course list'),
-            ('/students/api/assignments/', 'GET', 'Assignment list'),
-            ('/students/api/submissions/', 'GET', 'Submission list'),
+            ('/api/students/students/', 'GET', 'Student list'),
+            ('/api/students/courses/', 'GET', 'Course list'),
+            ('/api/students/assignments/', 'GET', 'Assignment list'),
+            ('/api/students/submissions/', 'GET', 'Submission list'),
         ]
         self.test_app_apis('Students', students_endpoints)
         
         # 6. Moze APIs
         moze_endpoints = [
-            ('/moze/api/mozes/', 'GET', 'Moze list'),
-            ('/moze/api/teams/', 'GET', 'Umoor Sehhat teams'),
-            ('/moze/api/mozes/1/', 'GET', 'Moze detail'),
+            ('/api/moze/mozes/', 'GET', 'Moze list'),
+            ('/api/moze/teams/', 'GET', 'Umoor Sehhat teams'),
+            ('/api/moze/mozes/1/', 'GET', 'Moze detail'),
         ]
         self.test_app_apis('Moze', moze_endpoints)
         
         # 7. Evaluation APIs
         evaluation_endpoints = [
-            ('/evaluation/api/forms/', 'GET', 'Evaluation forms'),
-            ('/evaluation/api/submissions/', 'GET', 'Evaluation submissions'),
-            ('/evaluation/api/criteria/', 'GET', 'Evaluation criteria'),
+            ('/api/evaluation/forms/', 'GET', 'Evaluation forms'),
+            ('/api/evaluation/submissions/', 'GET', 'Evaluation submissions'),
+            ('/api/evaluation/criteria/', 'GET', 'Evaluation criteria'),
         ]
         self.test_app_apis('Evaluation', evaluation_endpoints)
         
         # 8. Surveys APIs
         surveys_endpoints = [
-            ('/surveys/api/surveys/', 'GET', 'Survey list'),
-            ('/surveys/api/responses/', 'GET', 'Survey responses'),
-            ('/surveys/api/surveys/1/', 'GET', 'Survey detail'),
+            ('/api/surveys/surveys/', 'GET', 'Survey list'),
+            ('/api/surveys/responses/', 'GET', 'Survey responses'),
+            ('/api/surveys/surveys/1/', 'GET', 'Survey detail'),
         ]
         self.test_app_apis('Surveys', surveys_endpoints)
         
         # 9. Photos APIs
         photos_endpoints = [
-            ('/photos/api/albums/', 'GET', 'Photo albums'),
-            ('/photos/api/photos/', 'GET', 'Photo list'),
-            ('/photos/api/albums/1/', 'GET', 'Album detail'),
+            ('/api/photos/albums/', 'GET', 'Photo albums'),
+            ('/api/photos/photos/', 'GET', 'Photo list'),
+            ('/api/photos/albums/1/', 'GET', 'Album detail'),
         ]
         self.test_app_apis('Photos', photos_endpoints)
 
@@ -234,7 +235,7 @@ class APITester:
         
         try:
             # Test ITS API directly
-            response = self.session.get(f"{BASE_URL}/accounts/api/test-its/")
+            response = self.session.get(f"{BASE_URL}/api/test-its/")
             if response.status_code == 200:
                 data = response.json()
                 if 'status' in data and data['status'] == 'success':
