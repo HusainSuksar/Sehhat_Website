@@ -91,8 +91,8 @@ class APITester:
         
         endpoints = [
             ('/api/users/', 'GET', 'User list'),
-            ('/api/profile/', 'GET', 'User profile'),
-            ('/api/sync-its/', 'POST', 'ITS sync'),
+            ('/api/me/', 'GET', 'User profile'),
+            ('/api/its/sync/', 'POST', 'ITS sync'),
             ('/api/test-its/', 'GET', 'ITS test'),
         ]
         
