@@ -683,3 +683,83 @@ def _get_redirect_url_for_role(role):
         'student': '/students/dashboard/',
     }
     return role_redirects.get(role, '/accounts/profile/')
+
+
+def user_management_view(request):
+    """User management view for admins"""
+    if not request.user.is_authenticated or not request.user.is_admin:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:its_login')
+    
+    return render(request, 'accounts/user_management.html', {
+        'title': 'User Management',
+        'users': User.objects.all()[:10],  # Show first 10 users
+    })
+
+
+def profile_view(request):
+    """User profile view"""
+    if not request.user.is_authenticated:
+        return redirect('accounts:its_login')
+    
+    return render(request, 'accounts/profile.html', {
+        'title': 'My Profile',
+        'user': request.user,
+    })
+
+
+def audit_logs_view(request):
+    """Audit logs view for admins"""
+    if not request.user.is_authenticated or not request.user.is_admin:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('accounts:its_login')
+    
+    logs = AuditLog.objects.all().order_by('-timestamp')[:50]  # Show latest 50 logs
+    
+    return render(request, 'accounts/audit_logs.html', {
+        'title': 'Audit Logs',
+        'logs': logs,
+    })
+
+
+def ajax_users_list(request):
+    """AJAX endpoint for users list"""
+    if not request.user.is_authenticated or not request.user.is_admin:
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    users = User.objects.all()[:50]  # Limit to 50 users
+    users_data = []
+    
+    for user in users:
+        users_data.append({
+            'id': user.id,
+            'name': f"{user.first_name} {user.last_name}",
+            'email': user.email,
+            'role': user.get_role_display(),
+            'is_active': user.is_active,
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+        })
+    
+    return JsonResponse({'users': users_data})
+
+
+def ajax_delete_user(request, user_id):
+    """AJAX endpoint for deleting users"""
+    if not request.user.is_authenticated or not request.user.is_admin:
+        return JsonResponse({'error': 'Access denied'}, status=403)
+    
+    if request.method == 'DELETE':
+        try:
+            user = get_object_or_404(User, id=user_id)
+            if user == request.user:
+                return JsonResponse({'error': 'Cannot delete your own account'}, status=400)
+            
+            user.delete()
+            return JsonResponse({'success': 'User deleted successfully'})
+        
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': f'Failed to delete user: {str(e)}'}, status=500)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)

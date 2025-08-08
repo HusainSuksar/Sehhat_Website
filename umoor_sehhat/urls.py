@@ -49,25 +49,25 @@ urlpatterns = [
     
     # App URLs
     path('accounts/', include('accounts.urls')),
-    path('araz/', include('Araz.urls')),
-    path('doctordirectory/', include('DoctorDirectory.urls')),
-    path('mahalshifa/', include('MahalShifa.urls')),
-    path('students/', include('Students.urls')),
-    path('moze/', include('Moze.urls')),
-    path('evaluation/', include('Evaluation.urls')),
-    path('surveys/', include('Surveys.urls')),
-    path('photos/', include('Photos.urls')),
+    path('araz/', include('araz.urls')),
+    path('doctordirectory/', include('doctordirectory.urls')),
+    path('mahalshifa/', include('mahalshifa.urls')),
+    path('students/', include('students.urls')),
+    path('moze/', include('moze.urls')),
+    path('evaluation/', include('evaluation.urls')),
+    path('surveys/', include('surveys.urls')),
+    path('photos/', include('photos.urls')),
 
     # API URLs
     path('api/', include('accounts.api_urls')),
-    path('api/araz/', include('Araz.api_urls')),
-    path('api/doctordirectory/', include('DoctorDirectory.api_urls')),
-    path('api/mahalshifa/', include('MahalShifa.api_urls')),
-    path('api/students/', include('Students.api_urls')),
-    path('api/moze/', include('Moze.api_urls')),
-    path('api/evaluation/', include('Evaluation.api_urls')),
-    path('api/surveys/', include('Surveys.api_urls')),
-    path('api/photos/', include('Photos.api_urls')),
+    path('api/araz/', include('araz.api_urls')),
+    path('api/doctordirectory/', include('doctordirectory.api_urls')),
+    path('api/mahalshifa/', include('mahalshifa.api_urls')),
+    path('api/students/', include('students.api_urls')),
+    path('api/moze/', include('moze.api_urls')),
+    path('api/evaluation/', include('evaluation.api_urls')),
+    path('api/surveys/', include('surveys.api_urls')),
+    path('api/photos/', include('photos.api_urls')),
 ]
 
 # Serve media files during development
