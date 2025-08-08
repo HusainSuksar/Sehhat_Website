@@ -754,7 +754,7 @@ def profile_view(request):
     # Moze data with optimized query
     try:
         from moze.models import UmoorSehhatTeam
-        backend_data['moze_teams'] = UmoorSehhatTeam.objects.prefetch_related('members').filter(members=user)
+        backend_data['moze_teams'] = UmoorSehhatTeam.objects.prefetch_related('member').filter(member=user)
     except Exception as e:
         logger.warning(f"Error fetching moze teams for user {user.id}: {e}")
         backend_data['moze_teams'] = []
@@ -770,7 +770,7 @@ def profile_view(request):
     # Photos with optimization
     try:
         from photos.models import Photo
-        backend_data['photos'] = Photo.objects.select_related('user', 'album').filter(user=user)[:5]
+        backend_data['photos'] = Photo.objects.select_related('uploaded_by', 'moze').filter(uploaded_by=user)[:5]
     except Exception as e:
         logger.warning(f"Error fetching photos for user {user.id}: {e}")
         backend_data['photos'] = []
@@ -778,7 +778,7 @@ def profile_view(request):
     # Araz petitions with optimization
     try:
         from araz.models import Petition
-        backend_data['petitions'] = Petition.objects.select_related('submitted_by', 'category').filter(submitted_by=user)[:5]
+        backend_data['petitions'] = Petition.objects.select_related('created_by', 'category').filter(created_by=user)[:5]
     except Exception as e:
         logger.warning(f"Error fetching petitions for user {user.id}: {e}")
         backend_data['petitions'] = []
@@ -786,7 +786,7 @@ def profile_view(request):
     # Evaluation submissions with optimization
     try:
         from evaluation.models import EvaluationSubmission
-        backend_data['evaluations'] = EvaluationSubmission.objects.select_related('form', 'submitted_by').filter(submitted_by=user)[:5]
+        backend_data['evaluations'] = EvaluationSubmission.objects.select_related('form', 'evaluator').filter(evaluator=user)[:5]
     except Exception as e:
         logger.warning(f"Error fetching evaluations for user {user.id}: {e}")
         backend_data['evaluations'] = []

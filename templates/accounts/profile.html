@@ -208,7 +208,7 @@
 
     <div class="row">
         <!-- ITS Data Section -->
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <div class="data-card">
                 <h5><i class="fas fa-id-card"></i>ITS Profile Data</h5>
                 {% if its_sync_available %}
@@ -340,6 +340,93 @@
                         <i class="fas fa-images me-2"></i>Photos
                     </a>
                 </div>
+            </div>
+
+            <!-- Backend Profile Data -->
+            <div class="data-card mb-4">
+                <h5><i class="fas fa-database"></i>Backend Profile Data</h5>
+                
+                <!-- Moze Teams -->
+                {% if backend_data.moze_teams %}
+                    <div class="mb-3">
+                        <h6 class="text-primary"><i class="fas fa-mosque me-1"></i>Moze Teams</h6>
+                        {% for team in backend_data.moze_teams %}
+                            <div class="data-item">
+                                <span class="data-label">Position</span>
+                                <span class="data-value">{{ team.position|default:"Member" }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Doctor Information -->
+                {% if backend_data.doctor %}
+                    <div class="mb-3">
+                        <h6 class="text-success"><i class="fas fa-user-md me-1"></i>Doctor Information</h6>
+                        <div class="data-item">
+                            <span class="data-label">Specialization</span>
+                            <span class="data-value">{{ backend_data.doctor.specialization|default:"Not specified" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Experience</span>
+                            <span class="data-value">{{ backend_data.doctor.years_of_experience|default:"0" }} years</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- MahalShifa Doctor -->
+                {% if backend_data.mahalshifa_doctor %}
+                    <div class="mb-3">
+                        <h6 class="text-info"><i class="fas fa-hospital me-1"></i>MahalShifa Doctor</h6>
+                        <div class="data-item">
+                            <span class="data-label">Specialization</span>
+                            <span class="data-value">{{ backend_data.mahalshifa_doctor.specialization|default:"Not specified" }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Student Information -->
+                {% if backend_data.student %}
+                    <div class="mb-3">
+                        <h6 class="text-warning"><i class="fas fa-graduation-cap me-1"></i>Student Information</h6>
+                        <div class="data-item">
+                            <span class="data-label">Course</span>
+                            <span class="data-value">{{ backend_data.student.course|default:"Not specified" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Year</span>
+                            <span class="data-value">{{ backend_data.student.year|default:"Not specified" }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Activity Summary -->
+                <div class="mb-3">
+                    <h6 class="text-secondary"><i class="fas fa-chart-line me-1"></i>Activity Summary</h6>
+                    <div class="data-item">
+                        <span class="data-label">Survey Responses</span>
+                        <span class="data-value">{{ backend_data.survey_responses|length }}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Photos Uploaded</span>
+                        <span class="data-value">{{ backend_data.photos|length }}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Petitions Created</span>
+                        <span class="data-value">{{ backend_data.petitions|length }}</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Evaluations</span>
+                        <span class="data-value">{{ backend_data.evaluations|length }}</span>
+                    </div>
+                </div>
+
+                {% if not backend_data.doctor and not backend_data.mahalshifa_doctor and not backend_data.student and not backend_data.moze_teams %}
+                    <div class="empty-state">
+                        <i class="fas fa-info-circle fa-2x mb-2 text-muted"></i>
+                        <p>No backend profile data available</p>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Recent Activity -->
