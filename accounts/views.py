@@ -9,7 +9,7 @@ from django.views.generic import (
     TemplateView, ListView, DetailView, UpdateView, CreateView
 )
 from django.urls import reverse_lazy
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -661,3 +661,25 @@ def user_delete(request, pk):
 def test_its_api_view(request):
     """View for testing the Mock ITS API"""
     return render(request, 'accounts/test_its_api.html')
+
+
+def its_login_view(request):
+    """ITS Login page view"""
+    # If user is already logged in, redirect to appropriate dashboard
+    if request.user.is_authenticated:
+        redirect_url = _get_redirect_url_for_role(request.user.role)
+        return HttpResponseRedirect(redirect_url)
+    
+    return render(request, 'accounts/its_login.html')
+
+
+def _get_redirect_url_for_role(role):
+    """Helper function to get redirect URL based on role"""
+    role_redirects = {
+        'doctor': '/doctordirectory/dashboard/',
+        'badri_mahal_admin': '/accounts/user-management/',
+        'aamil': '/moze/dashboard/',
+        'moze_coordinator': '/moze/dashboard/',
+        'student': '/students/dashboard/',
+    }
+    return role_redirects.get(role, '/accounts/profile/')

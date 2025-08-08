@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -500,3 +501,138 @@ def test_its_api(request):
         return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def its_login_api(request):
+    """
+    ITS Login API endpoint
+    Authenticates user through ITS API and creates Django session
+    """
+    try:
+        data = json.loads(request.body)
+        its_id = data.get('its_id')
+        password = data.get('password')
+        
+        if not its_id or not password:
+            return JsonResponse({
+                'success': False,
+                'error': 'Both ITS ID and password are required'
+            })
+        
+        # Authenticate with ITS API
+        auth_result = MockITSService.authenticate_user(its_id, password)
+        
+        if not auth_result or not auth_result.get('authenticated'):
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid ITS credentials. Please check your ITS ID and password.'
+            })
+        
+        # Get user data from ITS
+        user_data = auth_result['user_data']
+        role = auth_result['role']
+        
+        # Create or update Django user
+        user, created = User.objects.get_or_create(
+            its_id=its_id,
+            defaults={
+                'username': user_data['email'],
+                'email': user_data['email'],
+                'first_name': user_data['first_name'],
+                'last_name': user_data['last_name'],
+                'arabic_full_name': user_data['arabic_full_name'],
+                'prefix': user_data['prefix'],
+                'age': user_data['age'],
+                'gender': user_data['gender'],
+                'marital_status': user_data['marital_status'],
+                'misaq': user_data['misaq'],
+                'occupation': user_data['occupation'],
+                'qualification': user_data['qualification'],
+                'idara': user_data['idara'],
+                'category': user_data['category'],
+                'organization': user_data['organization'],
+                'mobile_number': user_data['mobile_number'],
+                'whatsapp_number': user_data['whatsapp_number'],
+                'address': user_data['address'],
+                'jamaat': user_data['jamaat'],
+                'jamiaat': user_data['jamiaat'],
+                'nationality': user_data['nationality'],
+                'vatan': user_data['vatan'],
+                'city': user_data['city'],
+                'country': user_data['country'],
+                'hifz_sanad': user_data['hifz_sanad'],
+                'profile_photo': user_data['photograph'],
+                'role': role,
+                'is_active': True,
+            }
+        )
+        
+        # Update existing user data with fresh ITS data
+        if not created:
+            user.first_name = user_data['first_name']
+            user.last_name = user_data['last_name']
+            user.email = user_data['email']
+            user.mobile_number = user_data['mobile_number']
+            user.qualification = user_data['qualification']
+            user.occupation = user_data['occupation']
+            user.organization = user_data['organization']
+            user.city = user_data['city']
+            user.country = user_data['country']
+            user.role = role  # Update role based on current ITS data
+            user.its_last_sync = timezone.now()
+            user.save()
+        
+        # Log the user in (create Django session)
+        login(request, user)
+        
+        # Determine redirect URL based on user role
+        redirect_url = _get_redirect_url_for_role(role)
+        
+        # Get role display name
+        role_display = dict(User.ROLE_CHOICES).get(role, role.title())
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'role': role,
+                'role_display': role_display,
+                'its_id': its_id,
+                'created': created
+            },
+            'redirect_url': redirect_url,
+            'auth_source': 'its_api'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid request data'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Login failed: {str(e)}'
+        })
+
+
+def _get_redirect_url_for_role(role):
+    """
+    Determine redirect URL based on user role
+    """
+    role_redirects = {
+        'doctor': '/doctordirectory/dashboard/',
+        'badri_mahal_admin': '/accounts/user-management/',
+        'aamil': '/moze/dashboard/',
+        'moze_coordinator': '/moze/dashboard/',
+        'student': '/students/dashboard/',
+    }
+    
+    # Default redirect for any other roles
+    return role_redirects.get(role, '/accounts/profile/')

@@ -33,4 +33,5 @@ urlpatterns = [
     path('user-stats/', api_views.user_stats_api, name='user_stats_api'),
     path('sync-its/', api_views.sync_its_data, name='sync_its_data'),
     path('test-its/', api_views.test_its_api, name='test_its_api'),
+    path('its-login/', api_views.its_login_api, name='its_login_api'),
 ]

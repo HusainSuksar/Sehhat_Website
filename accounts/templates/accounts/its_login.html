@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS Login - Umoor Sehhat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .its-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .its-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .its-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .its-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .its-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .its-subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .form-floating {
+            margin-bottom: 20px;
+        }
+        
+        .form-control {
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-its-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-its-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .btn-its-login:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .test-credentials {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .test-credential-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .test-credential-item:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .role-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+        
+        .its-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="its-container">
+        <div class="its-card">
+            <div class="its-header">
+                <div class="its-logo">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1 class="its-title">ITS Login</h1>
+                <p class="its-subtitle">Integrated Technology Solutions</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Login Form -->
+            <form id="itsLoginForm">
+                {% csrf_token %}
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="itsId" name="its_id" placeholder="ITS ID" maxlength="8" required>
+                    <label for="itsId"><i class="fas fa-id-card me-2"></i>ITS ID (8 digits)</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="itsPassword" name="password" placeholder="Password" required>
+                    <label for="itsPassword"><i class="fas fa-lock me-2"></i>ITS Password</label>
+                </div>
+
+                <button type="submit" class="btn btn-its-login" id="loginBtn">
+                    <span class="login-text">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login with ITS
+                    </span>
+                    <span class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Authenticating...
+                    </span>
+                </button>
+            </form>
+
+            <!-- Test Credentials -->
+            <div class="test-credentials">
+                <h6><i class="fas fa-flask me-2"></i>Test Credentials (Demo)</h6>
+                <p class="mb-2" style="font-size: 0.8rem;">Click any credential to auto-fill:</p>
+                
+                <div class="test-credential-item" onclick="fillCredentials('12345678', 'doctor123')">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Dr. Fatima Shaikh</strong><br>
+                            <small>ITS: 12345678 | PWD: doctor123</small>
+                        </div>
+                        <span class="badge bg-success role-badge">Doctor</span>
+                    </div>
+                </div>
+
+                <div class="test-credential-item" onclick="fillCredentials('87654321', 'admin123')">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Zainab Shaikh</strong><br>
+                            <small>ITS: 87654321 | PWD: admin123</small>
+                        </div>
+                        <span class="badge bg-danger role-badge">Admin</span>
+                    </div>
+                </div>
+
+                <div class="test-credential-item" onclick="fillCredentials('99999999', 'student123')">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Ahmed Khan</strong><br>
+                            <small>ITS: 99999999 | PWD: student123</small>
+                        </div>
+                        <span class="badge bg-primary role-badge">Student</span>
+                    </div>
+                </div>
+
+                <div class="test-credential-item" onclick="fillCredentials('11111111', 'aamil123')">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Hassan Patel</strong><br>
+                            <small>ITS: 11111111 | PWD: aamil123</small>
+                        </div>
+                        <span class="badge bg-warning role-badge">Aamil</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="its-footer">
+                <p>Secure authentication through ITS API</p>
+                <p>© 2024 Umoor Sehhat - All rights reserved</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // CSRF Token for Django
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Fill test credentials
+        function fillCredentials(itsId, password) {
+            document.getElementById('itsId').value = itsId;
+            document.getElementById('itsPassword').value = password;
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // Show loading state
+        function setLoading(loading) {
+            const loginBtn = document.getElementById('loginBtn');
+            const loginText = loginBtn.querySelector('.login-text');
+            const loadingSpinner = loginBtn.querySelector('.loading-spinner');
+            
+            if (loading) {
+                loginText.style.display = 'none';
+                loadingSpinner.style.display = 'inline';
+                loginBtn.disabled = true;
+            } else {
+                loginText.style.display = 'inline';
+                loadingSpinner.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('itsLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const itsId = document.getElementById('itsId').value;
+            const password = document.getElementById('itsPassword').value;
+            
+            // Basic validation
+            if (!itsId || !password) {
+                showAlert('Please enter both ITS ID and password.');
+                return;
+            }
+            
+            if (itsId.length !== 8 || !/^\d+$/.test(itsId)) {
+                showAlert('ITS ID must be exactly 8 digits.');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showAlert('Password must be at least 4 characters.');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                const response = await fetch('/accounts/api/its-login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        its_id: itsId,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success message with user info
+                    showAlert(`
+                        Welcome ${data.user.first_name} ${data.user.last_name}!<br>
+                        <small>Role: <strong>${data.user.role_display}</strong> | Redirecting...</small>
+                    `, 'success');
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 2000);
+                    
+                } else {
+                    showAlert(data.error || 'Authentication failed. Please check your credentials.');
+                }
+                
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+                console.error('Login error:', error);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Auto-focus on ITS ID field
+        document.getElementById('itsId').focus();
+    </script>
+</body>
+</html>

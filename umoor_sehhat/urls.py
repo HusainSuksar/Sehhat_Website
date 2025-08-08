@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
@@ -42,32 +42,31 @@ def dashboard_redirect(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', dashboard_redirect, name='dashboard'),
+    # Main authentication - redirect to ITS login
+    path('', RedirectView.as_view(url='/accounts/its-login/', permanent=False)),
+    path('login/', RedirectView.as_view(url='/accounts/its-login/', permanent=False)),
     
     # App URLs
     path('accounts/', include('accounts.urls')),
-    path('moze/', include('moze.urls')),
-    path('mahalshifa/', include('mahalshifa.urls')),
-    path('doctordirectory/', include('doctordirectory.urls')),
-    path('surveys/', include('surveys.urls')),
-    path('photos/', include('photos.urls')),
-    path('evaluation/', include('evaluation.urls')),
-    path('araz/', include('araz.urls')),
-    path('students/', include('students.urls')),
-    
-    # API Integration URLs
-    path('api/accounts/', include('accounts.api_urls')),
-    path('api/araz/', include('araz.api_urls')),
-    path('api/doctordirectory/', include('doctordirectory.api_urls')),
-    path('api/mahalshifa/', include('mahalshifa.api_urls')),
-    path('api/students/', include('students.api_urls')),
-    path('api/moze/', include('moze.api_urls')),
-    path('api/evaluation/', include('evaluation.api_urls')),
-    path('api/surveys/', include('surveys.api_urls')),
-    path('api/photos/', include('photos.api_urls')),
-    
-    # DRF URLs (if needed)
-    path('api-auth/', include('rest_framework.urls')),
+    path('araz/', include('Araz.urls')),
+    path('doctordirectory/', include('DoctorDirectory.urls')),
+    path('mahalshifa/', include('MahalShifa.urls')),
+    path('students/', include('Students.urls')),
+    path('moze/', include('Moze.urls')),
+    path('evaluation/', include('Evaluation.urls')),
+    path('surveys/', include('Surveys.urls')),
+    path('photos/', include('Photos.urls')),
+
+    # API URLs
+    path('api/', include('accounts.api_urls')),
+    path('api/araz/', include('Araz.api_urls')),
+    path('api/doctordirectory/', include('DoctorDirectory.api_urls')),
+    path('api/mahalshifa/', include('MahalShifa.api_urls')),
+    path('api/students/', include('Students.api_urls')),
+    path('api/moze/', include('Moze.api_urls')),
+    path('api/evaluation/', include('Evaluation.api_urls')),
+    path('api/surveys/', include('Surveys.api_urls')),
+    path('api/photos/', include('Photos.api_urls')),
 ]
 
 # Serve media files during development

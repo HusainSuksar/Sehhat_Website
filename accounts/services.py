@@ -154,6 +154,83 @@ class MockITSService:
         
         return results
 
+    @classmethod
+    def authenticate_user(cls, its_id: str, password: str) -> Optional[Dict]:
+        """
+        Mock function to simulate ITS authentication
+        In real implementation, this would validate credentials against ITS API
+        
+        Args:
+            its_id: 8-digit ITS ID
+            password: User's ITS password
+            
+        Returns:
+            Authentication result with user data or None if invalid
+        """
+        # Validate ITS ID format first
+        if not cls.validate_its_id(its_id):
+            return None
+        
+        # Mock password validation (in real implementation, this would be sent to ITS API)
+        # For demo purposes, we'll accept any password with specific rules
+        if not password or len(password) < 4:
+            return None
+        
+        # Fetch user data if authentication would succeed
+        user_data = cls.fetch_user_data(its_id)
+        if not user_data:
+            return None
+        
+        # Determine user role based on ITS data
+        # This is where you'd map ITS categories/qualifications to your app roles
+        role = cls._determine_user_role(user_data)
+        
+        # Add authentication metadata
+        auth_result = {
+            'authenticated': True,
+            'user_data': user_data,
+            'role': role,
+            'login_timestamp': datetime.now().isoformat(),
+            'auth_source': 'its_api'
+        }
+        
+        return auth_result
+    
+    @classmethod
+    def _determine_user_role(cls, user_data: Dict) -> str:
+        """
+        Determine Django user role based on ITS data
+        
+        Args:
+            user_data: ITS user data dictionary
+            
+        Returns:
+            Role string for Django User model
+        """
+        qualification = user_data.get('qualification', '').lower()
+        occupation = user_data.get('occupation', '').lower()
+        category = user_data.get('category', '').lower()
+        organization = user_data.get('organization', '').lower()
+        
+        # Role determination logic based on ITS data
+        # Doctor roles
+        if 'mbbs' in qualification or 'doctor' in occupation or 'md' in qualification:
+            return 'doctor'
+        
+        # Admin roles (based on organization or category)
+        if 'jamea' in organization.lower() or 'admin' in category:
+            return 'badri_mahal_admin'
+        
+        # Aamil roles
+        if 'aamil' in occupation or 'coordinator' in occupation:
+            return 'aamil'
+        
+        # Student roles (default for most users)
+        if 'student' in category or user_data.get('age', 0) < 30:
+            return 'student'
+        
+        # Default fallback
+        return 'student'
 
 # Instance for easy importing
 mock_its_service = MockITSService()

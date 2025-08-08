@@ -52,6 +52,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('audit-logs/', views.audit_logs_view, name='audit_logs'),
     path('test-its-api/', views.test_its_api_view, name='test_its_api'),
+    path('its-login/', views.its_login_view, name='its_login'),
     
     # AJAX endpoints
     path('ajax/users/', views.ajax_users_list, name='ajax_users_list'),
