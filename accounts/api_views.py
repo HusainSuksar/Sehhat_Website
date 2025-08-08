@@ -61,6 +61,8 @@ class LoginAPIView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            # Specify the backend since we have multiple authentication backends
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             
             return Response({
@@ -585,6 +587,8 @@ def its_login_api(request):
             user.save()
         
         # Log the user in (create Django session)
+        # Specify the backend since we have multiple authentication backends
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
         
         # Determine redirect URL based on user role
