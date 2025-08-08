@@ -574,17 +574,33 @@ def its_login_api(request):
             }
         )
         
-        # Update existing user data with fresh ITS data
+        # Update existing user data with fresh ITS data (sync ALL fields)
         if not created:
             user.first_name = user_data['first_name']
             user.last_name = user_data['last_name']
             user.email = user_data['email']
-            user.mobile_number = user_data['mobile_number']
-            user.qualification = user_data['qualification']
+            user.arabic_full_name = user_data['arabic_full_name']
+            user.prefix = user_data['prefix']
+            user.age = user_data['age']
+            user.gender = user_data['gender']
+            user.marital_status = user_data['marital_status']
+            user.misaq = user_data['misaq']
             user.occupation = user_data['occupation']
+            user.qualification = user_data['qualification']
+            user.idara = user_data['idara']
+            user.category = user_data['category']
             user.organization = user_data['organization']
+            user.mobile_number = user_data['mobile_number']
+            user.whatsapp_number = user_data['whatsapp_number']
+            user.address = user_data['address']
+            user.jamaat = user_data['jamaat']
+            user.jamiaat = user_data['jamiaat']
+            user.nationality = user_data['nationality']
+            user.vatan = user_data['vatan']
             user.city = user_data['city']
             user.country = user_data['country']
+            user.hifz_sanad = user_data['hifz_sanad']
+            user.profile_photo = user_data['photograph']
             user.role = role  # Update role based on current ITS data
             user.its_last_sync = timezone.now()
             user.save()
