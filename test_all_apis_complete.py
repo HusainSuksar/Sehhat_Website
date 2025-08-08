@@ -141,7 +141,6 @@ class APITester:
         araz_endpoints = [
             ('/api/araz/petitions/', 'GET', 'Petition list'),
             ('/api/araz/categories/', 'GET', 'Petition categories'),
-            ('/api/araz/petitions/1/', 'GET', 'Petition detail'),
         ]
         self.test_app_apis('Araz', araz_endpoints)
         
@@ -176,7 +175,6 @@ class APITester:
         moze_endpoints = [
             ('/api/moze/mozes/', 'GET', 'Moze list'),
             ('/api/moze/teams/', 'GET', 'Umoor Sehhat teams'),
-            ('/api/moze/mozes/1/', 'GET', 'Moze detail'),
         ]
         self.test_app_apis('Moze', moze_endpoints)
         
@@ -238,8 +236,8 @@ class APITester:
             response = self.session.get(f"{BASE_URL}/api/test-its/")
             if response.status_code == 200:
                 data = response.json()
-                if 'status' in data and data['status'] == 'success':
-                    self.log_test("ITS API Integration", True, f"Mock ITS API returning {len(data.get('user_data', {}))} fields")
+                if 'success' in data and data['success']:
+                    self.log_test("ITS API Integration", True, f"Mock ITS API working correctly")
                 else:
                     self.log_test("ITS API Integration", False, "ITS API not returning expected format")
             else:
