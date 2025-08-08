@@ -17,6 +17,8 @@ from rest_framework.permissions import AllowAny
 from .services import MockITSService
 from django.http import JsonResponse
 import json
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from .models import User, UserProfile, AuditLog
 from .serializers import (
@@ -507,6 +509,7 @@ def test_its_api(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@csrf_exempt
 def its_login_api(request):
     """
     ITS Login API endpoint
@@ -716,11 +719,11 @@ def _get_redirect_url_for_role(role):
     Determine redirect URL based on user role
     """
     role_redirects = {
-        'doctor': '/doctordirectory/dashboard/',
+        'doctor': '/doctordirectory/',  # Fixed: removed 'dashboard/' since it's mapped to root
         'badri_mahal_admin': '/accounts/user-management/',
-        'aamil': '/moze/dashboard/',
-        'moze_coordinator': '/moze/dashboard/',
-        'student': '/students/dashboard/',
+        'aamil': '/moze/',  # Fixed: removed 'dashboard/' 
+        'moze_coordinator': '/moze/',  # Fixed: removed 'dashboard/'
+        'student': '/students/',  # Fixed: removed 'dashboard/'
     }
     
     # Default redirect for any other roles

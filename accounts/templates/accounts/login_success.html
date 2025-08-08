@@ -169,7 +169,7 @@
             <div class="row mt-4">
                 <div class="col-md-6 mb-2">
                     {% if user.role == 'doctor' %}
-                        <a href="/doctordirectory/dashboard/" class="btn btn-success w-100">
+                        <a href="/doctordirectory/" class="btn btn-success w-100">
                             <i class="fas fa-tachometer-alt me-2"></i>Go to Doctor Dashboard
                         </a>
                     {% elif user.role == 'badri_mahal_admin' %}
@@ -177,11 +177,11 @@
                             <i class="fas fa-tachometer-alt me-2"></i>Go to Admin Panel
                         </a>
                     {% elif user.role == 'aamil' %}
-                        <a href="/moze/dashboard/" class="btn btn-warning w-100">
+                        <a href="/moze/" class="btn btn-warning w-100">
                             <i class="fas fa-tachometer-alt me-2"></i>Go to Aamil Dashboard
                         </a>
                     {% elif user.role == 'student' %}
-                        <a href="/students/dashboard/" class="btn btn-primary w-100">
+                        <a href="/students/" class="btn btn-primary w-100">
                             <i class="fas fa-tachometer-alt me-2"></i>Go to Student Portal
                         </a>
                     {% else %}

@@ -676,11 +676,11 @@ def its_login_view(request):
 def _get_redirect_url_for_role(role):
     """Helper function to get redirect URL based on role"""
     role_redirects = {
-        'doctor': '/doctordirectory/dashboard/',
+        'doctor': '/doctordirectory/',  # Fixed: removed 'dashboard/' since it's mapped to root
         'badri_mahal_admin': '/accounts/user-management/',
-        'aamil': '/moze/dashboard/',
-        'moze_coordinator': '/moze/dashboard/',
-        'student': '/students/dashboard/',
+        'aamil': '/moze/',  # Fixed: removed 'dashboard/' 
+        'moze_coordinator': '/moze/',  # Fixed: removed 'dashboard/'
+        'student': '/students/',  # Fixed: removed 'dashboard/'
     }
     return role_redirects.get(role, '/accounts/profile/')
 
