@@ -1,337 +1,477 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}My Profile - Umoor Sehhat{% endblock %}
+{% block title %}{{ user.get_full_name }} - Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        pointer-events: none;
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+    }
+    
+    .data-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .data-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .data-card h5 {
+        color: #4c63d2;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .its-data-table {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .its-data-table {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .data-item {
+        display: flex;
+        flex-direction: column;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 3px solid #4c63d2;
+    }
+    
+    .data-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .data-value {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #64748b;
+    }
+    
+    .sync-btn {
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .sync-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #4c63d2;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #4c63d2;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    
+    .role-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+        margin: 0.25rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <!-- Profile Header -->
-        <div class="col-12 mb-4">
-            <div class="dashboard-card">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        {% if user.profile_photo %}
-                            <img src="{{ user.profile_photo.url }}" alt="Profile Photo" 
-                                 class="rounded-circle" width="80" height="80">
-                        {% else %}
-                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
-                                 style="width: 80px; height: 80px;">
-                                <i class="fas fa-user fa-2x text-muted"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="col">
-                        <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
-                        <p class="mb-2">
-                            <span class="role-badge">{{ user.get_role_display }}</span>
-                            {% if user.its_id %}
-                                <span class="ms-2 text-light">ITS ID: {{ user.its_id }}</span>
-                            {% endif %}
-                        </p>
-                        <p class="mb-0 small">
-                            <i class="fas fa-calendar me-1"></i>Member since {{ user.date_joined|date:"F Y" }}
-                        </p>
-                    </div>
-                    <div class="col-auto">
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-light">
-                            <i class="fas fa-edit me-1"></i>Edit Profile
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="col-12 mb-4">
-            <div class="row">
-                {% if user.is_admin %}
-                    <div class="col-md-3 mb-3">
-                        <a href="{% url 'admin:index' %}" class="card text-decoration-none h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-tachometer-alt fa-2x text-primary mb-2"></i>
-                                <h6 class="card-title">Admin Panel</h6>
-                                <p class="small text-muted">System Administration</p>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="{% url 'accounts:user_list' %}" class="card text-decoration-none h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-users fa-2x text-info mb-2"></i>
-                                <h6 class="card-title">User Management</h6>
-                                <p class="small text-muted">Manage all users</p>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-                
-                {% if user.is_aamil or user.is_moze_coordinator %}
-                    <div class="col-md-3 mb-3">
-                        <a href="{% url 'moze:list' %}" class="card text-decoration-none h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-clinic-medical fa-2x text-success mb-2"></i>
-                                <h6 class="card-title">Moze Management</h6>
-                                <p class="small text-muted">Medical Centers</p>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-                
-                {% if user.is_doctor %}
-                    <div class="col-md-3 mb-3">
-                        <a href="{% url 'doctordirectory:dashboard' %}" class="card text-decoration-none h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-stethoscope fa-2x text-warning mb-2"></i>
-                                <h6 class="card-title">Patient Care</h6>
-                                <p class="small text-muted">Medical Services</p>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-                
-                {% if user.is_student %}
-                    <div class="col-md-3 mb-3">
-                        <a href="{% url 'students:dashboard' %}" class="card text-decoration-none h-100">
-                            <div class="card-body text-center">
-                                <i class="fas fa-graduation-cap fa-2x text-danger mb-2"></i>
-                                <h6 class="card-title">Student Services</h6>
-                                <p class="small text-muted">Academic Profile</p>
-                            </div>
-                        </a>
-                    </div>
-                {% endif %}
-                
-                <div class="col-md-3 mb-3">
-                    <a href="{% url 'surveys:dashboard' %}" class="card text-decoration-none h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-poll fa-2x text-secondary mb-2"></i>
-                            <h6 class="card-title">Surveys</h6>
-                            <p class="small text-muted">Participate in surveys</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile Information -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-user me-2"></i>Profile Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Full Name</label>
-                            <p class="fw-bold">{{ user.get_full_name|default:"Not provided" }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Email</label>
-                            <p class="fw-bold">{{ user.email|default:"Not provided" }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Phone Number</label>
-                            <p class="fw-bold">{{ user.phone_number|default:"Not provided" }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">ITS ID</label>
-                            <p class="fw-bold">{{ user.its_id|default:"Not provided" }}</p>
-                        </div>
-                        {% if user.arabic_name %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Arabic Name</label>
-                            <p class="fw-bold">{{ user.arabic_name }}</p>
-                        </div>
-                        {% endif %}
-                        {% if user.age %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Age</label>
-                            <p class="fw-bold">{{ user.age }} years</p>
-                        </div>
-                        {% endif %}
-                        {% if user.specialty %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Specialty</label>
-                            <p class="fw-bold">{{ user.specialty }}</p>
-                        </div>
-                        {% endif %}
-                        {% if user.college %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">College</label>
-                            <p class="fw-bold">{{ user.college }}</p>
-                        </div>
-                        {% endif %}
-                        {% if user.specialization %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Specialization</label>
-                            <p class="fw-bold">{{ user.specialization }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    {% if profile.bio %}
-                    <div class="mt-3">
-                        <label class="form-label text-muted">Bio</label>
-                        <p>{{ profile.bio }}</p>
-                    </div>
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                <div class="profile-avatar">
+                    {% if user.profile_photo %}
+                        <img src="{{ user.profile_photo.url }}" alt="Profile" class="profile-avatar">
+                    {% else %}
+                        <i class="fas fa-user"></i>
                     {% endif %}
                 </div>
             </div>
-            
-            <!-- Role-specific information -->
-            {% if student_profile %}
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-graduation-cap me-2"></i>Academic Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Year of Study</label>
-                            <p class="fw-bold">{{ student_profile.get_year_of_study_display }}</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Current GPA</label>
-                            <p class="fw-bold">{{ student_profile.current_gpa|default:"Not available" }}</p>
-                        </div>
-                        {% if student_profile.mentor %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Mentor</label>
-                            <p class="fw-bold">{{ student_profile.mentor.get_full_name }}</p>
-                        </div>
-                        {% endif %}
-                        {% if student_profile.assigned_moze %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Assigned Moze</label>
-                            <p class="fw-bold">{{ student_profile.assigned_moze.name }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
+            <div class="col-md-7">
+                <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                {% if user.arabic_full_name %}
+                    <h4 class="mb-2 opacity-75">{{ user.arabic_full_name }}</h4>
+                {% endif %}
+                <p class="mb-2">
+                    <i class="fas fa-envelope me-2"></i>{{ user.email }}
+                    {% if user.mobile_number %}
+                        <i class="fas fa-phone ms-3 me-2"></i>{{ user.mobile_number }}
+                    {% endif %}
+                </p>
+                <div>
+                    {% if user.is_admin %}
+                        <span class="role-badge"><i class="fas fa-crown me-1"></i>Admin</span>
+                    {% endif %}
+                    {% if user.is_doctor %}
+                        <span class="role-badge"><i class="fas fa-user-md me-1"></i>Doctor</span>
+                    {% endif %}
+                    {% if user.is_student %}
+                        <span class="role-badge"><i class="fas fa-graduation-cap me-1"></i>Student</span>
+                    {% endif %}
+                    {% if user.is_aamil %}
+                        <span class="role-badge"><i class="fas fa-users me-1"></i>Aamil</span>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
-            
-            {% if doctor_profile %}
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-stethoscope me-2"></i>Medical Practice Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Experience</label>
-                            <p class="fw-bold">{{ doctor_profile.experience_years }} years</p>
-                        </div>
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Verification Status</label>
-                            <p class="fw-bold">
-                                {% if doctor_profile.is_verified %}
-                                    <span class="badge bg-success">Verified</span>
-                                {% else %}
-                                    <span class="badge bg-warning">Pending</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                        {% if doctor_profile.assigned_moze %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Assigned Moze</label>
-                            <p class="fw-bold">{{ doctor_profile.assigned_moze.name }}</p>
-                        </div>
-                        {% endif %}
-                        {% if doctor_profile.consultation_fee %}
-                        <div class="col-sm-6 mb-3">
-                            <label class="form-label text-muted">Consultation Fee</label>
-                            <p class="fw-bold">${{ doctor_profile.consultation_fee }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-md-4">
-            <!-- Account Settings -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-cog me-2"></i>Account Settings
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-edit me-1"></i>Edit Profile
-                        </a>
-                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-key me-1"></i>Change Password
-                        </a>
-                        {% if user.is_admin %}
-                        <a href="{% url 'accounts:verify_its' %}" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-check-circle me-1"></i>Verify ITS ID
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activity Summary -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Activity Summary
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6 mb-2">
-                            <div class="border-end">
-                                <h4 class="text-primary mb-0">{{ user.date_joined|timesince }}</h4>
-                                <small class="text-muted">Member Since</small>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-2">
-                            <h4 class="text-success mb-0">{{ user.last_login|timesince }}</h4>
-                            <small class="text-muted">Last Login</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-external-link-alt me-2"></i>Quick Links
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        {% if user.is_admin %}
-                                                            <a href="{% url 'accounts:user_list' %}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-users me-2"></i>Manage Users
-                        </a>
-                        {% endif %}
-                        <a href="#" class="list-group-item list-group-item-action disabled">
-                            <i class="fas fa-bell me-2"></i>Notifications
-                        </a> <!-- Not implemented -->
-                        <a href="#" class="list-group-item list-group-item-action disabled">
-                            <i class="fas fa-question-circle me-2"></i>Help & Support
-                        </a> <!-- Not implemented -->
-                        <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action text-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                        </a>
-                    </div>
-                </div>
+            <div class="col-md-3 text-end">
+                {% if its_sync_available %}
+                    <button class="btn sync-btn" onclick="syncITSData()">
+                        <i class="fas fa-sync-alt me-2"></i>Sync ITS Data
+                    </button>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <!-- ITS Data Section -->
+        <div class="col-lg-8">
+            <div class="data-card">
+                <h5><i class="fas fa-id-card"></i>ITS Profile Data</h5>
+                {% if its_sync_available %}
+                    <div class="its-data-table">
+                        <div class="data-item">
+                            <span class="data-label">Full Name (English)</span>
+                            <span class="data-value">{{ user.get_full_name|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Full Name (Arabic)</span>
+                            <span class="data-value">{{ user.arabic_full_name|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Prefix</span>
+                            <span class="data-value">{{ user.prefix|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Age</span>
+                            <span class="data-value">{{ user.age|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Gender</span>
+                            <span class="data-value">{{ user.gender|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Marital Status</span>
+                            <span class="data-value">{{ user.marital_status|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Misaq</span>
+                            <span class="data-value">{{ user.misaq|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Occupation</span>
+                            <span class="data-value">{{ user.occupation|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Qualification</span>
+                            <span class="data-value">{{ user.qualification|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Idara</span>
+                            <span class="data-value">{{ user.idara|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Category</span>
+                            <span class="data-value">{{ user.category|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Organization</span>
+                            <span class="data-value">{{ user.organization|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Mobile Number</span>
+                            <span class="data-value">{{ user.mobile_number|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">WhatsApp</span>
+                            <span class="data-value">{{ user.whatsapp_number|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Address</span>
+                            <span class="data-value">{{ user.address|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jamaat</span>
+                            <span class="data-value">{{ user.jamaat|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Jamiaat</span>
+                            <span class="data-value">{{ user.jamiaat|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Nationality</span>
+                            <span class="data-value">{{ user.nationality|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Vatan</span>
+                            <span class="data-value">{{ user.vatan|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">City</span>
+                            <span class="data-value">{{ user.city|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Country</span>
+                            <span class="data-value">{{ user.country|default:"Not provided" }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Hifz Sanad</span>
+                            <span class="data-value">{{ user.hifz_sanad|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-sync-alt fa-3x mb-3 text-muted"></i>
+                        <h5>No ITS Data Available</h5>
+                        <p>Click "Sync ITS Data" to fetch your profile information from ITS.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Backend Activity & Data -->
+        <div class="col-lg-4">
+            <!-- Quick Access -->
+            <div class="data-card">
+                <h5><i class="fas fa-tachometer-alt"></i>Quick Access</h5>
+                <div class="d-grid gap-2">
+                    {% if user.is_doctor %}
+                        <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-md me-2"></i>Doctor Dashboard
+                        </a>
+                    {% endif %}
+                    {% if user.is_student %}
+                        <a href="{% url 'students:dashboard' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-graduation-cap me-2"></i>Student Dashboard
+                        </a>
+                    {% endif %}
+                    {% if user.is_aamil %}
+                        <a href="{% url 'moze:dashboard' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i>Moze Dashboard
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'surveys:dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-poll me-2"></i>Surveys
+                    </a>
+                    <a href="{% url 'photos:dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-images me-2"></i>Photos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="data-card">
+                <h5><i class="fas fa-clock"></i>Recent Activity</h5>
+                
+                {% if backend_data.survey_responses %}
+                    <h6 class="text-muted mb-2">Survey Responses</h6>
+                    {% for response in backend_data.survey_responses %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-poll"></i>
+                            </div>
+                            <div>
+                                <strong>{{ response.survey.title }}</strong>
+                                <br><small class="text-muted">{{ response.submitted_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if backend_data.photos %}
+                    <h6 class="text-muted mb-2">Recent Photos</h6>
+                    {% for photo in backend_data.photos %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            <div>
+                                <strong>{{ photo.title }}</strong>
+                                <br><small class="text-muted">{{ photo.uploaded_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if backend_data.petitions %}
+                    <h6 class="text-muted mb-2">Araz Petitions</h6>
+                    {% for petition in backend_data.petitions %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div>
+                                <strong>{{ petition.title }}</strong>
+                                <br><small class="text-muted">{{ petition.submitted_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if backend_data.evaluations %}
+                    <h6 class="text-muted mb-2">Evaluations</h6>
+                    {% for evaluation in backend_data.evaluations %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div>
+                                <strong>{{ evaluation.evaluation_form.title }}</strong>
+                                <br><small class="text-muted">{{ evaluation.submitted_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if not backend_data.survey_responses and not backend_data.photos and not backend_data.petitions and not backend_data.evaluations %}
+                    <div class="empty-state">
+                        <i class="fas fa-history fa-2x mb-2 text-muted"></i>
+                        <p>No recent activity</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Professional Information -->
+            {% if backend_data.doctor or backend_data.mahalshifa_doctor or backend_data.student %}
+                <div class="data-card">
+                    <h5><i class="fas fa-briefcase"></i>Professional Info</h5>
+                    
+                    {% if backend_data.doctor %}
+                        <h6 class="text-primary">Doctor Directory</h6>
+                        <p><strong>Specialization:</strong> {{ backend_data.doctor.specialization }}</p>
+                        <p><strong>Experience:</strong> {{ backend_data.doctor.years_of_experience }} years</p>
+                    {% endif %}
+
+                    {% if backend_data.mahalshifa_doctor %}
+                        <h6 class="text-success">Mahal Shifa</h6>
+                        <p><strong>Specialization:</strong> {{ backend_data.mahalshifa_doctor.specialization }}</p>
+                        <p><strong>Hospital:</strong> {{ backend_data.mahalshifa_doctor.hospital.name }}</p>
+                    {% endif %}
+
+                    {% if backend_data.student %}
+                        <h6 class="text-info">Student</h6>
+                        <p><strong>Course:</strong> {{ backend_data.student.course }}</p>
+                        <p><strong>Year:</strong> {{ backend_data.student.year }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<script>
+async function syncITSData() {
+    const btn = document.querySelector('.sync-btn');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Syncing...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/accounts/api/sync-its/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Sync failed. Please try again.');
+        }
+    } catch (error) {
+        alert('Sync failed. Please try again.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+
+{% csrf_token %}
 {% endblock %}

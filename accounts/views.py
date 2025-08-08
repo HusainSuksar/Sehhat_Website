@@ -698,14 +698,82 @@ def user_management_view(request):
 
 
 def profile_view(request):
-    """User profile view"""
+    """Enhanced user profile view showing ITS + Backend data"""
     if not request.user.is_authenticated:
         return redirect('accounts:its_login')
     
-    return render(request, 'accounts/profile.html', {
+    user = request.user
+    
+    # Get user's backend data from various apps
+    backend_data = {}
+    
+    # Doctor data
+    try:
+        from doctordirectory.models import Doctor
+        backend_data['doctor'] = Doctor.objects.get(user=user)
+    except:
+        backend_data['doctor'] = None
+    
+    # MahalShifa doctor data
+    try:
+        from mahalshifa.models import Doctor as MahalShifaDoctor
+        backend_data['mahalshifa_doctor'] = MahalShifaDoctor.objects.get(user=user)
+    except:
+        backend_data['mahalshifa_doctor'] = None
+    
+    # Student data
+    try:
+        from students.models import Student
+        backend_data['student'] = Student.objects.get(user=user)
+    except:
+        backend_data['student'] = None
+    
+    # Moze data
+    try:
+        from moze.models import UmoorSehhatTeam
+        backend_data['moze_teams'] = UmoorSehhatTeam.objects.filter(members=user)
+    except:
+        backend_data['moze_teams'] = []
+    
+    # Survey responses
+    try:
+        from surveys.models import SurveyResponse
+        backend_data['survey_responses'] = SurveyResponse.objects.filter(respondent=user)[:5]
+    except:
+        backend_data['survey_responses'] = []
+    
+    # Photos
+    try:
+        from photos.models import Photo
+        backend_data['photos'] = Photo.objects.filter(user=user)[:5]
+    except:
+        backend_data['photos'] = []
+    
+    # Araz petitions
+    try:
+        from araz.models import Petition
+        backend_data['petitions'] = Petition.objects.filter(submitted_by=user)[:5]
+    except:
+        backend_data['petitions'] = []
+    
+    # Evaluation submissions
+    try:
+        from evaluation.models import EvaluationSubmission
+        backend_data['evaluations'] = EvaluationSubmission.objects.filter(submitted_by=user)[:5]
+    except:
+        backend_data['evaluations'] = []
+    
+    # Check if ITS sync is available
+    its_sync_available = hasattr(user, 'arabic_full_name') and user.arabic_full_name
+    
+    context = {
         'title': 'My Profile',
-        'user': request.user,
-    })
+        'user': user,
+        'backend_data': backend_data,
+        'its_sync_available': its_sync_available,
+    }
+    
+    return render(request, 'accounts/profile.html', context)
 
 
 def audit_logs_view(request):
