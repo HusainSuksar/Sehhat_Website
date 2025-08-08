@@ -55,7 +55,19 @@ class IsPhotoStaffOrAdmin(permissions.BasePermission):
     Permission for photo staff (admin, aamil, coordinators) and admins
     """
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        user = request.user
+        if not user.is_authenticated:
+            return False
+        
+        # Admin can access everything
+        if user.is_admin or user.is_superuser:
+            return True
+        
+        # Staff roles can access photos
+        if user.role in ['aamil', 'moze_coordinator', 'badri_mahal_admin']:
+            return True
+        
+        return False
     
     def has_object_permission(self, request, view, obj):
         user = request.user
