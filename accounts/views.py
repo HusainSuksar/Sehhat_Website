@@ -716,68 +716,79 @@ def user_management_view(request):
 
 def profile_view(request):
     """Enhanced user profile view showing ITS + Backend data"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     if not request.user.is_authenticated:
         return redirect('accounts:login')
     
     user = request.user
     
-    # Get user's backend data from various apps
+    # Get user's backend data from various apps with optimized queries
     backend_data = {}
     
-    # Doctor data
+    # Doctor data with error handling
     try:
         from doctordirectory.models import Doctor
-        backend_data['doctor'] = Doctor.objects.get(user=user)
-    except:
+        backend_data['doctor'] = Doctor.objects.select_related('user').filter(user=user).first()
+    except Exception as e:
+        logger.warning(f"Error fetching doctor data for user {user.id}: {e}")
         backend_data['doctor'] = None
     
-    # MahalShifa doctor data
+    # MahalShifa doctor data with error handling  
     try:
         from mahalshifa.models import Doctor as MahalShifaDoctor
-        backend_data['mahalshifa_doctor'] = MahalShifaDoctor.objects.get(user=user)
-    except:
+        backend_data['mahalshifa_doctor'] = MahalShifaDoctor.objects.select_related('user').filter(user=user).first()
+    except Exception as e:
+        logger.warning(f"Error fetching MahalShifa doctor data for user {user.id}: {e}")
         backend_data['mahalshifa_doctor'] = None
     
-    # Student data
+    # Student data with error handling
     try:
         from students.models import Student
-        backend_data['student'] = Student.objects.get(user=user)
-    except:
+        backend_data['student'] = Student.objects.select_related('user').filter(user=user).first()
+    except Exception as e:
+        logger.warning(f"Error fetching student data for user {user.id}: {e}")
         backend_data['student'] = None
     
-    # Moze data
+    # Moze data with optimized query
     try:
         from moze.models import UmoorSehhatTeam
-        backend_data['moze_teams'] = UmoorSehhatTeam.objects.filter(members=user)
-    except:
+        backend_data['moze_teams'] = UmoorSehhatTeam.objects.prefetch_related('members').filter(members=user)
+    except Exception as e:
+        logger.warning(f"Error fetching moze teams for user {user.id}: {e}")
         backend_data['moze_teams'] = []
     
-    # Survey responses
+    # Survey responses with optimization
     try:
         from surveys.models import SurveyResponse
-        backend_data['survey_responses'] = SurveyResponse.objects.filter(respondent=user)[:5]
-    except:
+        backend_data['survey_responses'] = SurveyResponse.objects.select_related('survey', 'respondent').filter(respondent=user)[:5]
+    except Exception as e:
+        logger.warning(f"Error fetching survey responses for user {user.id}: {e}")
         backend_data['survey_responses'] = []
     
-    # Photos
+    # Photos with optimization
     try:
         from photos.models import Photo
-        backend_data['photos'] = Photo.objects.filter(user=user)[:5]
-    except:
+        backend_data['photos'] = Photo.objects.select_related('user', 'album').filter(user=user)[:5]
+    except Exception as e:
+        logger.warning(f"Error fetching photos for user {user.id}: {e}")
         backend_data['photos'] = []
     
-    # Araz petitions
+    # Araz petitions with optimization
     try:
         from araz.models import Petition
-        backend_data['petitions'] = Petition.objects.filter(submitted_by=user)[:5]
-    except:
+        backend_data['petitions'] = Petition.objects.select_related('submitted_by', 'category').filter(submitted_by=user)[:5]
+    except Exception as e:
+        logger.warning(f"Error fetching petitions for user {user.id}: {e}")
         backend_data['petitions'] = []
     
-    # Evaluation submissions
+    # Evaluation submissions with optimization
     try:
         from evaluation.models import EvaluationSubmission
-        backend_data['evaluations'] = EvaluationSubmission.objects.filter(submitted_by=user)[:5]
-    except:
+        backend_data['evaluations'] = EvaluationSubmission.objects.select_related('form', 'submitted_by').filter(submitted_by=user)[:5]
+    except Exception as e:
+        logger.warning(f"Error fetching evaluations for user {user.id}: {e}")
         backend_data['evaluations'] = []
     
     # Check if ITS sync is available
