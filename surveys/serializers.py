@@ -338,7 +338,8 @@ class SurveyResponseCreateSerializer(serializers.ModelSerializer):
         queryset=Survey.objects.all(), source='survey'
     )
     respondent_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), source='respondent', required=False
+        queryset=User.objects.all(), source='respondent', 
+        required=False, allow_null=True
     )
     
     class Meta:
@@ -347,8 +348,29 @@ class SurveyResponseCreateSerializer(serializers.ModelSerializer):
             'survey_id', 'respondent_id', 'answers', 'completion_time', 'is_complete'
         ]
     
+    def to_internal_value(self, data):
+        """Override to handle respondent_id for authenticated users"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            # For authenticated users, don't require respondent_id (view will set it)
+            if 'respondent_id' not in data:
+                # Temporarily add a placeholder to pass validation
+                data = data.copy()
+                data['respondent_id'] = None
+        
+        # Continue with normal validation
+        return super().to_internal_value(data)
+    
     def validate(self, data):
-        """Validate response data"""
+        """Final validation and cleanup + response data validation"""
+        # First, handle respondent cleanup for authenticated users
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            # For authenticated users, remove the placeholder respondent
+            if data.get('respondent') is None:
+                data.pop('respondent', None)
+        
+        # Then continue with original validation logic
         survey = data.get('survey')
         respondent = data.get('respondent')
         
