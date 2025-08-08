@@ -226,8 +226,15 @@ class ITSSyncAPIView(APIView):
     def post(self, request):
         serializer = ITSSyncSerializer(data=request.data)
         if serializer.is_valid():
-            its_id = serializer.validated_data['its_id']
+            its_id = serializer.validated_data.get('its_id') or request.user.its_id
             force_update = serializer.validated_data['force_update']
+            
+            # If no ITS ID provided and user doesn't have one, return error
+            if not its_id:
+                return Response(
+                    {'error': 'No ITS ID available for synchronization'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
             try:
                 # Check if user already exists

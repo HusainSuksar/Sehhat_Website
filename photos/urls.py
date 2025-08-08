@@ -29,4 +29,8 @@ urlpatterns = [
     # Bulk operations (only existing views)
     path('albums/<int:album_id>/export/', views.export_album_data, name='export_album'),
     path('bulk-delete/', views.bulk_delete_photos, name='bulk_delete_photos'),
+    
+    # Slideshow functionality
+    path('slideshow/', views.slideshow, name='slideshow'),
+    path('albums/<int:album_id>/slideshow/', views.album_slideshow, name='album_slideshow'),
 ]

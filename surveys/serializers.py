@@ -37,22 +37,43 @@ class SurveyQuestionSerializer(serializers.Serializer):
         ('email', 'Email'),
         ('number', 'Number'),
         ('boolean', 'Yes/No'),
+        ('yes_no', 'Yes/No'),  # Added this mapping
         ('dropdown', 'Dropdown')
     ])
-    question = serializers.CharField(max_length=500)
+    # Support both 'question' and 'text' field names for compatibility
+    text = serializers.CharField(max_length=500, required=False)
+    question = serializers.CharField(max_length=500, required=False)
     required = serializers.BooleanField(default=False)
+    # Support both 'options' and 'choices' field names
+    choices = serializers.ListField(
+        child=serializers.CharField(max_length=200),
+        required=False,
+        allow_empty=True
+    )
     options = serializers.ListField(
         child=serializers.CharField(max_length=200),
         required=False,
         allow_empty=True
     )
+    max_rating = serializers.IntegerField(required=False, min_value=1, max_value=10)
     placeholder = serializers.CharField(max_length=200, required=False, allow_blank=True)
     description = serializers.CharField(max_length=1000, required=False, allow_blank=True)
     
     def validate(self, data):
         """Validate question structure based on type"""
+        # Ensure either 'text' or 'question' is provided
+        if not data.get('text') and not data.get('question'):
+            raise serializers.ValidationError("Either 'text' or 'question' field is required")
+        
+        # If both are provided, use 'question' as primary
+        if data.get('question'):
+            data['text'] = data['question']
+        elif data.get('text'):
+            data['question'] = data['text']
+        
         question_type = data.get('type')
         options = data.get('options', [])
+        choices = data.get('choices', [])
         
         # Question types that require options
         if question_type in ['multiple_choice', 'checkbox', 'rating', 'dropdown']:

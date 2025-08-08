@@ -697,3 +697,34 @@ def bulk_delete_photos(request):
         })
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+@login_required
+def slideshow(request):
+    """Display a slideshow of all photos"""
+    photos = Photo.objects.filter(is_public=True).select_related("uploaded_by", "moze").order_by("-created_at")
+    
+    context = {
+        "photos": photos,
+        "title": "Photo Slideshow"
+    }
+    return render(request, "photos/slideshow.html", context)
+
+
+@login_required  
+def album_slideshow(request, album_id):
+    """Display a slideshow of photos from a specific album"""
+    try:
+        album = PhotoAlbum.objects.get(id=album_id)
+        photos = Photo.objects.filter(albums=album).select_related("uploaded_by", "moze").order_by("-created_at")
+        
+        context = {
+            "photos": photos,
+            "album": album,
+            "title": f"{album.title} - Slideshow"
+        }
+        return render(request, "photos/slideshow.html", context)
+    except PhotoAlbum.DoesNotExist:
+        messages.error(request, "Album not found.")
+        return redirect("photos:album_list")
+

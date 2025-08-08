@@ -170,7 +170,7 @@ class ITSSyncSerializer(serializers.Serializer):
     """
     Serializer for ITS data synchronization
     """
-    its_id = serializers.CharField(max_length=8, min_length=8)
+    its_id = serializers.CharField(max_length=8, min_length=8, required=False)
     force_update = serializers.BooleanField(default=False)
     
     def validate_its_id(self, value):
