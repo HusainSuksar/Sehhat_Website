@@ -403,7 +403,8 @@ class PhotoCommentCreateSerializer(serializers.ModelSerializer):
 class PhotoLikeSerializer(serializers.ModelSerializer):
     user = UserBasicSerializer(read_only=True)
     user_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='user', required=False
+        queryset=User.objects.all(), write_only=True, source='user', 
+        required=False, allow_null=True
     )
     photo = PhotoSerializer(read_only=True)
     photo_id = serializers.PrimaryKeyRelatedField(
@@ -415,10 +416,30 @@ class PhotoLikeSerializer(serializers.ModelSerializer):
         fields = ['id', 'photo', 'photo_id', 'user', 'user_id', 'created_at']
         read_only_fields = ['created_at']
     
+    def to_internal_value(self, data):
+        """Override to handle user_id for authenticated users"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            # For authenticated users, don't require user_id (view will set it)
+            if 'user_id' not in data:
+                # Temporarily add a placeholder to pass validation
+                data = data.copy()
+                data['user_id'] = None
+        
+        # Continue with normal validation
+        return super().to_internal_value(data)
+    
     def validate(self, data):
         """Validate like data"""
-        # Check if user can like this photo
+        # First, handle user cleanup for authenticated users
         request = self.context.get('request')
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            # For authenticated users, remove the placeholder user
+            if data.get('user') is None:
+                data.pop('user', None)
+        
+        # Then continue with original validation logic
+        # Check if user can like this photo
         if request and request.user.is_authenticated:
             user = request.user
             photo = data.get('photo')
