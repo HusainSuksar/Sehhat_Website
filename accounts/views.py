@@ -706,7 +706,7 @@ def user_management_view(request):
     """User management view for admins"""
     if not request.user.is_authenticated or not request.user.is_admin:
         messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('accounts:its_login')
+        return redirect('accounts:login')
     
     return render(request, 'accounts/user_management.html', {
         'title': 'User Management',
@@ -717,7 +717,7 @@ def user_management_view(request):
 def profile_view(request):
     """Enhanced user profile view showing ITS + Backend data"""
     if not request.user.is_authenticated:
-        return redirect('accounts:its_login')
+        return redirect('accounts:login')
     
     user = request.user
     
@@ -781,7 +781,7 @@ def profile_view(request):
         backend_data['evaluations'] = []
     
     # Check if ITS sync is available
-    its_sync_available = hasattr(user, 'arabic_full_name') and user.arabic_full_name
+    its_sync_available = hasattr(user, 'arabic_full_name') and bool(user.arabic_full_name)
     
     context = {
         'title': 'My Profile',
@@ -797,7 +797,7 @@ def audit_logs_view(request):
     """Audit logs view for admins"""
     if not request.user.is_authenticated or not request.user.is_admin:
         messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('accounts:its_login')
+        return redirect('accounts:login')
     
     logs = AuditLog.objects.all().order_by('-timestamp')[:50]  # Show latest 50 logs
     

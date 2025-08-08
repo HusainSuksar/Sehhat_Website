@@ -15,7 +15,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
 
     # Profile URLs
-    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit_profile'),
     
     # Password management

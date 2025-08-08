@@ -41,9 +41,21 @@ class MockITSService:
         # Generate deterministic data based on ITS ID for consistency
         random.seed(int(its_id))
         
-        # Generate mock data for all 21 fields
-        first_name = random.choice(['Ahmed', 'Fatima', 'Mohammed', 'Aisha', 'Ali', 'Zainab', 'Hassan', 'Mariam'])
-        last_name = random.choice(['Khan', 'Sheikh', 'Patel', 'Shaikh', 'Ahmed', 'Ali', 'Hussein', 'Abdulla'])
+        # Special handling for specific roles
+        if its_id in ['50000051', '50000052', '50000053']:
+            # These are predefined aamil users
+            aamil_data = {
+                '50000051': ('Ahmed', 'Ali', 'Aamil', 'Religious Affairs'),
+                '50000052': ('Fatima', 'Khan', 'Coordinator', 'Islamic Studies'),
+                '50000053': ('Hassan', 'Sheikh', 'Religious Coordinator', 'Community Affairs'),
+            }
+            first_name, last_name, occupation, qualification = aamil_data[its_id]
+        else:
+            # Generate random data for other users
+            first_name = random.choice(['Ahmed', 'Fatima', 'Mohammed', 'Aisha', 'Ali', 'Zainab', 'Hassan', 'Mariam'])
+            last_name = random.choice(['Khan', 'Sheikh', 'Patel', 'Shaikh', 'Ahmed', 'Ali', 'Hussein', 'Abdulla'])
+            occupation = random.choice(cls.OCCUPATIONS)
+            qualification = random.choice(cls.QUALIFICATIONS)
         
         mock_data = {
             # 1. ITS ID
@@ -66,10 +78,10 @@ class MockITSService:
             'misaq': f'Misaq {random.randint(1400, 1445)}H',
             
             # 7. Occupation
-            'occupation': random.choice(cls.OCCUPATIONS),
+            'occupation': occupation,
             
             # 8. Qualification
-            'qualification': random.choice(cls.QUALIFICATIONS),
+            'qualification': qualification,
             
             # 9. Idara
             'idara': random.choice(cls.IDARAS),
