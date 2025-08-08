@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.views.generic import (
-    TemplateView, ListView, DetailView, UpdateView, CreateView
+    TemplateView, ListView, DetailView, UpdateView, CreateView, FormView
 )
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponseRedirect
@@ -33,15 +33,32 @@ from araz.models import Petition
 from photos.models import PhotoAlbum
 
 
-class CustomLoginView(LoginView):
-    """Custom login view with role-based redirection"""
+class CustomLoginView(FormView):
+    """ITS-based login view with role-based redirection"""
     form_class = CustomLoginForm
     template_name = 'accounts/login.html'
     
-    def get_success_url(self):
-        user = self.request.user
+    def dispatch(self, request, *args, **kwargs):
+        # Redirect authenticated users
+        if request.user.is_authenticated:
+            return redirect(self.get_success_url_for_user(request.user))
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        # Get the authenticated user from the form
+        user = form.get_user()
+        if user:
+            # Log the user in
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            from django.contrib.auth import login
+            login(self.request, user)
+            return redirect(self.get_success_url_for_user(user))
+        return self.form_invalid(form)
+    
+    def get_success_url_for_user(self, user):
+        """Get redirect URL based on user role"""
         if user.is_admin:
-            return reverse_lazy('accounts:dashboard')
+            return reverse_lazy('accounts:user_management')
         elif user.is_aamil:
             return reverse_lazy('moze:dashboard')
         elif user.is_moze_coordinator:

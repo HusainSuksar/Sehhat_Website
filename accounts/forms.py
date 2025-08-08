@@ -6,14 +6,14 @@ from .models import User, UserProfile
 User = get_user_model()
 
 
-class CustomLoginForm(AuthenticationForm):
-    """Custom login form with ITS ID or username"""
-    username = forms.CharField(
-        label='Username or ITS ID',
-        max_length=150,
+class CustomLoginForm(forms.Form):
+    """ITS-based login form - authenticates via ITS API only"""
+    its_id = forms.CharField(
+        label='ITS ID',
+        max_length=20,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter username or ITS ID',
+            'placeholder': 'Enter your ITS ID',
             'autofocus': True
         })
     )
@@ -21,20 +21,106 @@ class CustomLoginForm(AuthenticationForm):
         label='Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter password'
+            'placeholder': 'Enter your ITS password'
         })
     )
     
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user_cache = None
+        super().__init__(*args, **kwargs)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        its_id = cleaned_data.get('its_id')
+        password = cleaned_data.get('password')
         
-        # Try to find user by ITS ID if username doesn't exist
-        if username and not User.objects.filter(username=username).exists():
-            user = User.objects.filter(its_id=username).first()
-            if user:
-                return user.username
+        if its_id and password:
+            from .services import MockITSService
+            
+            # Authenticate with ITS API
+            auth_result = MockITSService.authenticate_user(its_id, password)
+            
+            if not auth_result or not auth_result.get('authenticated'):
+                raise forms.ValidationError('Invalid ITS credentials. Please check your ITS ID and password.')
+            
+            # Get or create Django user with ITS data
+            user_data = auth_result['user_data']
+            role = auth_result['role']
+            
+            # Create or update Django user
+            user, created = User.objects.get_or_create(
+                its_id=its_id,
+                defaults={
+                    'username': user_data['email'],
+                    'email': user_data['email'],
+                    'first_name': user_data['first_name'],
+                    'last_name': user_data['last_name'],
+                    'arabic_full_name': user_data['arabic_full_name'],
+                    'prefix': user_data['prefix'],
+                    'age': user_data['age'],
+                    'gender': user_data['gender'],
+                    'marital_status': user_data['marital_status'],
+                    'misaq': user_data['misaq'],
+                    'occupation': user_data['occupation'],
+                    'qualification': user_data['qualification'],
+                    'idara': user_data['idara'],
+                    'category': user_data['category'],
+                    'organization': user_data['organization'],
+                    'mobile_number': user_data['mobile_number'],
+                    'whatsapp_number': user_data['whatsapp_number'],
+                    'address': user_data['address'],
+                    'jamaat': user_data['jamaat'],
+                    'jamiaat': user_data['jamiaat'],
+                    'nationality': user_data['nationality'],
+                    'vatan': user_data['vatan'],
+                    'city': user_data['city'],
+                    'country': user_data['country'],
+                    'hifz_sanad': user_data['hifz_sanad'],
+                    'profile_photo': user_data['photograph'],
+                    'role': role,
+                    'is_active': True,
+                }
+            )
+            
+            # Update existing user data with fresh ITS data (sync ALL fields)
+            if not created:
+                user.first_name = user_data['first_name']
+                user.last_name = user_data['last_name']
+                user.email = user_data['email']
+                user.arabic_full_name = user_data['arabic_full_name']
+                user.prefix = user_data['prefix']
+                user.age = user_data['age']
+                user.gender = user_data['gender']
+                user.marital_status = user_data['marital_status']
+                user.misaq = user_data['misaq']
+                user.occupation = user_data['occupation']
+                user.qualification = user_data['qualification']
+                user.idara = user_data['idara']
+                user.category = user_data['category']
+                user.organization = user_data['organization']
+                user.mobile_number = user_data['mobile_number']
+                user.whatsapp_number = user_data['whatsapp_number']
+                user.address = user_data['address']
+                user.jamaat = user_data['jamaat']
+                user.jamiaat = user_data['jamiaat']
+                user.nationality = user_data['nationality']
+                user.vatan = user_data['vatan']
+                user.city = user_data['city']
+                user.country = user_data['country']
+                user.hifz_sanad = user_data['hifz_sanad']
+                user.profile_photo = user_data['photograph']
+                user.role = role
+                from django.utils import timezone
+                user.its_last_sync = timezone.now()
+                user.save()
+            
+            self.user_cache = user
         
-        return username
+        return cleaned_data
+    
+    def get_user(self):
+        return self.user_cache
 
 
 class UserRegistrationForm(UserCreationForm):

@@ -43,9 +43,9 @@ def dashboard_redirect(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Main authentication - redirect to ITS login
-    path('', RedirectView.as_view(url='/accounts/its-login/', permanent=False)),
-    path('login/', RedirectView.as_view(url='/accounts/its-login/', permanent=False)),
+    # Main authentication - redirect to login page
+    path('', RedirectView.as_view(url='/accounts/login/', permanent=False)),
+    path('login/', RedirectView.as_view(url='/accounts/login/', permanent=False)),
     
     # App URLs
     path('accounts/', include('accounts.urls')),
