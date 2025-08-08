@@ -36,8 +36,7 @@ urlpatterns = [
     # ITS ID verification
     path('verify-its/', views.VerifyITSView.as_view(), name='verify_its'),
 
-    # Audit log (admin only)
-    path('audit-logs/', views.AuditLogListView.as_view(), name='audit_log_list'),
+    # Audit log (admin only) - using function-based view below instead
 
     # Permission management (admin only)
     path('permissions/', views.PermissionManagementView.as_view(), name='permission_management'),
