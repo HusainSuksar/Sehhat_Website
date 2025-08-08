@@ -622,6 +622,91 @@ def its_login_api(request):
         })
 
 
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def sync_its_data(request):
+    """
+    Sync user data with ITS API
+    Allows users to manually sync their profile data from ITS
+    """
+    try:
+        user = request.user
+        
+        # Check if user has ITS ID
+        if not user.its_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'No ITS ID associated with your account'
+            })
+        
+        # Fetch fresh data from ITS
+        its_data = MockITSService.fetch_user_data(user.its_id)
+        
+        if not its_data:
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to fetch data from ITS API'
+            })
+        
+        # Update user fields with fresh ITS data
+        updated_fields = []
+        
+        if user.first_name != its_data['first_name']:
+            user.first_name = its_data['first_name']
+            updated_fields.append('first_name')
+            
+        if user.last_name != its_data['last_name']:
+            user.last_name = its_data['last_name']
+            updated_fields.append('last_name')
+            
+        if user.email != its_data['email']:
+            user.email = its_data['email']
+            updated_fields.append('email')
+            
+        if user.mobile_number != its_data['mobile_number']:
+            user.mobile_number = its_data['mobile_number']
+            updated_fields.append('mobile_number')
+            
+        if user.qualification != its_data['qualification']:
+            user.qualification = its_data['qualification']
+            updated_fields.append('qualification')
+            
+        if user.occupation != its_data['occupation']:
+            user.occupation = its_data['occupation']
+            updated_fields.append('occupation')
+            
+        if user.organization != its_data['organization']:
+            user.organization = its_data['organization']
+            updated_fields.append('organization')
+            
+        if user.city != its_data['city']:
+            user.city = its_data['city']
+            updated_fields.append('city')
+            
+        if user.country != its_data['country']:
+            user.country = its_data['country']
+            updated_fields.append('country')
+        
+        # Update sync metadata
+        user.its_last_sync = timezone.now()
+        user.its_sync_status = 'success'
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Profile synchronized successfully',
+            'updated_fields': updated_fields,
+            'sync_timestamp': user.its_last_sync.isoformat(),
+            'total_updates': len(updated_fields)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Sync failed: {str(e)}'
+        })
+
+
 def _get_redirect_url_for_role(role):
     """
     Determine redirect URL based on user role
