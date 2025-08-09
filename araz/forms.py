@@ -25,22 +25,32 @@ class PetitionForm(forms.ModelForm):
             'its_id': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter ITS ID to auto-fill details',
-                'id': 'id_its_id'
+                'id': 'id_its_id',
+                'pattern': '[0-9]{8}',
+                'title': 'ITS ID must be exactly 8 digits',
+                'maxlength': '8',
+                'minlength': '8'
             }),
             'petitioner_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Full name of petitioner',
-                'id': 'id_petitioner_name'
+                'id': 'id_petitioner_name',
+                'maxlength': '200',
+                'required': True
             }),
             'petitioner_mobile': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Mobile number',
-                'id': 'id_petitioner_mobile'
+                'id': 'id_petitioner_mobile',
+                'maxlength': '20',
+                'pattern': '[+]?[0-9]{10,15}',
+                'title': 'Enter a valid mobile number'
             }),
             'petitioner_email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Email address',
-                'id': 'id_petitioner_email'
+                'id': 'id_petitioner_email',
+                'maxlength': '254'
             }),
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
