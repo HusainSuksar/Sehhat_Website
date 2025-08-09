@@ -386,6 +386,43 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // DEBUGGING: Check ITS ID field
+    const itsIdField = document.getElementById('id_its_id');
+    console.log('🔍 ITS ID Field Debug:');
+    console.log('  Element exists:', !!itsIdField);
+    if (itsIdField) {
+        console.log('  Element type:', itsIdField.tagName);
+        console.log('  Element value:', itsIdField.value);
+        console.log('  Element visible:', itsIdField.offsetParent !== null);
+        console.log('  Element rect:', itsIdField.getBoundingClientRect());
+        console.log('  Element computed styles:', {
+            display: window.getComputedStyle(itsIdField).display,
+            visibility: window.getComputedStyle(itsIdField).visibility,
+            opacity: window.getComputedStyle(itsIdField).opacity,
+            position: window.getComputedStyle(itsIdField).position,
+            zIndex: window.getComputedStyle(itsIdField).zIndex
+        });
+        
+        // Force visibility
+        itsIdField.style.backgroundColor = '#ffff00';
+        itsIdField.style.border = '5px solid red';
+        itsIdField.style.display = 'block';
+        itsIdField.style.visibility = 'visible';
+        itsIdField.style.opacity = '1';
+        itsIdField.style.zIndex = '99999';
+        console.log('  🚨 Forced styling applied to make field visible!');
+    } else {
+        console.log('  ❌ ITS ID field not found in DOM!');
+        // Look for any input with its_id
+        const allInputs = document.querySelectorAll('input');
+        console.log('  📋 All inputs found:', allInputs.length);
+        allInputs.forEach((inp, i) => {
+            if (inp.name && inp.name.includes('its')) {
+                console.log(`    Input ${i}: name="${inp.name}" id="${inp.id}" type="${inp.type}"`);
+            }
+        });
+    }
+
     // Character counter for description
     const descriptionField = document.querySelector('textarea[name="description"]');
     if (descriptionField) {
@@ -624,6 +661,31 @@ style.textContent = `
     .petition-alert {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* DEBUGGING CSS - Make ITS ID input highly visible */
+    #id_its_id {
+        background-color: #fff !important;
+        border: 3px solid #ff0000 !important;
+        color: #000 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 9999 !important;
+        height: 38px !important;
+        width: 100% !important;
+        padding: 6px 12px !important;
+        font-size: 14px !important;
+        line-height: 1.42857143 !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Ensure input group is visible */
+    .input-group {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 `;
 document.head.appendChild(style);
