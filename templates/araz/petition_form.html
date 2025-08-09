@@ -75,7 +75,7 @@
                                             </label>
                                             <div class="input-group">
                                                 {{ form.its_id }}
-                                                <button type="button" class="btn btn-outline-success" id="fetchITSData" disabled>
+                                                <button type="button" class="btn btn-outline-success" id="fetchITSData" title="Enter valid 8-digit ITS ID first">
                                                     <i class="fas fa-download me-1"></i> Fetch
                                                 </button>
                                             </div>
@@ -398,16 +398,49 @@ document.addEventListener('DOMContentLoaded', function() {
             const remaining = maxLength - descriptionField.value.length;
             counter.textContent = `${descriptionField.value.length}/${maxLength} characters`;
             if (remaining < 100) {
-                counter.className = 'text-warning small text-right mt-1';
-            } else if (remaining < 0) {
-                counter.className = 'text-danger small text-right mt-1';
+                counter.classList.add('text-warning');
             } else {
-                counter.className = 'text-muted small text-right mt-1';
+                counter.classList.remove('text-warning');
             }
         }
 
         descriptionField.addEventListener('input', updateCounter);
         updateCounter(); // Initial call
+    }
+
+    // Professional Alert System
+    function showAlert(message, type = 'info', duration = 5000) {
+        // Remove any existing alerts first
+        const existingAlerts = document.querySelectorAll('.petition-alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show petition-alert`;
+        alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+        
+        const iconMap = {
+            'success': 'fas fa-check-circle',
+            'warning': 'fas fa-exclamation-triangle', 
+            'danger': 'fas fa-exclamation-circle',
+            'info': 'fas fa-info-circle'
+        };
+        
+        alertDiv.innerHTML = `
+            <i class="${iconMap[type] || iconMap.info} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, duration);
+        }
     }
 
     // ITS Data Fetching with Enhanced Validation
@@ -417,26 +450,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileField = document.getElementById('id_petitioner_mobile');
     const emailField = document.getElementById('id_petitioner_email');
 
+    // Function to update fetch button state
+    function updateFetchButtonState() {
+        if (!itsIdField || !fetchITSBtn) return;
+        
+        const value = itsIdField.value.trim();
+        const isValid = value.length === 8 && /^[0-9]{8}$/.test(value);
+        
+        fetchITSBtn.disabled = !isValid;
+        
+        if (isValid) {
+            fetchITSBtn.classList.add('pulse-success');
+            fetchITSBtn.title = 'Click to fetch data from ITS';
+        } else {
+            fetchITSBtn.classList.remove('pulse-success');
+            fetchITSBtn.title = 'Enter valid 8-digit ITS ID first';
+        }
+    }
+
     // Add real-time validation for ITS ID field
     if (itsIdField) {
         itsIdField.addEventListener('input', function(e) {
             const value = e.target.value;
-            const isValid = /^[0-9]{0,8}$/.test(value);
             
-            if (!isValid && value !== '') {
+            // Only allow digits and limit to 8 characters
+            const cleanValue = value.replace(/[^0-9]/g, '').substring(0, 8);
+            if (cleanValue !== value) {
+                e.target.value = cleanValue;
+            }
+            
+            const isValid = cleanValue.length === 8;
+            
+            // Update visual feedback
+            if (cleanValue.length > 0 && cleanValue.length < 8) {
                 e.target.classList.add('is-invalid');
                 e.target.classList.remove('is-valid');
-            } else if (value.length === 8) {
+            } else if (isValid) {
                 e.target.classList.add('is-valid');
                 e.target.classList.remove('is-invalid');
-                fetchITSBtn.disabled = false;
-                fetchITSBtn.classList.add('pulse-success');
             } else {
                 e.target.classList.remove('is-invalid', 'is-valid');
-                fetchITSBtn.disabled = value.length !== 8;
-                fetchITSBtn.classList.remove('pulse-success');
             }
+            
+            updateFetchButtonState();
         });
+        
+        // Initial state check (in case field is pre-filled)
+        updateFetchButtonState();
     }
 
     if (fetchITSBtn) {
@@ -468,58 +528,38 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                     },
-                    credentials: 'same-origin'  // Ensure cookies are sent
+                    credentials: 'same-origin'
                 });
                 
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
                     // Fill the form fields with fetched data
-                    nameField.value = data.data.name || '';
-                    mobileField.value = data.data.mobile || '';
-                    emailField.value = data.data.email || '';
+                    if (nameField) nameField.value = data.data.name || '';
+                    if (mobileField) mobileField.value = data.data.mobile || '';
+                    if (emailField) emailField.value = data.data.email || '';
                     
-                    // Show success message
-                    const successDiv = document.createElement('div');
-                    successDiv.className = 'alert alert-success alert-dismissible fade show mt-2';
-                    successDiv.innerHTML = `
-                        <i class="fas fa-check-circle"></i> Data fetched successfully!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    fetchITSBtn.parentNode.appendChild(successDiv);
-                    
-                    // Auto-remove success message after 3 seconds
-                    setTimeout(() => {
-                        if (successDiv.parentNode) {
-                            successDiv.parentNode.removeChild(successDiv);
+                    // Add visual feedback to filled fields
+                    [nameField, mobileField, emailField].forEach(field => {
+                        if (field && field.value) {
+                            field.classList.add('is-valid');
+                            field.classList.remove('is-invalid');
                         }
-                    }, 3000);
+                    });
+                    
+                    showAlert(`Data fetched successfully for ${data.data.name}!`, 'success', 3000);
                     
                 } else {
-                    // Show error message in a more user-friendly way
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'alert alert-warning alert-dismissible fade show mt-2';
-                    errorDiv.innerHTML = `
-                        <i class="fas fa-exclamation-triangle"></i> ${data.error || 'Failed to fetch ITS data. Please enter details manually.'}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    fetchITSBtn.parentNode.appendChild(errorDiv);
-                    
-                    // Auto-remove error message after 5 seconds
-                    setTimeout(() => {
-                        if (errorDiv.parentNode) {
-                            errorDiv.parentNode.removeChild(errorDiv);
-                        }
-                    }, 5000);
+                    showAlert(data.error || 'Failed to fetch ITS data. Please enter details manually.', 'warning');
                 }
                 
             } catch (error) {
                 console.error('Error fetching ITS data:', error);
-                alert('Error connecting to ITS service. Please enter details manually.');
+                showAlert('Error connecting to ITS service. Please enter details manually.', 'danger');
             } finally {
-                // Restore button state
-                fetchITSBtn.disabled = false;
+                // Restore button state based on current ITS ID validity
                 fetchITSBtn.innerHTML = originalText;
+                updateFetchButtonState();
             }
         });
     }
@@ -547,86 +587,45 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (hasErrors) {
             e.preventDefault();
-            alert('Please fill in all required fields marked with *');
+            showAlert('Please fill in all required fields marked with *', 'warning');
+            // Focus on first invalid field
+            const firstInvalid = document.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
         }
         
+        // Show submission loading state
         const submitBtn = document.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
+        
+        showAlert('Submitting your petition...', 'info', 2000);
     });
-
-    // Helper function to show alerts
-    function showAlert(message, type = 'info') {
-        const alertContainer = document.createElement('div');
-        alertContainer.className = `alert alert-${type} alert-dismissible fade show mt-2`;
-        alertContainer.innerHTML = `
-            <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        // Insert after the petitioner card
-        const petitionerCard = document.querySelector('.card');
-        petitionerCard.parentNode.insertBefore(alertContainer, petitionerCard.nextSibling);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (alertContainer.parentNode) {
-                alertContainer.parentNode.removeChild(alertContainer);
-            }
-        }, 5000);
-    }
 });
+
+// Add pulse animation for success state
+const style = document.createElement('style');
+style.textContent = `
+    .pulse-success {
+        animation: pulseGreen 2s infinite;
+    }
+    
+    @keyframes pulseGreen {
+        0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    }
+    
+    .petition-alert {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+`;
+document.head.appendChild(style);
 </script>
-
-<style>
-/* Enhanced styling for petitioner container */
-.pulse-success {
-    animation: pulse-success 2s infinite;
-}
-
-@keyframes pulse-success {
-    0% { box-shadow: 0 0 0 0 rgba(28, 200, 138, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(28, 200, 138, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(28, 200, 138, 0); }
-}
-
-.form-group .form-control:focus {
-    border-color: #1cc88a;
-    box-shadow: 0 0 0 0.2rem rgba(28, 200, 138, 0.25);
-}
-
-.form-group .form-control.is-valid {
-    border-color: #28a745;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.69-.68 2.87-2.87.69.68L2.96 7.41z'/%3e%3cpath fill='%2328a745' d='m.11 3.27.69-.68L2.96 4.75l-.69.68z'/%3e%3c/svg%3e");
-}
-
-.form-group .form-control.is-invalid {
-    border-color: #dc3545;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4 1.4-1.4M8.6 7.4l-1.4-1.4-1.4 1.4'/%3e%3c/svg%3e");
-}
-
-/* Mobile responsiveness enhancements */
-@media (max-width: 768px) {
-    .card-header .d-flex {
-        flex-direction: column;
-        align-items: flex-start !important;
-    }
-    
-    .card-header .badge {
-        margin-top: 0.5rem;
-    }
-    
-    .input-group .btn {
-        white-space: nowrap;
-    }
-}
-
-/* Loading state styling */
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-</style>
 {% endblock %}
