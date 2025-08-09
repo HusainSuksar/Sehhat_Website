@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Upload Sessions - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-card {
+        transition: all 0.3s ease;
+    }
+    
+    .upload-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .progress-ring {
+        width: 40px;
+        height: 40px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-upload text-primary me-2"></i>Bulk Upload Sessions
+                    </h1>
+                    <p class="text-muted mb-0">Manage and monitor your bulk data uploads</p>
+                </div>
+                <div>
+                    <a href="{% url 'bulk_upload:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>New Upload
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="type" class="form-label">Data Type</label>
+                            <select name="type" id="type" class="form-select">
+                                <option value="">All Types</option>
+                                {% for value, label in upload_types %}
+                                    <option value="{{ value }}" {% if current_filters.type == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" name="search" id="search" class="form-control" 
+                                   placeholder="Search by filename or user..." value="{{ current_filters.search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-outline-primary d-block w-100">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Sessions -->
+    <div class="row">
+        {% for upload in uploads %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card upload-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-file-alt text-primary me-1"></i>{{ upload.original_filename|truncatechars:20 }}
+                    </h6>
+                    {% if upload.status == 'pending' %}
+                        <span class="badge bg-warning status-badge">
+                            <i class="fas fa-clock me-1"></i>Pending
+                        </span>
+                    {% elif upload.status == 'processing' %}
+                        <span class="badge bg-info status-badge">
+                            <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                        </span>
+                    {% elif upload.status == 'completed' %}
+                        <span class="badge bg-success status-badge">
+                            <i class="fas fa-check me-1"></i>Completed
+                        </span>
+                    {% elif upload.status == 'partially_completed' %}
+                        <span class="badge bg-warning status-badge">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Partial
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger status-badge">
+                            <i class="fas fa-times me-1"></i>Failed
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <small class="text-muted">Type:</small><br>
+                            <strong>{{ upload.get_upload_type_display }}</strong>
+                        </div>
+                        <div class="col-4 text-end">
+                            {% if upload.total_rows > 0 %}
+                                <div class="progress-ring" style="background: conic-gradient(#28a745 {{ upload.get_success_rate }}%, #e9ecef 0);">
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <small class="fw-bold">{{ upload.get_success_rate|floatformat:0 }}%</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if upload.total_rows > 0 %}
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <small class="text-muted">Total</small><br>
+                            <strong class="text-primary">{{ upload.total_rows }}</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Success</small><br>
+                            <strong class="text-success">{{ upload.successful_rows }}</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Failed</small><br>
+                            <strong class="text-danger">{{ upload.failed_rows }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>{{ upload.uploaded_by.get_full_name }}
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>{{ upload.started_at|date:"M d, Y g:i A" }}
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'bulk_upload:detail' upload.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                        {% if upload.status == 'pending' %}
+                        <button class="btn btn-success btn-sm" onclick="processUpload({{ upload.pk }})">
+                            <i class="fas fa-play me-1"></i>Process Now
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-upload fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No upload sessions found</h5>
+                    <p class="text-muted">Create your first bulk upload to get started.</p>
+                    <a href="{% url 'bulk_upload:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Create New Upload
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav aria-label="Upload sessions pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function processUpload(uploadId) {
+    if (confirm('Are you sure you want to process this upload?')) {
+        fetch(`/bulk-upload/${uploadId}/process/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Upload processed successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing the upload.');
+        });
+    }
+}
+</script>
+{% endblock %}

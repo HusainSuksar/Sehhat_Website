@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Upload - Umoor Sehhat{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trash me-2"></i>Confirm Delete
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone.
+                    </div>
+                    
+                    <p>Are you sure you want to delete this upload session?</p>
+                    
+                    <div class="mb-3">
+                        <strong>File:</strong> {{ upload.original_filename }}<br>
+                        <strong>Type:</strong> {{ upload.get_upload_type_display }}<br>
+                        <strong>Status:</strong> {{ upload.get_status_display }}<br>
+                        <strong>Uploaded:</strong> {{ upload.started_at|date:"F d, Y g:i A" }}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>Yes, Delete
+                            </button>
+                            <a href="{% url 'bulk_upload:detail' upload.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

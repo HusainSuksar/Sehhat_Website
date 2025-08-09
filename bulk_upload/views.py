@@ -136,16 +136,25 @@ def bulk_upload_create(request):
         # Save file temporarily
         try:
             file_content = uploaded_file.read()
-            temp_file_path = default_storage.save(
-                f'bulk_uploads/temp_{request.user.id}_{uploaded_file.name}',
-                ContentFile(file_content)
+            
+            # Create a proper temporary file path
+            import tempfile
+            
+            # Create temporary file
+            temp_fd, temp_file_path = tempfile.mkstemp(
+                suffix=f'.{file_extension}',
+                prefix=f'bulk_upload_{request.user.id}_'
             )
+            
+            # Write file content to temporary file
+            with os.fdopen(temp_fd, 'wb') as temp_file:
+                temp_file.write(file_content)
             
             # Create upload session
             session = BulkUploadService.create_upload_session(
                 user=request.user,
                 upload_type=upload_type,
-                file_path=default_storage.path(temp_file_path),
+                file_path=temp_file_path,
                 filename=uploaded_file.name,
                 file_size=len(file_content)
             )
@@ -247,13 +256,13 @@ def download_template(request, upload_type):
         # Add headers
         headers = template.get_all_columns()
         for col_num, header in enumerate(headers, 1):
-            ws.cell(row=1, col=col_num, value=header)
+            ws.cell(row=1, column=col_num, value=header)
         
         # Add sample data if available
         if template.sample_data:
             for row_num, sample_row in enumerate(template.sample_data[:5], 2):
                 for col_num, header in enumerate(headers, 1):
-                    ws.cell(row=row_num, col=col_num, value=sample_row.get(header, ''))
+                    ws.cell(row=row_num, column=col_num, value=sample_row.get(header, ''))
         
         # Save to response
         response = HttpResponse(
@@ -280,8 +289,11 @@ def bulk_upload_delete(request, pk):
     
     if request.method == 'POST':
         # Delete associated file
-        if session.file_path and default_storage.exists(session.file_path):
-            default_storage.delete(session.file_path)
+        if session.file_path and os.path.exists(session.file_path):
+            try:
+                os.unlink(session.file_path)
+            except OSError:
+                pass  # File already deleted or doesn't exist
         
         session.delete()
         messages.success(request, "Upload session deleted successfully.")

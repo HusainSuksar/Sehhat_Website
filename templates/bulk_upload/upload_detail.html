@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Details - {{ upload.original_filename }} - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .record-row {
+        transition: all 0.2s;
+    }
+    
+    .record-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .progress-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-file-alt text-primary me-2"></i>{{ upload.original_filename }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {{ upload.get_upload_type_display }} upload by {{ upload.uploaded_by.get_full_name }}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'bulk_upload:list' %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Back to List
+                    </a>
+                    {% if upload.status == 'pending' %}
+                    <button class="btn btn-success" onclick="processUpload({{ upload.pk }})">
+                        <i class="fas fa-play me-1"></i>Process Upload
+                    </button>
+                    {% endif %}
+                    {% if upload.status == 'pending' %}
+                    <a href="{% url 'bulk_upload:delete' upload.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card status-card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-list fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ upload.total_rows }}</h3>
+                    <p class="mb-0">Total Rows</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card status-card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-check fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ upload.successful_rows }}</h3>
+                    <p class="mb-0">Successful</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card status-card bg-danger text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-times fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ upload.failed_rows }}</h3>
+                    <p class="mb-0">Failed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card status-card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ upload.skipped_rows }}</h3>
+                    <p class="mb-0">Skipped</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Information -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle text-info me-2"></i>Upload Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong> 
+                                {% if upload.status == 'pending' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% elif upload.status == 'processing' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                    </span>
+                                {% elif upload.status == 'completed' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>Completed
+                                    </span>
+                                {% elif upload.status == 'partially_completed' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Partially Completed
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times me-1"></i>Failed
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Data Type:</strong> {{ upload.get_upload_type_display }}</p>
+                            <p><strong>File Size:</strong> {{ upload.file_size|filesizeformat }}</p>
+                            <p><strong>Uploaded By:</strong> {{ upload.uploaded_by.get_full_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Started:</strong> {{ upload.started_at|date:"F d, Y g:i A" }}</p>
+                            {% if upload.completed_at %}
+                                <p><strong>Completed:</strong> {{ upload.completed_at|date:"F d, Y g:i A" }}</p>
+                            {% endif %}
+                            {% if upload.total_rows > 0 %}
+                                <p><strong>Success Rate:</strong> {{ upload.get_success_rate }}%</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie text-success me-2"></i>Progress
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if upload.total_rows > 0 %}
+                        <div class="progress-circle mx-auto mb-3" 
+                             style="background: conic-gradient(#28a745 {{ upload.get_success_rate }}%, #e9ecef 0); border: 3px solid #dee2e6;">
+                            {{ upload.get_success_rate|floatformat:0 }}%
+                        </div>
+                        <p class="text-muted mb-0">
+                            {{ upload.successful_rows }} of {{ upload.total_rows }} records processed successfully
+                        </p>
+                    {% else %}
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Waiting to be processed</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Section -->
+    {% if upload.total_rows > 0 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table text-primary me-2"></i>Processing Records
+                    </h5>
+                    <div>
+                        <form method="get" class="d-inline">
+                            <select name="record_status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">All Records</option>
+                                {% for value, label in record_status_choices %}
+                                    <option value="{{ value }}" {% if current_record_filter == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Error</th>
+                                    <th>Created Object</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr class="record-row">
+                                    <td>
+                                        <span class="badge bg-secondary">{{ record.row_number }}</span>
+                                    </td>
+                                    <td>
+                                        {% if record.status == 'success' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Success
+                                            </span>
+                                        {% elif record.status == 'failed' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Failed
+                                            </span>
+                                        {% elif record.status == 'skipped' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-minus me-1"></i>Skipped
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#data-{{ record.pk }}">
+                                            <i class="fas fa-eye me-1"></i>View Data
+                                        </button>
+                                        <div class="collapse mt-2" id="data-{{ record.pk }}">
+                                            <div class="card card-body">
+                                                <pre class="mb-0">{{ record.raw_data|pprint }}</pre>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if record.error_message %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-exclamation-circle me-1"></i>
+                                                {{ record.error_message|truncatechars:50 }}
+                                            </span>
+                                            {% if record.error_message|length > 50 %}
+                                                <button class="btn btn-sm btn-outline-danger ms-2" type="button"
+                                                        data-bs-toggle="tooltip" title="{{ record.error_message }}">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if record.created_object_type and record.created_object_id %}
+                                            <span class="badge bg-success">
+                                                {{ record.created_object_type }} #{{ record.created_object_id }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        No records found with the current filter.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if records|length == 100 %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Showing first 100 records. Use filters to view specific records.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Processing Log -->
+    {% if upload.processing_log %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>Processing Log
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for log_entry in upload.processing_log|slice:":10" %}
+                        <div class="mb-3 p-3 border-start border-3 {% if log_entry.level == 'error' %}border-danger bg-danger bg-opacity-10{% elif log_entry.level == 'warning' %}border-warning bg-warning bg-opacity-10{% else %}border-info bg-info bg-opacity-10{% endif %}">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ log_entry.message }}</strong>
+                                <small class="text-muted">{{ log_entry.timestamp|date:"M d, H:i:s" }}</small>
+                            </div>
+                            {% if log_entry.row_number %}
+                                <small class="text-muted">Row: {{ log_entry.row_number }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function processUpload(uploadId) {
+    if (confirm('Are you sure you want to process this upload?')) {
+        const btn = document.querySelector('.btn-success');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+        
+        fetch(`/bulk-upload/${uploadId}/process/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Upload processed successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing the upload.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
