@@ -16,6 +16,7 @@ urlpatterns = [
     # Petition actions
     path('petitions/<int:pk>/comment/', views.add_comment, name='add_comment'),
     path('petitions/<int:pk>/assign/', views.assign_petition, name='assign_petition'),
+    path('petitions/<int:pk>/status/', views.update_petition_status, name='update_status'),
     
     # Analytics and reports
     path('analytics/', views.petition_analytics, name='analytics'),

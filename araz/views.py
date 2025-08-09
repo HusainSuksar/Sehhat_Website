@@ -401,6 +401,58 @@ def assign_petition(request, pk):
 
 
 @login_required
+def update_petition_status(request, pk):
+    """Update petition status (Start Processing, Mark Resolved, etc.)"""
+    if request.method == 'POST':
+        petition = get_object_or_404(Petition, pk=pk)
+        
+        # Check permissions
+        user = request.user
+        if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        new_status = request.POST.get('status')
+        notes = request.POST.get('notes', '')
+        
+        # Validate status
+        valid_statuses = ['pending', 'in_progress', 'resolved', 'rejected']
+        if new_status not in valid_statuses:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+        
+        # Update petition status
+        old_status = petition.status
+        petition.status = new_status
+        petition.save()
+        
+        # Create status update record
+        status_descriptions = {
+            'in_progress': 'Started processing petition',
+            'resolved': 'Petition resolved successfully',
+            'rejected': 'Petition rejected',
+            'pending': 'Petition moved back to pending'
+        }
+        
+        description = status_descriptions.get(new_status, f'Status changed to {new_status}')
+        if notes:
+            description += f': {notes}'
+        
+        PetitionUpdate.objects.create(
+            petition=petition,
+            status=new_status,
+            description=description,
+            created_by=user
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Petition status updated to {new_status}',
+            'new_status': new_status
+        })
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+@login_required
 def petition_analytics(request):
     """Analytics dashboard for petitions"""
     user = request.user

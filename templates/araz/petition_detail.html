@@ -52,50 +52,119 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Status:</strong>
+                    <!-- Status and Priority Row -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <h6 class="text-primary"><i class="fas fa-info-circle"></i> Status</h6>
                             {% if petition.status == 'pending' %}
-                                <span class="badge badge-warning ml-2" style="background-color: brown;">Pending</span>
+                                <span class="badge badge-warning badge-lg"><i class="fas fa-clock"></i> Pending</span>
                             {% elif petition.status == 'in_progress' %}
-                                <span class="badge badge-info ml-2" style="background-color: orange;">In Progress</span>
+                                <span class="badge badge-info badge-lg"><i class="fas fa-spinner"></i> In Progress</span>
                             {% elif petition.status == 'resolved' %}
-                                <span class="badge badge-success ml-2" style="background-color: green;">Resolved</span>
+                                <span class="badge badge-success badge-lg"><i class="fas fa-check-circle"></i> Resolved</span>
                             {% else %}
-                                <span class="badge badge-danger ml-2" style="background-color: red;">Rejected</span>
+                                <span class="badge badge-danger badge-lg"><i class="fas fa-times-circle"></i> Rejected</span>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <strong>Category:</strong>
+                        <div class="col-md-4">
+                            <h6 class="text-primary"><i class="fas fa-exclamation-triangle"></i> Priority</h6>
+                            {% if petition.priority == 'high' %}
+                                <span class="badge badge-danger badge-lg"><i class="fas fa-arrow-up"></i> High Priority</span>
+                            {% elif petition.priority == 'medium' %}
+                                <span class="badge badge-warning badge-lg"><i class="fas fa-minus"></i> Medium Priority</span>
+                            {% else %}
+                                <span class="badge badge-info badge-lg"><i class="fas fa-arrow-down"></i> Low Priority</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-primary"><i class="fas fa-tag"></i> Category</h6>
                             {% if petition.category %}
-                                <span class="badge badge-secondary ml-2" style="background-color: blue;">{{ petition.category.name }}</span>
+                                <span class="badge badge-secondary badge-lg"><i class="fas fa-folder"></i> {{ petition.category.name }}</span>
                             {% else %}
-                                <span class="text-muted ml-2">No category</span>
+                                <span class="text-muted">No category assigned</span>
                             {% endif %}
                         </div>
                     </div>
-                    <div class="row mb-3">
+                    
+                    <hr>
+                    
+                    <!-- Petitioner Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-success mb-3"><i class="fas fa-user"></i> Petitioner Information</h6>
+                        </div>
                         <div class="col-md-6">
-                            <strong>Created by:</strong>
-                            {% if petition.is_anonymous %}
-                                <span class="text-muted ml-2">Anonymous</span>
-                            {% else %}
-                                <span class="ml-2">{{ petition.created_by.get_full_name }}</span>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-user text-primary"></i> Name:</strong>
+                                {% if petition.is_anonymous %}
+                                    <span class="text-muted ml-2"><i class="fas fa-user-secret"></i> Anonymous Petition</span>
+                                {% else %}
+                                    {% if petition.petitioner_name %}
+                                        <span class="ml-2">{{ petition.petitioner_name }}</span>
+                                    {% else %}
+                                        <span class="ml-2">{{ petition.created_by.get_full_name }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-id-card text-info"></i> ITS ID:</strong>
+                                {% if petition.its_id %}
+                                    <span class="ml-2"><code>{{ petition.its_id }}</code></span>
+                                {% else %}
+                                    <span class="text-muted ml-2">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <strong><i class="fas fa-phone text-success"></i> Mobile:</strong>
+                                {% if petition.petitioner_mobile %}
+                                    <span class="ml-2">{{ petition.petitioner_mobile }}</span>
+                                {% else %}
+                                    <span class="text-muted ml-2">Not provided</span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-envelope text-warning"></i> Email:</strong>
+                                {% if petition.petitioner_email %}
+                                    <span class="ml-2">{{ petition.petitioner_email }}</span>
+                                {% else %}
+                                    <span class="text-muted ml-2">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- System Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-secondary mb-3"><i class="fas fa-cogs"></i> System Information</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <strong><i class="fas fa-calendar-plus text-primary"></i> Created:</strong>
+                                <span class="ml-2">{{ petition.created_at|date:"F d, Y \a\t g:i A" }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-calendar-check text-info"></i> Last Updated:</strong>
+                                <span class="ml-2">{{ petition.updated_at|date:"F d, Y \a\t g:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if petition.moze %}
+                            <div class="mb-2">
+                                <strong><i class="fas fa-mosque text-success"></i> Assigned Moze:</strong>
+                                <span class="ml-2">{{ petition.moze.name }}</span>
+                            </div>
                             {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Created:</strong>
-                            <span class="ml-2">{{ petition.created_at|date:"F d, Y \a\t g:i A" }}</span>
-                        </div>
-                    </div>
-                    {% if petition.moze %}
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Moze:</strong>
-                            <span class="ml-2">{{ petition.moze.name }}</span>
+                            <div class="mb-2">
+                                <strong><i class="fas fa-hashtag text-secondary"></i> Petition ID:</strong>
+                                <span class="ml-2"><code>#{{ petition.pk }}</code></span>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
                     
                     <hr>
                     
@@ -356,27 +425,137 @@ document.getElementById('comment-form')?.addEventListener('submit', function(e) 
 
 // Status update function
 function updateStatus(newStatus) {
-    if (confirm('Are you sure you want to update the status to ' + newStatus + '?')) {
-        // This would submit a form or make an AJAX call to update the status
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{% url "araz:petition_update" petition.pk %}';
+    const statusLabels = {
+        'in_progress': 'In Progress',
+        'resolved': 'Resolved', 
+        'rejected': 'Rejected',
+        'pending': 'Pending'
+    };
+    
+    const statusLabel = statusLabels[newStatus] || newStatus;
+    
+    if (confirm(`Are you sure you want to update the status to "${statusLabel}"?`)) {
+        // Show loading state
+        const loadingAlert = document.createElement('div');
+        loadingAlert.className = 'alert alert-info';
+        loadingAlert.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating status...';
+        document.querySelector('.container-fluid').insertBefore(loadingAlert, document.querySelector('.row'));
         
-        const csrfToken = document.createElement('input');
-        csrfToken.type = 'hidden';
-        csrfToken.name = 'csrfmiddlewaretoken';
-        csrfToken.value = '{{ csrf_token }}';
-        form.appendChild(csrfToken);
-        
-        const statusInput = document.createElement('input');
-        statusInput.type = 'hidden';
-        statusInput.name = 'status';
-        statusInput.value = newStatus;
-        form.appendChild(statusInput);
-        
-        document.body.appendChild(form);
-        form.submit();
+        // Make AJAX call to update status
+        fetch('{% url "araz:update_status" petition.pk %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `status=${newStatus}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove loading alert
+            loadingAlert.remove();
+            
+            if (data.success) {
+                // Show success message
+                const successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show';
+                successAlert.innerHTML = `
+                    <i class="fas fa-check-circle"></i> ${data.message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                `;
+                document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('.row'));
+                
+                // Reload page after 2 seconds to show updated status
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                // Show error message
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+                errorAlert.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                `;
+                document.querySelector('.container-fluid').insertBefore(errorAlert, document.querySelector('.row'));
+            }
+        })
+        .catch(error => {
+            // Remove loading alert
+            loadingAlert.remove();
+            
+            console.error('Error:', error);
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+            errorAlert.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> An error occurred while updating the status.
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(errorAlert, document.querySelector('.row'));
+        });
     }
 }
+
+// Assignment form submission
+document.getElementById('assign-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+    
+    fetch('{% url "araz:assign_petition" petition.pk %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Hide modal
+            $('#assignModal').modal('hide');
+            
+            // Show success message
+            const successAlert = document.createElement('div');
+            successAlert.className = 'alert alert-success alert-dismissible fade show';
+            successAlert.innerHTML = `
+                <i class="fas fa-check-circle"></i> ${data.message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+            document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('.row'));
+            
+            // Reload page after 2 seconds to show updated assignment
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning the petition.');
+    })
+    .finally(() => {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    });
+});
 </script>
 {% endblock %}
