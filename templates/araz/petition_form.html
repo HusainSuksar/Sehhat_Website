@@ -91,6 +91,9 @@
                                                             {{ form.petitioner_name.errors.0 }}
                                                         </div>
                                                     {% endif %}
+                                                    <small class="form-text text-muted">
+                                                        Will be auto-filled from ITS ID or enter manually.
+                                                    </small>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -104,6 +107,9 @@
                                                             {{ form.petitioner_mobile.errors.0 }}
                                                         </div>
                                                     {% endif %}
+                                                    <small class="form-text text-muted">
+                                                        Contact number for follow-up (auto-filled from ITS).
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -119,6 +125,9 @@
                                                             {{ form.petitioner_email.errors.0 }}
                                                         </div>
                                                     {% endif %}
+                                                    <small class="form-text text-muted">
+                                                        Email for updates and communication (auto-filled from ITS).
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -458,9 +467,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Form submission confirmation
+    // Form validation and submission
     const form = document.querySelector('form');
     form.addEventListener('submit', function(e) {
+        // Check required fields
+        const requiredFields = [
+            { field: nameField, label: 'Petitioner Name' },
+            { field: document.getElementById('id_title'), label: 'Title' },
+            { field: document.getElementById('id_description'), label: 'Description' },
+            { field: document.getElementById('id_priority'), label: 'Priority' }
+        ];
+        
+        let hasErrors = false;
+        for (const { field, label } of requiredFields) {
+            if (field && !field.value.trim()) {
+                field.classList.add('is-invalid');
+                hasErrors = true;
+            } else if (field) {
+                field.classList.remove('is-invalid');
+            }
+        }
+        
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Please fill in all required fields marked with *');
+            return;
+        }
+        
         const submitBtn = document.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
