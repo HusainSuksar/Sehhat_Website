@@ -13,9 +13,57 @@ User = get_user_model()
 class PetitionForm(forms.ModelForm):
     """Form for creating and editing petitions"""
     
+    # ITS ID field for auto-populating user data
+    its_id = forms.CharField(
+        max_length=8,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter ITS ID to auto-fill details',
+            'id': 'id_its_id'
+        }),
+        help_text='Enter ITS ID to automatically fetch name, mobile, and email'
+    )
+    
+    # Fields to display fetched ITS data
+    petitioner_name = forms.CharField(
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Full name of petitioner',
+            'id': 'id_petitioner_name'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
+    
+    petitioner_mobile = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mobile number',
+            'id': 'id_petitioner_mobile'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
+    
+    petitioner_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Email address',
+            'id': 'id_petitioner_email'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
+    
     class Meta:
         model = Petition
-        fields = ['title', 'description', 'category', 'priority', 'moze', 'is_anonymous']
+        fields = [
+            'its_id', 'petitioner_name', 'petitioner_mobile', 'petitioner_email',
+            'title', 'description', 'category', 'priority', 'moze', 'is_anonymous'
+        ]
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',

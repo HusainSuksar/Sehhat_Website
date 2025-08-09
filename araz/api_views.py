@@ -838,3 +838,47 @@ def araz_dashboard_api(request):
     }
     
     return Response(dashboard_data)
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def its_lookup_api(request):
+    """
+    API endpoint to lookup user data from ITS ID
+    """
+    its_id = request.GET.get("its_id")
+    
+    if not its_id:
+        return Response(
+            {"error": "ITS ID is required"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Import ITS service
+    from accounts.services import MockITSService
+    
+    try:
+        # Fetch user data from ITS
+        user_data = MockITSService.fetch_user_data(its_id)
+        
+        if user_data:
+            return Response({
+                "success": True,
+                "data": {
+                    "name": f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip(),
+                    "mobile": user_data.get("mobile_number", ""),
+                    "email": user_data.get("email", ""),
+                    "full_data": user_data
+                }
+            })
+        else:
+            return Response(
+                {"error": "No data found for this ITS ID"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to fetch ITS data: {str(e)}"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+

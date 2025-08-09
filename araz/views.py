@@ -204,14 +204,35 @@ class PetitionDetailView(LoginRequiredMixin, DetailView):
         )
         context['can_manage'] = user.is_admin or user.is_aamil or user.is_moze_coordinator
         
+        # Assignable users for managers
+        if context['can_manage']:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            
+            if user.is_admin:
+                # Admins can assign to anyone
+                context['assignable_users'] = User.objects.filter(is_active=True).exclude(id=user.id)
+            elif user.is_aamil or user.is_moze_coordinator:
+                # Aamils and coordinators can assign to their team members
+                assignable_users = User.objects.filter(
+                    Q(role__in=['aamil', 'moze_coordinator', 'doctor']) |
+                    Q(is_admin=True)
+                ).filter(is_active=True).exclude(id=user.id)
+                context['assignable_users'] = assignable_users
+        
         return context
 
 
 class PetitionCreateView(LoginRequiredMixin, CreateView):
     """Create a new petition"""
     model = Petition
+    form_class = PetitionForm
     template_name = 'araz/petition_form.html'
-    fields = ['title', 'description', 'category', 'priority', 'moze', 'is_anonymous']
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
     
     def form_valid(self, form):
         form.instance.created_by = self.request.user

@@ -289,7 +289,11 @@
                         <label for="assigned_to">Assign to:</label>
                         <select id="assigned_to" name="assigned_to" class="form-control" required>
                             <option value="">Select a user...</option>
-                            <!-- This would be populated with users based on permissions -->
+                            {% for user in assignable_users %}
+                                <option value="{{ user.id }}">
+                                    {{ user.get_full_name }} ({{ user.role|title }})
+                                </option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="form-group">

@@ -41,4 +41,7 @@ urlpatterns = [
     path('notifications/', api_views.ArazNotificationListAPIView.as_view(), name='notifications'),
     path('notifications/<int:notification_id>/read/', api_views.mark_notification_read_api, name='mark_notification_read'),
     path('notifications/mark-all-read/', api_views.mark_all_notifications_read_api, name='mark_all_notifications_read'),
+    
+    # ITS lookup endpoint
+    path('its-lookup/', api_views.its_lookup_api, name='its_lookup'),
 ]

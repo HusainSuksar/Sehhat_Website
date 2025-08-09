@@ -211,6 +211,12 @@ class Petition(models.Model):
     )
     is_anonymous = models.BooleanField(default=False)
     
+    # Petitioner details (can be filled from ITS or manually)
+    petitioner_name = models.CharField(max_length=200, help_text="Full name of the petitioner")
+    petitioner_mobile = models.CharField(max_length=20, blank=True, help_text="Mobile number of the petitioner")
+    petitioner_email = models.EmailField(blank=True, help_text="Email address of the petitioner")
+    its_id = models.CharField(max_length=8, blank=True, help_text="ITS ID if available")
+    
     # Status and priority
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')

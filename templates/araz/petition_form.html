@@ -50,6 +50,83 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
+                        <!-- ITS ID and Petitioner Information Section -->
+                        <div class="card mb-4" style="border-left: 4px solid #1cc88a;">
+                            <div class="card-header py-2">
+                                <h6 class="m-0 font-weight-bold text-success">
+                                    <i class="fas fa-id-card"></i> Petitioner Information
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="{{ form.its_id.id_for_label }}" class="form-label">
+                                                <i class="fas fa-id-badge text-success"></i> ITS ID
+                                            </label>
+                                            {{ form.its_id }}
+                                            <button type="button" class="btn btn-sm btn-outline-success mt-1" id="fetchITSData">
+                                                <i class="fas fa-download"></i> Fetch Data
+                                            </button>
+                                            {% if form.its_id.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.its_id.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">
+                                                Enter ITS ID and click "Fetch Data" to auto-fill details.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="{{ form.petitioner_name.id_for_label }}" class="form-label">
+                                                        <i class="fas fa-user text-primary"></i> Full Name *
+                                                    </label>
+                                                    {{ form.petitioner_name }}
+                                                    {% if form.petitioner_name.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ form.petitioner_name.errors.0 }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="{{ form.petitioner_mobile.id_for_label }}" class="form-label">
+                                                        <i class="fas fa-mobile-alt text-info"></i> Mobile Number
+                                                    </label>
+                                                    {{ form.petitioner_mobile }}
+                                                    {% if form.petitioner_mobile.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ form.petitioner_mobile.errors.0 }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="{{ form.petitioner_email.id_for_label }}" class="form-label">
+                                                        <i class="fas fa-envelope text-warning"></i> Email Address
+                                                    </label>
+                                                    {{ form.petitioner_email }}
+                                                    {% if form.petitioner_email.errors %}
+                                                        <div class="invalid-feedback d-block">
+                                                            {{ form.petitioner_email.errors.0 }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-8">
                                 <div class="form-group">
@@ -304,6 +381,81 @@ document.addEventListener('DOMContentLoaded', function() {
 
         descriptionField.addEventListener('input', updateCounter);
         updateCounter(); // Initial call
+    }
+
+    // ITS Data Fetching
+    const fetchITSBtn = document.getElementById('fetchITSData');
+    const itsIdField = document.getElementById('id_its_id');
+    const nameField = document.getElementById('id_petitioner_name');
+    const mobileField = document.getElementById('id_petitioner_mobile');
+    const emailField = document.getElementById('id_petitioner_email');
+
+    if (fetchITSBtn) {
+        fetchITSBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const itsId = itsIdField.value.trim();
+            if (!itsId) {
+                alert('Please enter an ITS ID first.');
+                return;
+            }
+            
+            if (itsId.length !== 8) {
+                alert('ITS ID must be exactly 8 digits.');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = fetchITSBtn.innerHTML;
+            fetchITSBtn.disabled = true;
+            fetchITSBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+            
+            try {
+                const response = await fetch(`/api/araz/its-lookup/?its_id=${itsId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Fill the form fields with fetched data
+                    nameField.value = data.data.name || '';
+                    mobileField.value = data.data.mobile || '';
+                    emailField.value = data.data.email || '';
+                    
+                    // Show success message
+                    const successDiv = document.createElement('div');
+                    successDiv.className = 'alert alert-success alert-dismissible fade show mt-2';
+                    successDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i> Data fetched successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    fetchITSBtn.parentNode.appendChild(successDiv);
+                    
+                    // Auto-remove success message after 3 seconds
+                    setTimeout(() => {
+                        if (successDiv.parentNode) {
+                            successDiv.parentNode.removeChild(successDiv);
+                        }
+                    }, 3000);
+                    
+                } else {
+                    alert(data.error || 'Failed to fetch ITS data. Please enter details manually.');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching ITS data:', error);
+                alert('Error connecting to ITS service. Please enter details manually.');
+            } finally {
+                // Restore button state
+                fetchITSBtn.disabled = false;
+                fetchITSBtn.innerHTML = originalText;
+            }
+        });
     }
 
     // Form submission confirmation
