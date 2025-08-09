@@ -10,6 +10,42 @@ from typing import Dict, Optional
 class MockITSService:
     """Mock service to simulate ITS API responses"""
     
+    # Valid ITS IDs that should return data (simulating real ITS database)
+    VALID_ITS_IDS = {
+        # Admin users
+        '50000001': {'role': 'badri_mahal_admin', 'name': 'Admin', 'surname': 'User'},
+        '50000002': {'role': 'badri_mahal_admin', 'name': 'Super', 'surname': 'Admin'},
+        
+        # Aamil users  
+        '50000051': {'role': 'aamil', 'name': 'Ahmed', 'surname': 'Ali'},
+        '50000052': {'role': 'aamil', 'name': 'Fatima', 'surname': 'Khan'}, 
+        '50000053': {'role': 'aamil', 'name': 'Hassan', 'surname': 'Sheikh'},
+        
+        # Doctor users
+        '50000014': {'role': 'doctor', 'name': 'Ahmed', 'surname': 'Abdulla'},
+        '50000015': {'role': 'doctor', 'name': 'Sara', 'surname': 'Sheikh'},
+        '50000016': {'role': 'doctor', 'name': 'Omar', 'surname': 'Khan'},
+        
+        # Student users
+        '50000101': {'role': 'student', 'name': 'Aisha', 'surname': 'Khan'},
+        '50000102': {'role': 'student', 'name': 'Mohammed', 'surname': 'Ahmed'},
+        '50000103': {'role': 'student', 'name': 'Zainab', 'surname': 'Patel'},
+        '50000104': {'role': 'student', 'name': 'Ali', 'surname': 'Hussein'},
+        '50000105': {'role': 'student', 'name': 'Mariam', 'surname': 'Shaikh'},
+        
+        # Patient users
+        '50000201': {'role': 'patient', 'name': 'Khadija', 'surname': 'Rahman'},
+        '50000202': {'role': 'patient', 'name': 'Omar', 'surname': 'Qureshi'},
+        '50000203': {'role': 'patient', 'name': 'Fatima', 'surname': 'Ali'},
+        
+        # Additional sample users for testing
+        '50000301': {'role': 'student', 'name': 'Yusuf', 'surname': 'Sheikh'},
+        '50000302': {'role': 'doctor', 'name': 'Layla', 'surname': 'Ahmed'},
+        '50000303': {'role': 'patient', 'name': 'Ibrahim', 'surname': 'Khan'},
+        '50000304': {'role': 'student', 'name': 'Nadia', 'surname': 'Hassan'},
+        '50000305': {'role': 'patient', 'name': 'Rashid', 'surname': 'Patel'},
+    }
+    
     # Sample data pools for generating realistic mock data
     PREFIXES = ['Mr', 'Mrs', 'Ms', 'Dr', 'Prof']
     OCCUPATIONS = ['Engineer', 'Doctor', 'Teacher', 'Business Owner', 'Accountant', 'Consultant']
@@ -27,6 +63,7 @@ class MockITSService:
     def fetch_user_data(cls, its_id: str) -> Optional[Dict]:
         """
         Mock function to simulate fetching user data from ITS API
+        Only returns data for valid/existing ITS IDs
         
         Args:
             its_id: 8-digit ITS ID
@@ -36,26 +73,36 @@ class MockITSService:
         """
         if not its_id or len(its_id) != 8 or not its_id.isdigit():
             return None
-            
-        # Simulate API delay (in real implementation, this would be an HTTP request)
-        # Generate deterministic data based on ITS ID for consistency
-        random.seed(int(its_id))
         
-        # Special handling for specific roles
-        if its_id in ['50000051', '50000052', '50000053']:
-            # These are predefined aamil users
-            aamil_data = {
-                '50000051': ('Ahmed', 'Ali', 'Aamil', 'Religious Affairs'),
-                '50000052': ('Fatima', 'Khan', 'Coordinator', 'Islamic Studies'),
-                '50000053': ('Hassan', 'Sheikh', 'Religious Coordinator', 'Community Affairs'),
-            }
-            first_name, last_name, occupation, qualification = aamil_data[its_id]
-        else:
-            # Generate random data for other users
-            first_name = random.choice(['Ahmed', 'Fatima', 'Mohammed', 'Aisha', 'Ali', 'Zainab', 'Hassan', 'Mariam'])
-            last_name = random.choice(['Khan', 'Sheikh', 'Patel', 'Shaikh', 'Ahmed', 'Ali', 'Hussein', 'Abdulla'])
-            occupation = random.choice(cls.OCCUPATIONS)
-            qualification = random.choice(cls.QUALIFICATIONS)
+        # Check if ITS ID exists in our valid database
+        if its_id not in cls.VALID_ITS_IDS:
+            return None  # Return None for invalid/non-existent ITS IDs
+            
+        # Get user info from our valid ITS database
+        user_info = cls.VALID_ITS_IDS[its_id]
+        first_name = user_info['name']
+        last_name = user_info['surname']
+        role = user_info['role']
+        
+        # Set occupation and qualification based on role
+        if role == 'doctor':
+            occupation = 'Doctor'
+            qualification = 'MBBS'
+        elif role == 'aamil':
+            occupation = 'Aamil'
+            qualification = 'Religious Affairs'
+        elif role == 'student':
+            occupation = 'Student'
+            qualification = 'Bachelor of Arts'
+        elif role == 'badri_mahal_admin':
+            occupation = 'Administrator'
+            qualification = 'Masters in Business Administration'
+        else:  # patient
+            occupation = 'Professional'
+            qualification = 'Bachelor of Commerce'
+        
+        # Generate deterministic but realistic data based on ITS ID
+        random.seed(int(its_id))
         
         mock_data = {
             # 1. ITS ID
@@ -67,10 +114,10 @@ class MockITSService:
             'arabic_full_name': f'{first_name} {last_name}',  # Simplified for mock
             
             # 4. Prefix
-            'prefix': random.choice(cls.PREFIXES),
+            'prefix': 'Dr' if role == 'doctor' else random.choice(['Mr', 'Mrs', 'Ms']),
             
             # 5. Age, Gender
-            'age': random.randint(18, 65),
+            'age': random.randint(25, 55) if role == 'doctor' else random.randint(18, 65),
             'gender': random.choice(['male', 'female']),
             
             # 6. Marital Status, Misaq
@@ -87,10 +134,10 @@ class MockITSService:
             'idara': random.choice(cls.IDARAS),
             
             # 10. Category
-            'category': random.choice(cls.CATEGORIES),
+            'category': 'Professional' if role in ['doctor', 'aamil', 'badri_mahal_admin'] else 'Student' if role == 'student' else 'General',
             
             # 11. Organization
-            'organization': random.choice(cls.ORGANIZATIONS),
+            'organization': 'Al-Jamea-tus-Saifiyah' if role in ['aamil', 'student'] else random.choice(cls.ORGANIZATIONS),
             
             # 12. Email ID
             'email': f'{first_name.lower()}.{last_name.lower()}@example.com',
