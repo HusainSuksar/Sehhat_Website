@@ -210,6 +210,10 @@ def bulk_upload_preview(request, pk):
     session = get_object_or_404(BulkUploadSession, pk=pk)
     
     try:
+        # Check if file exists
+        if not session.file_path or not os.path.exists(session.file_path):
+            return JsonResponse({'error': 'File not found. Please upload again.'}, status=404)
+        
         # Read first few rows for preview
         file_processor = FileProcessor(session.file_path, session.original_filename.split('.')[-1])
         data = file_processor.read_file()
@@ -234,6 +238,8 @@ def bulk_upload_preview(request, pk):
             'missing_headers': missing_headers
         })
         
+    except FileNotFoundError:
+        return JsonResponse({'error': 'File not found. Please upload again.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': f'Failed to preview file: {str(e)}'}, status=500)
 
