@@ -54,7 +54,7 @@
                         <div class="card mb-4 shadow-sm" style="border-left: 4px solid #1cc88a; border-radius: 12px;">
                             <div class="card-header bg-light py-3" style="border-radius: 12px 12px 0 0;">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-success">
+                                    <h6 class="m-0 fw-bold text-success">
                                         <i class="fas fa-id-card me-2"></i> Petitioner Information
                                     </h6>
                                     <div class="badge bg-success">
@@ -75,8 +75,8 @@
                                             </label>
                                             <div class="input-group">
                                                 {{ form.its_id }}
-                                                <button type="button" class="btn btn-outline-success" id="fetchITSData" title="Enter valid 8-digit ITS ID first">
-                                                    <i class="fas fa-download me-1"></i> Fetch
+                                                <button type="button" class="btn btn-outline-success btn-sm" id="fetchITSData" title="Enter valid 8-digit ITS ID first" style="white-space: nowrap;">
+                                                    <i class="fas fa-download me-1"></i><span class="d-none d-sm-inline">Fetch</span><span class="d-sm-none">Get</span>
                                                 </button>
                                             </div>
                                             {% if form.its_id.errors %}
@@ -97,7 +97,7 @@
                                             <div class="col-12 col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="{{ form.petitioner_name.id_for_label }}" class="form-label fw-bold">
-                                                        <i class="fas fa-user text-primary me-1"></i> Full Name <span class="text-danger">*</span>
+                                                        <i class="fas fa-user text-primary me-1"></i> Full Name <span class="text-danger" aria-label="required">*</span>
                                                     </label>
                                                     {{ form.petitioner_name }}
                                                     {% if form.petitioner_name.errors %}

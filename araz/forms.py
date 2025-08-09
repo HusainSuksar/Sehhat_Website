@@ -13,7 +13,59 @@ User = get_user_model()
 class PetitionForm(forms.ModelForm):
     """Form for creating and editing petitions"""
     
-
+    # ITS ID field for auto-populating user data
+    its_id = forms.CharField(
+        max_length=8,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter ITS ID to auto-fill details',
+            'id': 'id_its_id',
+            'pattern': '[0-9]{8}',
+            'title': 'ITS ID must be exactly 8 digits',
+            'maxlength': '8',
+            'minlength': '8'
+        }),
+        help_text='Enter ITS ID to automatically fetch name, mobile, and email'
+    )
+    
+    # Fields to display fetched ITS data
+    petitioner_name = forms.CharField(
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Full name of petitioner',
+            'id': 'id_petitioner_name',
+            'maxlength': '200'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
+    
+    petitioner_mobile = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mobile number',
+            'id': 'id_petitioner_mobile',
+            'maxlength': '20',
+            'pattern': '[+]?[0-9]{10,15}',
+            'title': 'Enter a valid mobile number'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
+    
+    petitioner_email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Email address',
+            'id': 'id_petitioner_email',
+            'maxlength': '254'
+        }),
+        help_text='Will be auto-filled from ITS ID or enter manually'
+    )
     
     class Meta:
         model = Petition
@@ -22,36 +74,6 @@ class PetitionForm(forms.ModelForm):
             'title', 'description', 'category', 'priority', 'moze', 'is_anonymous'
         ]
         widgets = {
-            'its_id': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter ITS ID to auto-fill details',
-                'id': 'id_its_id',
-                'pattern': '[0-9]{8}',
-                'title': 'ITS ID must be exactly 8 digits',
-                'maxlength': '8',
-                'minlength': '8'
-            }),
-            'petitioner_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Full name of petitioner',
-                'id': 'id_petitioner_name',
-                'maxlength': '200',
-                'required': True
-            }),
-            'petitioner_mobile': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Mobile number',
-                'id': 'id_petitioner_mobile',
-                'maxlength': '20',
-                'pattern': '[+]?[0-9]{10,15}',
-                'title': 'Enter a valid mobile number'
-            }),
-            'petitioner_email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Email address',
-                'id': 'id_petitioner_email',
-                'maxlength': '254'
-            }),
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter a clear title for your petition',
@@ -108,6 +130,35 @@ class PetitionForm(forms.ModelForm):
                 self.fields['moze'].queryset = Moze.objects.filter(is_active=True)
             else:
                 self.fields['moze'].queryset = Moze.objects.filter(is_active=True)
+    
+    def clean_petitioner_name(self):
+        """Validate petitioner name is not empty"""
+        name = self.cleaned_data.get('petitioner_name')
+        if not name or not name.strip():
+            raise forms.ValidationError("Petitioner name is required.")
+        return name.strip()
+    
+    def clean_its_id(self):
+        """Validate ITS ID format if provided"""
+        its_id = self.cleaned_data.get('its_id')
+        if its_id and its_id.strip():
+            its_id = its_id.strip()
+            if len(its_id) != 8 or not its_id.isdigit():
+                raise forms.ValidationError("ITS ID must be exactly 8 digits.")
+        return its_id
+    
+    def clean(self):
+        """Cross-field validation"""
+        cleaned_data = super().clean()
+        
+        # If ITS ID is provided, try to validate against it
+        its_id = cleaned_data.get('its_id')
+        petitioner_name = cleaned_data.get('petitioner_name')
+        
+        if its_id and not petitioner_name:
+            raise forms.ValidationError("Petitioner name is required when ITS ID is provided.")
+        
+        return cleaned_data
 
 
 class PetitionCommentForm(forms.ModelForm):
