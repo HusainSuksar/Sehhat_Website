@@ -57,6 +57,7 @@ urlpatterns = [
     path('evaluation/', include('evaluation.urls')),
     path('surveys/', include('surveys.urls')),
     path('photos/', include('photos.urls')),
+    path('bulk-upload/', include('bulk_upload.urls')),
 
     # API URLs
     path('api/', include('accounts.api_urls')),

@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'students',
     'guardian',
     'services',
+    'bulk_upload',
 ]
 
 MIDDLEWARE = [

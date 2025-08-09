@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Data Upload - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-card {
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 0.5rem;
+    }
+    
+    .upload-zone {
+        border: 2px dashed #6c757d;
+        border-radius: 0.5rem;
+        padding: 3rem;
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .upload-zone:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    
+    .upload-zone.dragover {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .file-info {
+        display: none;
+        margin-top: 1rem;
+    }
+    
+    .template-card {
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .template-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-upload text-primary me-2"></i>Bulk Data Upload
+                    </h1>
+                    <p class="text-muted mb-0">Upload Excel or CSV files to bulk import data into the system</p>
+                </div>
+                <div>
+                    <a href="{% url 'bulk_upload:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i>View All Uploads
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card upload-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>Upload Data File
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        
+                        <!-- Upload Type Selection -->
+                        <div class="mb-4">
+                            <label for="upload_type" class="form-label fw-bold">
+                                <i class="fas fa-database text-info me-1"></i>Data Type
+                            </label>
+                            <select name="upload_type" id="upload_type" class="form-select" required>
+                                <option value="">Select data type to upload...</option>
+                                {% for value, label in upload_types %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose the type of data you want to upload.</div>
+                        </div>
+
+                        <!-- File Upload Zone -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-file text-success me-1"></i>Select File
+                            </label>
+                            <div class="upload-zone" id="uploadZone">
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">Drag & Drop your file here</h5>
+                                    <p class="text-muted mb-3">or click to browse</p>
+                                    <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file').click()">
+                                        <i class="fas fa-folder-open me-1"></i>Choose File
+                                    </button>
+                                </div>
+                                <input type="file" name="file" id="file" accept=".xlsx,.xls,.csv" style="display: none;" required>
+                            </div>
+                            
+                            <!-- File Info -->
+                            <div class="file-info" id="fileInfo">
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    <strong>Selected:</strong> <span id="fileName"></span> 
+                                    (<span id="fileSize"></span>)
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="clearFile()">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-text mt-2">
+                                <strong>Supported formats:</strong> Excel (.xlsx, .xls) and CSV (.csv)<br>
+                                <strong>Maximum file size:</strong> {{ max_file_size|filesizeformat }}
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="fas fa-upload me-2"></i>Upload File
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-3">
+                <i class="fas fa-download text-success me-2"></i>Download Templates
+            </h4>
+            <p class="text-muted mb-4">Download pre-formatted Excel templates for different data types:</p>
+            
+            <div class="row">
+                {% for upload_type, template in templates.items %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="template-card">
+                        <h6 class="mb-2">
+                            <i class="fas fa-table text-primary me-1"></i>{{ template.name }}
+                        </h6>
+                        <p class="text-muted small mb-3">{{ template.description|truncatewords:15 }}</p>
+                        <a href="{% url 'bulk_upload:template' upload_type %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-download me-1"></i>Download Template
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No templates are currently available. Templates will be created automatically.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle text-info me-2"></i>Upload Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success me-1"></i>Preparation Steps:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Download the appropriate template</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Fill in your data following the column headers</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Ensure ITS IDs are 8-digit numbers</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Use the exact column names from the template</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-warning me-1"></i>Important Notes:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>First row must contain column headers</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Empty rows will be skipped automatically</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>System will validate data before importing</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>You can preview data before final import</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('file');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadTypeSelect = document.getElementById('upload_type');
+
+    // Drag and drop functionality
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect();
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Upload type change
+    uploadTypeSelect.addEventListener('change', checkFormValid);
+
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (file) {
+            // Validate file type
+            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel', 'text/csv'];
+            const allowedExtensions = ['xlsx', 'xls', 'csv'];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                alert('Please select a valid file type (Excel or CSV)');
+                clearFile();
+                return;
+            }
+            
+            // Show file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+            uploadZone.style.display = 'none';
+            
+            checkFormValid();
+        }
+    }
+    
+    function checkFormValid() {
+        const hasFile = fileInput.files.length > 0;
+        const hasType = uploadTypeSelect.value !== '';
+        submitBtn.disabled = !(hasFile && hasType);
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    window.clearFile = function() {
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        uploadZone.style.display = 'block';
+        checkFormValid();
+    };
+    
+    // Form submission
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    });
+});
+</script>
+{% endblock %}
