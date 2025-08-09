@@ -285,7 +285,7 @@
                                 <i class="fas fa-times"></i> Reject
                             </button>
                         {% endif %}
-                        <button class="btn btn-warning btn-block mb-2" data-toggle="modal" data-target="#assignModal">
+                        <button class="btn btn-warning btn-block mb-2" onclick="openAssignModal()">
                             <i class="fas fa-user"></i> Assign to User
                         </button>
                     {% endif %}
@@ -347,7 +347,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="assignModalLabel">Assign Petition</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" onclick="closeAssignModal()" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -371,7 +371,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Assign</button>
                 </div>
             </form>
@@ -435,11 +435,22 @@ function updateStatus(newStatus) {
     const statusLabel = statusLabels[newStatus] || newStatus;
     
     if (confirm(`Are you sure you want to update the status to "${statusLabel}"?`)) {
+        // Find a safe container for alerts
+        const container = document.querySelector('.container-fluid') || document.body;
+        const firstRow = container.querySelector('.row') || container.firstElementChild;
+        
         // Show loading state
         const loadingAlert = document.createElement('div');
         loadingAlert.className = 'alert alert-info';
         loadingAlert.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating status...';
-        document.querySelector('.container-fluid').insertBefore(loadingAlert, document.querySelector('.row'));
+        loadingAlert.id = 'status-loading-alert';
+        
+        // Safely insert loading alert
+        if (firstRow && firstRow.parentNode === container) {
+            container.insertBefore(loadingAlert, firstRow);
+        } else {
+            container.appendChild(loadingAlert);
+        }
         
         // Make AJAX call to update status
         fetch('{% url "araz:update_status" petition.pk %}', {
@@ -453,8 +464,9 @@ function updateStatus(newStatus) {
         })
         .then(response => response.json())
         .then(data => {
-            // Remove loading alert
-            loadingAlert.remove();
+            // Remove loading alert safely
+            const loadingEl = document.getElementById('status-loading-alert');
+            if (loadingEl) loadingEl.remove();
             
             if (data.success) {
                 // Show success message
@@ -466,7 +478,13 @@ function updateStatus(newStatus) {
                         <span>&times;</span>
                     </button>
                 `;
-                document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('.row'));
+                
+                // Safely insert success alert
+                if (firstRow && firstRow.parentNode === container) {
+                    container.insertBefore(successAlert, firstRow);
+                } else {
+                    container.appendChild(successAlert);
+                }
                 
                 // Reload page after 2 seconds to show updated status
                 setTimeout(() => {
@@ -474,87 +492,152 @@ function updateStatus(newStatus) {
                 }, 2000);
             } else {
                 // Show error message
-                const errorAlert = document.createElement('div');
-                errorAlert.className = 'alert alert-danger alert-dismissible fade show';
-                errorAlert.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
-                    <button type="button" class="close" data-dismiss="alert">
-                        <span>&times;</span>
-                    </button>
-                `;
-                document.querySelector('.container-fluid').insertBefore(errorAlert, document.querySelector('.row'));
+                showAlert('danger', `Error: ${data.error}`);
             }
         })
         .catch(error => {
-            // Remove loading alert
-            loadingAlert.remove();
+            // Remove loading alert safely
+            const loadingEl = document.getElementById('status-loading-alert');
+            if (loadingEl) loadingEl.remove();
             
             console.error('Error:', error);
-            const errorAlert = document.createElement('div');
-            errorAlert.className = 'alert alert-danger alert-dismissible fade show';
-            errorAlert.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i> An error occurred while updating the status.
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            `;
-            document.querySelector('.container-fluid').insertBefore(errorAlert, document.querySelector('.row'));
+            showAlert('danger', 'An error occurred while updating the status.');
         });
     }
 }
 
-// Assignment form submission
-document.getElementById('assign-form')?.addEventListener('submit', function(e) {
-    e.preventDefault();
+// Helper function to safely show alerts
+function showAlert(type, message) {
+    const container = document.querySelector('.container-fluid') || document.body;
+    const firstRow = container.querySelector('.row') || container.firstElementChild;
     
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    `;
     
-    // Show loading state
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
-    
-    fetch('{% url "araz:assign_petition" petition.pk %}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Hide modal
-            $('#assignModal').modal('hide');
-            
-            // Show success message
-            const successAlert = document.createElement('div');
-            successAlert.className = 'alert alert-success alert-dismissible fade show';
-            successAlert.innerHTML = `
-                <i class="fas fa-check-circle"></i> ${data.message}
-                <button type="button" class="close" data-dismiss="alert">
-                    <span>&times;</span>
-                </button>
-            `;
-            document.querySelector('.container-fluid').insertBefore(successAlert, document.querySelector('.row'));
-            
-            // Reload page after 2 seconds to show updated assignment
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
+    // Safely insert alert
+    if (firstRow && firstRow.parentNode === container) {
+        container.insertBefore(alert, firstRow);
+    } else {
+        container.appendChild(alert);
+    }
+}
+
+// Function to open assignment modal
+function openAssignModal() {
+    const modal = document.getElementById('assignModal');
+    if (modal) {
+        // Use Bootstrap modal if available, otherwise show basic modal
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#assignModal').modal('show');
         } else {
-            alert('Error: ' + data.error);
+            // Fallback: show modal manually
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'modal-backdrop';
+            document.body.appendChild(backdrop);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while assigning the petition.');
-    })
-    .finally(() => {
-        // Restore button state
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
+    } else {
+        console.error('Assignment modal not found');
+        alert('Assignment modal is not available. Please refresh the page and try again.');
+    }
+}
+
+// Function to close assignment modal
+function closeAssignModal() {
+    const modal = document.getElementById('assignModal');
+    if (modal) {
+        // Use Bootstrap modal if available
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+        } else if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#assignModal').modal('hide');
+        } else {
+            // Fallback: hide modal manually
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            
+            // Remove backdrop
+            const backdrop = document.getElementById('modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+        
+        // Reset form
+        const form = document.getElementById('assign-form');
+        if (form) form.reset();
+    }
+}
+
+// Assignment form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const assignForm = document.getElementById('assign-form');
+    if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+            
+            fetch('{% url "araz:assign_petition" petition.pk %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide modal
+                    closeAssignModal();
+                    
+                    // Show success message
+                    showAlert('success', data.message);
+                    
+                    // Reload page after 2 seconds to show updated assignment
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showAlert('danger', `Assignment failed: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'An error occurred while assigning the petition.');
+            })
+            .finally(() => {
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
+    
+    // Add click handlers for modal close buttons
+    const closeButtons = document.querySelectorAll('#assignModal .close, #assignModal [data-dismiss="modal"]');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', closeAssignModal);
     });
 });
 </script>
