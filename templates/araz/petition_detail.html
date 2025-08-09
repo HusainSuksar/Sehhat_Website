@@ -42,11 +42,11 @@
                         <h6 class="m-0 font-weight-bold text-primary">{{ petition.title }}</h6>
                         <div>
                             {% if petition.priority == 'high' %}
-                                <span class="badge badge-danger badge-lg">High Priority</span>
+                                <span class="badge badge-danger badge-lg" style="background-color: red;">High Priority</span>
                             {% elif petition.priority == 'medium' %}
-                                <span class="badge badge-warning badge-lg">Medium Priority</span>
+                                <span class="badge badge-warning badge-lg" style="background-color: orange;">Medium Priority</span>
                             {% else %}
-                                <span class="badge badge-info badge-lg">Low Priority</span>
+                                <span class="badge badge-info badge-lg" style="background-color: blue;">Low Priority</span>
                             {% endif %}
                         </div>
                     </div>
@@ -57,29 +57,29 @@
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-info-circle"></i> Status</h6>
                             {% if petition.status == 'pending' %}
-                                <span class="badge badge-warning badge-lg"><i class="fas fa-clock"></i> Pending</span>
+                                <span class="badge badge-warning badge-lg" style="background-color: orange;"><i class="fas fa-clock"></i> Pending</span>
                             {% elif petition.status == 'in_progress' %}
-                                <span class="badge badge-info badge-lg"><i class="fas fa-spinner"></i> In Progress</span>
+                                <span class="badge badge-info badge-lg" style="background-color: blue;"><i class="fas fa-spinner"></i> In Progress</span>
                             {% elif petition.status == 'resolved' %}
-                                <span class="badge badge-success badge-lg"><i class="fas fa-check-circle"></i> Resolved</span>
+                                <span class="badge badge-success badge-lg" style="background-color: green;"><i class="fas fa-check-circle"></i> Resolved</span>
                             {% else %}
-                                <span class="badge badge-danger badge-lg"><i class="fas fa-times-circle"></i> Rejected</span>
+                                <span class="badge badge-danger badge-lg" style="background-color: red;"><i class="fas fa-times-circle"></i> Rejected</span>
                             {% endif %}
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-exclamation-triangle"></i> Priority</h6>
                             {% if petition.priority == 'high' %}
-                                <span class="badge badge-danger badge-lg"><i class="fas fa-arrow-up"></i> High Priority</span>
+                                <span class="badge badge-danger badge-lg" style="background-color: red;"><i class="fas fa-arrow-up"></i> High Priority</span>
                             {% elif petition.priority == 'medium' %}
-                                <span class="badge badge-warning badge-lg"><i class="fas fa-minus"></i> Medium Priority</span>
+                                <span class="badge badge-warning badge-lg" style="background-color: orange;"><i class="fas fa-minus"></i> Medium Priority</span>
                             {% else %}
-                                <span class="badge badge-info badge-lg"><i class="fas fa-arrow-down"></i> Low Priority</span>
+                                <span class="badge badge-info badge-lg" style="background-color: blue;"><i class="fas fa-arrow-down"></i> Low Priority</span>
                             {% endif %}
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-tag"></i> Category</h6>
                             {% if petition.category %}
-                                <span class="badge badge-secondary badge-lg"><i class="fas fa-folder"></i> {{ petition.category.name }}</span>
+                                <span class="badge badge-secondary badge-lg" style="background-color: blue;"><i class="fas fa-folder"></i> {{ petition.category.name }}</span>
                             {% else %}
                                 <span class="text-muted">No category assigned</span>
                             {% endif %}
