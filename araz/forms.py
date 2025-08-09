@@ -21,10 +21,9 @@ class PetitionForm(forms.ModelForm):
             'class': 'form-control',
             'placeholder': 'Enter ITS ID to auto-fill details',
             'id': 'id_its_id',
-            'pattern': '[0-9]{8}',
-            'title': 'ITS ID must be exactly 8 digits',
             'maxlength': '8',
-            'minlength': '8'
+            'inputmode': 'numeric',
+            'title': 'Enter 8-digit ITS ID'
         }),
         help_text='Enter ITS ID to automatically fetch name, mobile, and email'
     )
