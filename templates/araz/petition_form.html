@@ -425,7 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
+                    },
+                    credentials: 'same-origin'  // Ensure cookies are sent
                 });
                 
                 const data = await response.json();
@@ -453,7 +454,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 3000);
                     
                 } else {
-                    alert(data.error || 'Failed to fetch ITS data. Please enter details manually.');
+                    // Show error message in a more user-friendly way
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-warning alert-dismissible fade show mt-2';
+                    errorDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i> ${data.error || 'Failed to fetch ITS data. Please enter details manually.'}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    fetchITSBtn.parentNode.appendChild(errorDiv);
+                    
+                    // Auto-remove error message after 5 seconds
+                    setTimeout(() => {
+                        if (errorDiv.parentNode) {
+                            errorDiv.parentNode.removeChild(errorDiv);
+                        }
+                    }, 5000);
                 }
                 
             } catch (error) {

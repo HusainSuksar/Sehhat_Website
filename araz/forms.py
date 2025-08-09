@@ -73,6 +73,25 @@ class PetitionForm(forms.ModelForm):
         # Set active categories only
         self.fields['category'].queryset = PetitionCategory.objects.filter(is_active=True)
         
+        # Pre-fill petitioner information with current user's data if available
+        if user and not self.instance.pk:  # Only for new petitions
+            if hasattr(user, 'its_id') and user.its_id:
+                self.fields['its_id'].initial = user.its_id
+            
+            # Set petitioner name from user's full name
+            full_name = user.get_full_name()
+            if full_name and full_name.strip():
+                self.fields['petitioner_name'].initial = full_name
+            else:
+                self.fields['petitioner_name'].initial = f"{user.first_name} {user.last_name}".strip()
+            
+            # Set mobile and email if available
+            if hasattr(user, 'mobile_number') and user.mobile_number:
+                self.fields['petitioner_mobile'].initial = user.mobile_number
+            
+            if user.email:
+                self.fields['petitioner_email'].initial = user.email
+        
         # Customize moze queryset based on user permissions
         if user:
             if user.is_admin:

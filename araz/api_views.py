@@ -853,6 +853,13 @@ def its_lookup_api(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    # Validate ITS ID format
+    if len(its_id) != 8 or not its_id.isdigit():
+        return Response(
+            {"error": "ITS ID must be exactly 8 digits"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
     # Import ITS service
     from accounts.services import MockITSService
     
@@ -861,10 +868,21 @@ def its_lookup_api(request):
         user_data = MockITSService.fetch_user_data(its_id)
         
         if user_data:
+            # Build full name
+            first_name = user_data.get('first_name', '').strip()
+            last_name = user_data.get('last_name', '').strip()
+            full_name = f"{first_name} {last_name}".strip()
+            
+            # Ensure we have a name
+            if not full_name:
+                full_name = user_data.get('arabic_full_name', '').strip()
+            if not full_name:
+                full_name = f"ITS User {its_id}"
+            
             return Response({
                 "success": True,
                 "data": {
-                    "name": f"{user_data.get('first_name', '')} {user_data.get('last_name', '')}".strip(),
+                    "name": full_name,
                     "mobile": user_data.get("mobile_number", ""),
                     "email": user_data.get("email", ""),
                     "full_data": user_data
