@@ -250,7 +250,7 @@
                                         </div>
                                     {% endif %}
                                     <small class="form-text text-muted">
-                                        Select the relevant Moze if applicable.
+                                        <i class="fas fa-magic me-1"></i>Will be auto-selected based on ITS location data, or select manually.
                                     </small>
                                 </div>
                             </div>
@@ -574,15 +574,47 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (mobileField) mobileField.value = data.data.mobile || '';
                     if (emailField) emailField.value = data.data.email || '';
                     
+                    // Auto-populate Moze field if suggestion is available
+                    const mozeField = document.getElementById('id_moze');
+                    if (data.data.suggested_moze && mozeField) {
+                        mozeField.value = data.data.suggested_moze.id;
+                        
+                        // Add visual feedback for auto-selected Moze
+                        mozeField.classList.add('is-valid');
+                        mozeField.classList.remove('is-invalid');
+                        
+                        // Show Moze suggestion info
+                        const mozeInfo = document.createElement('div');
+                        mozeInfo.className = 'alert alert-info alert-dismissible fade show mt-2';
+                        mozeInfo.innerHTML = `
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <strong>Moze Auto-Selected:</strong> ${data.data.suggested_moze.name} - ${data.data.suggested_moze.location}
+                            <br><small><i class="fas fa-info-circle me-1"></i>Reason: ${data.data.suggested_moze.match_reason}</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        mozeField.parentNode.appendChild(mozeInfo);
+                        
+                        // Auto-remove moze info after 5 seconds
+                        setTimeout(() => {
+                            if (mozeInfo.parentNode) {
+                                mozeInfo.remove();
+                            }
+                        }, 5000);
+                    }
+                    
                     // Add visual feedback to filled fields
-                    [nameField, mobileField, emailField].forEach(field => {
+                    [nameField, mobileField, emailField, mozeField].forEach(field => {
                         if (field && field.value) {
                             field.classList.add('is-valid');
                             field.classList.remove('is-invalid');
                         }
                     });
                     
-                    showAlert(`Data fetched successfully for ${data.data.name}!`, 'success', 3000);
+                    let successMessage = `Data fetched successfully for ${data.data.name}!`;
+                    if (data.data.suggested_moze) {
+                        successMessage += ` Moze auto-selected: ${data.data.suggested_moze.name}`;
+                    }
+                    showAlert(successMessage, 'success', 3000);
                     
                 } else {
                     showAlert(data.error || 'Failed to fetch ITS data. Please enter details manually.', 'warning');
