@@ -104,28 +104,40 @@ class PetitionForm(forms.ModelForm):
         # Set active categories only
         self.fields['category'].queryset = PetitionCategory.objects.filter(is_active=True)
         
-        # Pre-fill petitioner information with current user's data if available
+        # Role-based form customization
         if user and not self.instance.pk:  # Only for new petitions
-            if hasattr(user, 'its_id') and user.its_id:
-                self.fields['its_id'].initial = user.its_id
-            
-            # Set petitioner name from user's full name
-            full_name = user.get_full_name()
-            if full_name and full_name.strip():
-                self.fields['petitioner_name'].initial = full_name
-            else:
-                self.fields['petitioner_name'].initial = f"{user.first_name} {user.last_name}".strip()
-            
-            # Set mobile and email if available
-            if hasattr(user, 'mobile_number') and user.mobile_number:
-                self.fields['petitioner_mobile'].initial = user.mobile_number
-            
-            if user.email:
-                self.fields['petitioner_email'].initial = user.email
+            # STUDENTS: Can only create petitions for themselves
+            if user.role == 'student':
+                # Hide ITS ID field and pre-fill with their data
+                self.fields['its_id'].widget = forms.HiddenInput()
+                self.fields['its_id'].initial = user.its_id or ''
+                
+                # Pre-fill with their own data and make readonly
+                self.fields['petitioner_name'].initial = user.get_full_name()
+                self.fields['petitioner_name'].widget.attrs['readonly'] = True
+                self.fields['petitioner_name'].help_text = 'Pre-filled with your profile information'
+                
+                if hasattr(user, 'mobile_number') and user.mobile_number:
+                    self.fields['petitioner_mobile'].initial = user.mobile_number
+                    self.fields['petitioner_mobile'].widget.attrs['readonly'] = True
+                
+                if user.email:
+                    self.fields['petitioner_email'].initial = user.email
+                    self.fields['petitioner_email'].widget.attrs['readonly'] = True
+                    
+            # ADMIN/AAMIL: Can enter any ITS ID to create petitions for others
+            elif user.role in ['badri_mahal_admin', 'aamil'] or user.is_admin:
+                # Keep ITS ID field visible and functional - don't change widget
+                self.fields['its_id'].help_text = 'Enter any ITS ID to fetch user data and create petition on their behalf'
+                
+                # Don't pre-fill data - let them enter any ITS ID
+                self.fields['petitioner_name'].help_text = 'Will be auto-filled from ITS ID or enter manually'
+                self.fields['petitioner_mobile'].help_text = 'Will be auto-filled from ITS ID or enter manually'
+                self.fields['petitioner_email'].help_text = 'Will be auto-filled from ITS ID or enter manually'
         
         # Customize moze queryset based on user permissions
         if user:
-            if user.is_admin:
+            if user.is_admin or user.role == 'aamil':
                 self.fields['moze'].queryset = Moze.objects.filter(is_active=True)
             else:
                 self.fields['moze'].queryset = Moze.objects.filter(is_active=True)

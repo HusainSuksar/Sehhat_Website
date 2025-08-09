@@ -57,47 +57,78 @@
                                     <h6 class="m-0 fw-bold text-success">
                                         <i class="fas fa-id-card me-2"></i> Petitioner Information
                                     </h6>
-                                    <div class="badge bg-success">
-                                        <i class="fas fa-info-circle me-1"></i>Auto-Fill Available
-                                    </div>
+                                    {% if user.role == 'student' %}
+                                        <div class="badge bg-info">
+                                            <i class="fas fa-lock me-1"></i>Your Information
+                                        </div>
+                                    {% elif user.role == 'aamil' or user.is_admin %}
+                                        <div class="badge bg-warning">
+                                            <i class="fas fa-users me-1"></i>For Any User
+                                        </div>
+                                    {% else %}
+                                        <div class="badge bg-success">
+                                            <i class="fas fa-info-circle me-1"></i>Auto-Fill Available
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 <small class="text-muted mt-1 d-block">
-                                    <i class="fas fa-lightbulb me-1"></i>Enter your ITS ID to automatically populate your details
+                                    {% if user.role == 'student' %}
+                                        <i class="fas fa-info-circle me-1"></i>This petition will be submitted using your profile information
+                                    {% elif user.role == 'aamil' or user.is_admin %}
+                                        <i class="fas fa-search me-1"></i>Enter any ITS ID to fetch user data and create petition on their behalf
+                                    {% else %}
+                                        <i class="fas fa-lightbulb me-1"></i>Enter your ITS ID to automatically populate your details
+                                    {% endif %}
                                 </small>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <!-- ITS ID Section - Full width on mobile, 1/3 on desktop -->
-                                    <div class="col-12 col-lg-4 mb-3">
-                                        <div class="form-group">
-                                            <label for="{{ form.its_id.id_for_label }}" class="form-label fw-bold">
-                                                <i class="fas fa-id-badge text-success me-1"></i> ITS ID
-                                            </label>
-                                            <div class="input-group">
-                                                {{ form.its_id }}
-                                                <button type="button" class="btn btn-outline-success btn-sm" id="fetchITSData" title="Enter valid 8-digit ITS ID first" style="white-space: nowrap;">
-                                                    <i class="fas fa-download me-1"></i><span class="d-none d-sm-inline">Fetch</span><span class="d-sm-none">Get</span>
-                                                </button>
-                                            </div>
-                                            {% if form.its_id.errors %}
-                                                <div class="invalid-feedback d-block">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ form.its_id.errors.0 }}
+                                    <!-- ITS ID Section - Hidden for students, visible for admin/aamil -->
+                                    {% if user.role != 'student' %}
+                                        <div class="col-12 col-lg-4 mb-3">
+                                            <div class="form-group">
+                                                <label for="{{ form.its_id.id_for_label }}" class="form-label fw-bold">
+                                                    <i class="fas fa-id-badge text-success me-1"></i> ITS ID
+                                                    {% if user.role == 'aamil' or user.is_admin %}
+                                                        <span class="badge bg-warning ms-2">Any User</span>
+                                                    {% endif %}
+                                                </label>
+                                                <div class="input-group">
+                                                    {{ form.its_id }}
+                                                    <button type="button" class="btn btn-outline-success btn-sm" id="fetchITSData" title="Enter valid 8-digit ITS ID first" style="white-space: nowrap;">
+                                                        <i class="fas fa-download me-1"></i><span class="d-none d-sm-inline">Fetch</span><span class="d-sm-none">Get</span>
+                                                    </button>
                                                 </div>
-                                            {% endif %}
-                                            <small class="form-text text-muted">
-                                                <i class="fas fa-info-circle me-1"></i>Enter 8-digit ITS ID to auto-fill details
-                                            </small>
+                                                {% if form.its_id.errors %}
+                                                    <div class="invalid-feedback d-block">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.its_id.errors.0 }}
+                                                    </div>
+                                                {% endif %}
+                                                <small class="form-text text-muted">
+                                                    {% if user.role == 'aamil' or user.is_admin %}
+                                                        <i class="fas fa-search me-1"></i>Enter any 8-digit ITS ID to fetch user data
+                                                    {% else %}
+                                                        <i class="fas fa-info-circle me-1"></i>Enter 8-digit ITS ID to auto-fill details
+                                                    {% endif %}
+                                                </small>
+                                            </div>
                                         </div>
-                                    </div>
+                                    {% else %}
+                                        <!-- Hidden ITS ID field for students -->
+                                        {{ form.its_id }}
+                                    {% endif %}
                                     
-                                    <!-- Petitioner Details Section - 2/3 on desktop -->
-                                    <div class="col-12 col-lg-8">
+                                    <!-- Petitioner Details Section - Full width for students, 2/3 for admin/aamil -->
+                                    <div class="col-12 {% if user.role != 'student' %}col-lg-8{% endif %}">
                                         <div class="row">
                                             <!-- Full Name - Full width on mobile, half on tablet+ -->
                                             <div class="col-12 col-md-6 mb-3">
                                                 <div class="form-group">
                                                     <label for="{{ form.petitioner_name.id_for_label }}" class="form-label fw-bold">
                                                         <i class="fas fa-user text-primary me-1"></i> Full Name <span class="text-danger" aria-label="required">*</span>
+                                                        {% if user.role == 'student' %}
+                                                            <span class="badge bg-info ms-2">Your Name</span>
+                                                        {% endif %}
                                                     </label>
                                                     {{ form.petitioner_name }}
                                                     {% if form.petitioner_name.errors %}
@@ -106,7 +137,11 @@
                                                         </div>
                                                     {% endif %}
                                                     <small class="form-text text-muted">
-                                                        <i class="fas fa-magic me-1"></i>Auto-filled from ITS or enter manually
+                                                        {% if user.role == 'student' %}
+                                                            <i class="fas fa-lock me-1"></i>Pre-filled with your profile information
+                                                        {% else %}
+                                                            <i class="fas fa-magic me-1"></i>Auto-filled from ITS or enter manually
+                                                        {% endif %}
                                                     </small>
                                                 </div>
                                             </div>
@@ -386,43 +421,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // DEBUGGING: Check ITS ID field
-    const itsIdField = document.getElementById('id_its_id');
-    console.log('🔍 ITS ID Field Debug:');
-    console.log('  Element exists:', !!itsIdField);
-    if (itsIdField) {
-        console.log('  Element type:', itsIdField.tagName);
-        console.log('  Element value:', itsIdField.value);
-        console.log('  Element visible:', itsIdField.offsetParent !== null);
-        console.log('  Element rect:', itsIdField.getBoundingClientRect());
-        console.log('  Element computed styles:', {
-            display: window.getComputedStyle(itsIdField).display,
-            visibility: window.getComputedStyle(itsIdField).visibility,
-            opacity: window.getComputedStyle(itsIdField).opacity,
-            position: window.getComputedStyle(itsIdField).position,
-            zIndex: window.getComputedStyle(itsIdField).zIndex
-        });
-        
-        // Force visibility
-        itsIdField.style.backgroundColor = '#ffff00';
-        itsIdField.style.border = '5px solid red';
-        itsIdField.style.display = 'block';
-        itsIdField.style.visibility = 'visible';
-        itsIdField.style.opacity = '1';
-        itsIdField.style.zIndex = '99999';
-        console.log('  🚨 Forced styling applied to make field visible!');
-    } else {
-        console.log('  ❌ ITS ID field not found in DOM!');
-        // Look for any input with its_id
-        const allInputs = document.querySelectorAll('input');
-        console.log('  📋 All inputs found:', allInputs.length);
-        allInputs.forEach((inp, i) => {
-            if (inp.name && inp.name.includes('its')) {
-                console.log(`    Input ${i}: name="${inp.name}" id="${inp.id}" type="${inp.type}"`);
-            }
-        });
-    }
-
     // Character counter for description
     const descriptionField = document.querySelector('textarea[name="description"]');
     if (descriptionField) {
@@ -661,31 +659,6 @@ style.textContent = `
     .petition-alert {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    /* DEBUGGING CSS - Make ITS ID input highly visible */
-    #id_its_id {
-        background-color: #fff !important;
-        border: 3px solid #ff0000 !important;
-        color: #000 !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: block !important;
-        position: relative !important;
-        z-index: 9999 !important;
-        height: 38px !important;
-        width: 100% !important;
-        padding: 6px 12px !important;
-        font-size: 14px !important;
-        line-height: 1.42857143 !important;
-        border-radius: 4px !important;
-    }
-    
-    /* Ensure input group is visible */
-    .input-group {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
     }
 `;
 document.head.appendChild(style);
