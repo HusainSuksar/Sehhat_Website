@@ -843,7 +843,7 @@ def araz_dashboard_api(request):
 @permission_classes([permissions.IsAuthenticated])
 def its_lookup_api(request):
     """
-    API endpoint to lookup user data from ITS ID
+    API endpoint to lookup user data from ITS ID and suggest appropriate Moze
     """
     its_id = request.GET.get("its_id")
     
@@ -860,8 +860,9 @@ def its_lookup_api(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     
-    # Import ITS service
+    # Import ITS service and Moze model
     from accounts.services import MockITSService
+    from moze.models import Moze
     
     try:
         # Fetch user data from ITS
@@ -879,7 +880,10 @@ def its_lookup_api(request):
             if not full_name:
                 full_name = f"ITS User {its_id}"
             
-            return Response({
+            # Determine appropriate Moze based on ITS data
+            suggested_moze = _suggest_moze_from_its_data(user_data)
+            
+            response_data = {
                 "success": True,
                 "data": {
                     "name": full_name,
@@ -887,7 +891,18 @@ def its_lookup_api(request):
                     "email": user_data.get("email", ""),
                     "full_data": user_data
                 }
-            })
+            }
+            
+            # Add Moze suggestion if found
+            if suggested_moze:
+                response_data["data"]["suggested_moze"] = {
+                    "id": suggested_moze.id,
+                    "name": suggested_moze.name,
+                    "location": suggested_moze.location,
+                    "match_reason": getattr(suggested_moze, 'match_reason', 'System suggested')
+                }
+            
+            return Response(response_data)
         else:
             return Response(
                 {"error": "No data found for this ITS ID"}, 
@@ -899,4 +914,80 @@ def its_lookup_api(request):
             {"error": f"Failed to fetch ITS data: {str(e)}"}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+def _suggest_moze_from_its_data(user_data):
+    """
+    Suggest appropriate Moze based on ITS user data
+    Maps ITS location fields to available Moze centers
+    """
+    from moze.models import Moze
+    
+    # Get all active Mozes
+    mozes = Moze.objects.filter(is_active=True)
+    if not mozes.exists():
+        return None
+    
+    # Priority mapping based on ITS data fields (ordered by preference)
+    location_fields = [
+        ('idara', user_data.get('idara', '')),
+        ('city', user_data.get('city', '')),
+        ('vatan', user_data.get('vatan', '')),
+        ('jamaat', user_data.get('jamaat', '')),
+        ('country', user_data.get('country', '')),
+    ]
+    
+    # Try to match based on location preferences
+    for field_name, field_value in location_fields:
+        if field_value and field_value.strip():
+            field_value_lower = field_value.lower().strip()
+            
+            # Direct exact match first
+            for moze in mozes:
+                moze_location_lower = moze.location.lower()
+                moze_name_lower = moze.name.lower()
+                
+                # Check if ITS location data matches Moze name or location exactly
+                if (field_value_lower == moze_location_lower or 
+                    field_value_lower in moze_location_lower or
+                    field_value_lower in moze_name_lower):
+                    
+                    # Add match reason as a custom attribute
+                    moze.match_reason = f"Direct match on {field_name}: {field_value}"
+                    return moze
+            
+            # Partial word-level matches
+            for moze in mozes:
+                moze_location_words = moze.location.lower().split()
+                moze_name_words = moze.name.lower().split()
+                field_words = field_value_lower.split()
+                
+                # Check for significant word matches (3+ characters)
+                for word in field_words:
+                    if len(word) > 2:
+                        # Check in location words
+                        for moze_word in moze_location_words:
+                            if word in moze_word or moze_word in word:
+                                moze.match_reason = f"Partial location match on {field_name}: {field_value}"
+                                return moze
+                        
+                        # Check in name words
+                        for moze_word in moze_name_words:
+                            if word in moze_word or moze_word in word:
+                                moze.match_reason = f"Partial name match on {field_name}: {field_value}"
+                                return moze
+    
+    # Fallback strategy: Return most suitable default
+    # 1. Try to find Mumbai Central (most common)
+    mumbai_moze = mozes.filter(name__icontains='mumbai').first()
+    if mumbai_moze:
+        mumbai_moze.match_reason = "Default Mumbai assignment (no location match found)"
+        return mumbai_moze
+    
+    # 2. Return first available Moze
+    default_moze = mozes.first()
+    if default_moze:
+        default_moze.match_reason = "System default assignment"
+    
+    return default_moze
 
