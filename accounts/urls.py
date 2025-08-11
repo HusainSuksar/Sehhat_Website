@@ -8,7 +8,8 @@ app_name = 'accounts'
 urlpatterns = [
     # Authentication URLs
     path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='accounts:login'), name='logout'),
+    path('its-login/', views.its_login_view, name='its_login'),
+    path('logout/', views.logout_view, name='logout'),
     path('register/', views.RegisterView.as_view(), name='register'),
 
     # Dashboard URL
@@ -20,6 +21,9 @@ urlpatterns = [
     
     # ITS Data Sync
     path('sync-its-data/', views.sync_its_data, name='sync_its_data'),
+    
+    # Audit Logs
+    path('audit-logs/', views.audit_logs_view, name='audit_logs'),
     
     # Password management
     path('password/change/', auth_views.PasswordChangeView.as_view(

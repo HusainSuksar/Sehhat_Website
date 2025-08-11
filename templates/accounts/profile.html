@@ -538,7 +538,7 @@ async function syncITSData() {
     btn.disabled = true;
     
     try {
-        const response = await fetch('/accounts/api/sync-its/', {
+        const response = await fetch('/accounts/sync-its-data/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

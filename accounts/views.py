@@ -870,7 +870,7 @@ def profile_view(request):
         backend_data['evaluations'] = []
     
     # Check if ITS sync is available
-    its_sync_available = hasattr(user, 'arabic_full_name') and bool(user.arabic_full_name)
+    its_sync_available = bool(user.its_id)
     
     context = {
         'title': 'My Profile',
