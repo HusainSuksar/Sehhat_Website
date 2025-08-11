@@ -20,180 +20,354 @@
             --accent-color: #8bc34a;
             --text-dark: #2d3436;
             --bg-light: #f8f9fa;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         
+        /* 🎯 IMPROVEMENT 1: LOADING STATES & ANIMATIONS */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s ease-out;
+        }
+        
+        /* 🎯 IMPROVEMENT 2: MOBILE RESPONSIVENESS */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-light);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
         
         .navbar-brand {
             font-weight: bold;
             color: white !important;
-            font-size: 1.5rem;
-            margin-right: 2rem;
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            margin-right: 1rem;
         }
         
         .navbar-custom {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            box-shadow: var(--shadow-md);
+            padding: 0.5rem 0;
         }
         
         .navbar-custom .navbar-nav .nav-link {
             color: white !important;
             font-weight: 500;
             transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0 0.25rem;
         }
         
+        /* 🎯 IMPROVEMENT 4: MODERN HOVER EFFECTS */
         .navbar-custom .navbar-nav .nav-link:hover {
             color: var(--accent-color) !important;
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: var(--shadow-lg);
+            border-radius: 12px;
+            padding: 0.5rem;
+            animation: fadeInUp 0.3s ease-out;
+        }
+        
+        .dropdown-item {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white !important;
+            transform: translateX(4px);
+        }
+        
+        /* 🎯 IMPROVEMENT 3: ERROR HANDLING & FEEDBACK */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            color: #065f46;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: #991b1b;
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            color: #92400e;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        /* Enhanced Form Styling */
+        .form-control {
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
             transform: translateY(-1px);
         }
         
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.1);
-            transition: transform 0.3s ease;
+        .form-control:hover {
+            border-color: var(--secondary-color);
         }
         
-        .card:hover {
-            transform: translateY(-2px);
+        /* Enhanced Button Styling */
+        .btn {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-transform: none;
+            letter-spacing: 0.025em;
         }
         
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
-            border-radius: 25px;
-            padding: 8px 24px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
         }
         
         .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,.2);
+            background: linear-gradient(135deg, #1e3a21, #4a7852);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
         
-        .dashboard-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: rgb(255, 255, 255);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            border: none;
         }
         
-        .role-badge {
-            background: var(--accent-color);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
+        .btn-success:hover {
+            background: linear-gradient(135deg, #047857, #065f46);
+            transform: translateY(-2px);
         }
         
-        .sidebar {
-            background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-            margin-bottom: 1rem;
-        }
-        
-        .sidebar-item {
-            padding: 8px 12px;
-            margin: 4px 0;
-            border-radius: 6px;
+        /* Enhanced Card Styling */
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
-            text-decoration: none;
-            color: var(--text-dark);
-            display: block;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
         }
         
-        .sidebar-item:hover {
-            background: var(--bg-light);
-            color: var(--primary-color);
-            transform: translateX(5px);
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
         
-        .content-area {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-            min-height: 70vh;
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 16px 16px 0 0 !important;
+            padding: 1.25rem 1.5rem;
         }
         
-        .alert {
-            border: none;
-            border-radius: 8px;
-        }
-        
-        .table {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .table thead th {
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            font-weight: 500;
-        }
-        
-        /* Admin dropdown styling */
-        .dropdown-menu {
-            border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.15);
-            padding: 0.5rem 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        /* Mobile responsiveness fixes */
+        /* 🎯 IMPROVEMENT 2: MOBILE RESPONSIVE UTILITIES */
         @media (max-width: 768px) {
-            .dropdown-menu {
-                max-height: 300px;
-                min-width: 250px;
-            }
-            
             .navbar-brand {
                 font-size: 1.2rem;
             }
             
-            .role-badge {
-                display: none;
+            .navbar-nav {
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+                box-shadow: none;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                margin-top: 0.5rem;
+            }
+            
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .card {
+                margin-bottom: 1rem;
             }
         }
         
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            color: var(--text-dark);
-            transition: all 0.3s ease;
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 0.875rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .form-control {
+                padding: 0.875rem;
+                font-size: 0.95rem;
+            }
         }
         
-        .dropdown-item:hover {
-            background-color: var(--bg-light);
-            color: var(--primary-color);
-            transform: translateX(5px);
+        /* Enhanced Focus States for Accessibility */
+        .btn:focus,
+        .form-control:focus,
+        .nav-link:focus,
+        .dropdown-item:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
         }
         
-        .dropdown-item i {
+        /* Notification Toast Styling */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Loading Button State */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        
+        .btn-loading::after {
+            content: "";
+            position: absolute;
             width: 16px;
-            text-align: center;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- 🎯 IMPROVEMENT 1: LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-3 text-muted">Loading...</p>
+        </div>
+    </div>
+    
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand text-white" href="/">
-                <i class="fas fa-heartbeat me-2"></i>
-                Umoor Sehhat
+            <a class="navbar-brand" href="{% url 'accounts:dashboard' %}">
+                <i class="fas fa-heartbeat me-2"></i>Umoor Sehhat
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -201,408 +375,212 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                {% if user.is_authenticated %}
-                    <ul class="navbar-nav me-auto">
-                        {% if user.is_admin %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-cogs me-1"></i>Admin Panel
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Core Admin</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-                                        <i class="fas fa-cogs me-2"></i>Django Admin
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'accounts:user_list' %}">
-                                        <i class="fas fa-users me-2"></i>User Management
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'accounts:permission_management' %}">
-                                        <i class="fas fa-user-shield me-2"></i>Permissions
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'bulk_upload:list' %}">
-                                        <i class="fas fa-upload me-2"></i>Bulk Upload
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">System Analytics</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:analytics' %}">
-                                        <i class="fas fa-chart-bar me-2"></i>Evaluation Analytics
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'mahalshifa:analytics' %}">
-                                        <i class="fas fa-chart-line me-2"></i>Medical Analytics
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'accounts:audit_logs' %}">
-                                        <i class="fas fa-clipboard-list me-2"></i>Audit Logs
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                        
-                        {% if user.is_aamil %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="aamilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-clinic-medical me-1"></i>Aamil Links
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'moze:dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'moze:list' %}">
-                                        <i class="fas fa-mosque me-2"></i>My Mozes
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'moze:analytics' %}">
-                                        <i class="fas fa-chart-line me-2"></i>Moze Analytics
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
-                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
-                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'photos:dashboard' %}">
-                                        <i class="fas fa-camera me-2"></i>Photos Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
-                                        <i class="fas fa-images me-2"></i>Photo Albums
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'photos:upload_photos' %}">
-                                        <i class="fas fa-upload me-2"></i>Upload Photos
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:dashboard' %}">
-                                        <i class="fas fa-gavel me-2"></i>Araz Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
-                                        <i class="fas fa-scroll me-2"></i>Petitions
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:my_assignments' %}">
-                                        <i class="fas fa-tasks me-2"></i>My Assignments
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                        
-                        {% if user.is_moze_coordinator %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="coordinatorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-users-cog me-1"></i>Coordinator Links
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'moze:dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'moze:list' %}">
-                                        <i class="fas fa-mosque me-2"></i>Mozes
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'moze:analytics' %}">
-                                        <i class="fas fa-chart-line me-2"></i>Moze Analytics
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
-                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
-                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_create' %}">
-                                        <i class="fas fa-plus-circle me-2"></i>Create Evaluation
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'photos:dashboard' %}">
-                                        <i class="fas fa-camera me-2"></i>Photos Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
-                                        <i class="fas fa-images me-2"></i>Photo Albums
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
-                                        <i class="fas fa-scroll me-2"></i>Petitions
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                        
-                        {% if user.is_doctor %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="doctorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-md me-1"></i>Doctor Links
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:patient_list' %}">
-                                        <i class="fas fa-user-injured me-2"></i>My Patients
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:create_appointment' %}">
-                                        <i class="fas fa-calendar-plus me-2"></i>Create Appointment
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:schedule_management' %}">
-                                        <i class="fas fa-calendar-alt me-2"></i>My Schedule
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:doctor_list' %}">
-                                        <i class="fas fa-users me-2"></i>Doctor Directory
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'doctordirectory:analytics' %}">
-                                        <i class="fas fa-chart-bar me-2"></i>Analytics
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
-                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
-                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                        
-                        {% if user.is_student %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-graduation-cap me-1"></i>Student Links
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'students:dashboard' %}">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'students:course_list' %}">
-                                        <i class="fas fa-book me-2"></i>My Courses
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'students:my_grades' %}">
-                                        <i class="fas fa-star me-2"></i>My Grades
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'students:my_schedule' %}">
-                                        <i class="fas fa-calendar me-2"></i>My Schedule
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'students:attendance_record' %}">
-                                        <i class="fas fa-check-circle me-2"></i>Attendance
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:dashboard' %}">
-                                        <i class="fas fa-clipboard-check me-2"></i>Evaluations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'evaluation:form_list' %}">
-                                        <i class="fas fa-list-check me-2"></i>Evaluation Forms
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:petition_create' %}">
-                                        <i class="fas fa-plus-circle me-2"></i>Submit Petition
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
-                                        <i class="fas fa-scroll me-2"></i>My Petitions
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'students:analytics' %}">
-                                        <i class="fas fa-chart-line me-2"></i>My Analytics
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-                        
-                        <!-- Main System Navigation -->
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'doctordirectory:dashboard' %}">
-                                <i class="fas fa-user-md me-1"></i>Medical
+                            <a class="nav-link" href="{% url 'accounts:dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'moze:dashboard' %}">
-                                <i class="fas fa-mosque me-1"></i>Umoor Sehhat
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'evaluation:form_list' %}">
-                                <i class="fas fa-clipboard-check me-1"></i>Evaluations
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'surveys:list' %}">
-                                <i class="fas fa-poll me-1"></i>Surveys
-                            </a>
-                        </li>
+                        
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-h me-1"></i>More
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-apps me-1"></i>Applications
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'students:dashboard' %}">
+                            <ul class="dropdown-menu animate-fade-in-up">
+                                <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
+                                    <i class="fas fa-file-alt me-2"></i>Araz (Petitions)
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'students:student_list' %}">
                                     <i class="fas fa-graduation-cap me-2"></i>Students
                                 </a></li>
-                                <li><a class="dropdown-item" href="{% url 'photos:album_list' %}">
-                                    <i class="fas fa-images me-2"></i>Photo Albums
+                                <li><a class="dropdown-item" href="{% url 'doctordirectory:doctor_list' %}">
+                                    <i class="fas fa-user-md me-2"></i>Doctor Directory
                                 </a></li>
-                                <li><a class="dropdown-item" href="{% url 'araz:petition_list' %}">
-                                    <i class="fas fa-scroll me-2"></i>Petitions
+                                <li><a class="dropdown-item" href="{% url 'mahalshifa:patient_list' %}">
+                                    <i class="fas fa-hospital me-2"></i>Mahal Shifa
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'moze:moze_list' %}">
+                                    <i class="fas fa-building me-2"></i>Moze
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'evaluation:evaluation_list' %}">
+                                    <i class="fas fa-chart-line me-2"></i>Evaluation
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'surveys:survey_list' %}">
+                                    <i class="fas fa-poll me-2"></i>Surveys
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'photos:photo_list' %}">
+                                    <i class="fas fa-images me-2"></i>Photos
                                 </a></li>
                             </ul>
                         </li>
-                    </ul>
-                    
-                    <ul class="navbar-nav">
+                        
+                        {% if user.is_admin %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>
-                                {{ user.get_full_name|default:user.username }}
-                                <span class="role-badge ms-2">{{ user.get_role_display }}</span>
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog me-1"></i>Admin Panel
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
-                                    <i class="fas fa-user me-2"></i>Profile
+                            <ul class="dropdown-menu animate-fade-in-up">
+                                <li><a class="dropdown-item" href="/admin/">
+                                    <i class="fas fa-tools me-2"></i>Django Admin
                                 </a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">
-                                    <i class="fas fa-key me-2"></i>Change Password
+                                <li><a class="dropdown-item" href="{% url 'bulk_upload:list' %}">
+                                    <i class="fas fa-upload me-2"></i>Bulk Upload
+                                </a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end animate-fade-in-up">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user-circle me-2"></i>Profile
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit(); return false;">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
-                                <form id="logout-form" method="POST" action="{% url 'accounts:logout' %}" style="display: none;">
-                                    {% csrf_token %}
-                                </form>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger" onclick="showLoading()">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
-                    </ul>
-                {% else %}
-                    <ul class="navbar-nav ms-auto">
+                    {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:login' %}">
                                 <i class="fas fa-sign-in-alt me-1"></i>Login
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:register' %}">
-                                <i class="fas fa-user-plus me-1"></i>Register
-                            </a>
-                        </li>
-                    </ul>
-                {% endif %}
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0" role="alert" style="border-radius: 12px;">
-                    {% if message.tags == 'error' or message.tags == 'danger' %}
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                    {% elif message.tags == 'success' %}
-                        <i class="fas fa-check-circle me-2"></i>
-                    {% elif message.tags == 'warning' %}
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                    {% elif message.tags == 'info' %}
-                        <i class="fas fa-info-circle me-2"></i>
-                    {% else %}
-                        <i class="fas fa-bell me-2"></i>
-                    {% endif %}
-                    <strong>{{ message|capfirst }}</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: white;">
-            <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-            <h4>Loading...</h4>
-        </div>
-    </div>
-
+    
     <!-- Main Content -->
-    <main class="container-fluid py-4">
+    <main class="container mt-4 animate-fade-in-up">
+        <!-- 🎯 IMPROVEMENT 3: ENHANCED ERROR HANDLING -->
+        {% if messages %}
+            <div class="toast-container">
+                {% for message in messages %}
+                    <div class="toast show" role="alert">
+                        <div class="toast-header">
+                            <i class="fas fa-{{ message.tags == 'error' and 'exclamation-triangle' or message.tags == 'success' and 'check-circle' or 'info-circle' }} me-2"></i>
+                            <strong class="me-auto">{{ message.tags|capfirst }}</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </main>
-
+    
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6><i class="fas fa-heartbeat me-2"></i>Umoor Sehhat Digital System</h6>
-                    <p class="small mb-0">Managing healthcare services with technology and care.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="small mb-0">
-                        &copy; {% now "Y" %} Umoor Sehhat. All rights reserved.
-                    </p>
-                </div>
-            </div>
+    <footer class="mt-5 py-4 bg-light border-top">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2024 Umoor Sehhat Digital System. All rights reserved.
+                <span class="ms-2">
+                    <i class="fas fa-heart text-danger"></i>
+                    Made with care for the community
+                </span>
+            </p>
         </div>
     </footer>
-
+    
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Enhanced JavaScript -->
+    <!-- 🎯 IMPROVEMENT 1: LOADING STATES JAVASCRIPT -->
     <script>
-        // Initialize tooltips and popovers
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Show loading on form submissions
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Auto-hide alerts after 5 seconds (except error messages)
-            setTimeout(function() {
-                var alerts = document.querySelectorAll('.alert:not(.alert-danger)');
-                alerts.forEach(function(alert) {
-                    var fadeOut = new bootstrap.Alert(alert);
-                    if (fadeOut) {
-                        fadeOut.close();
+            // Add loading state to all forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.classList.add('btn-loading');
+                        submitBtn.disabled = true;
                     }
-                });
-            }, 5000);
-            
-            // Auto-hide error messages after 10 seconds
-            setTimeout(function() {
-                var errorAlerts = document.querySelectorAll('.alert-danger');
-                errorAlerts.forEach(function(alert) {
-                    var fadeOut = new bootstrap.Alert(alert);
-                    if (fadeOut) {
-                        fadeOut.close();
-                    }
-                });
-            }, 10000);
-            
-            // Show loading on form submissions
-            document.querySelectorAll('form').forEach(function(form) {
-                form.addEventListener('submit', function() {
-                    document.getElementById('loading-overlay').style.display = 'block';
+                    showLoading();
                 });
             });
             
-            // Show loading on navigation links (except dropdowns)
-            document.querySelectorAll('a.nav-link:not(.dropdown-toggle)').forEach(function(link) {
+            // Add loading state to navigation links
+            const navLinks = document.querySelectorAll('.nav-link:not(.dropdown-toggle)');
+            navLinks.forEach(link => {
                 link.addEventListener('click', function() {
-                    if (this.href && !this.href.includes('#')) {
-                        document.getElementById('loading-overlay').style.display = 'block';
+                    showLoading();
+                });
+            });
+            
+            // Hide loading when page is fully loaded
+            window.addEventListener('load', function() {
+                hideLoading();
+            });
+            
+            // Enhanced form validation feedback
+            const formControls = document.querySelectorAll('.form-control');
+            formControls.forEach(control => {
+                control.addEventListener('blur', function() {
+                    if (this.checkValidity()) {
+                        this.classList.add('is-valid');
+                        this.classList.remove('is-invalid');
+                    } else {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
                     }
                 });
             });
             
-            // Enhanced dropdown hover effects
-            document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(function(item) {
-                item.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = 'var(--accent-color)';
-                    this.style.color = 'white';
-                });
-                item.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
-                    this.style.color = '';
-                });
+            // Auto-hide toasts after 5 seconds
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    const bsToast = new bootstrap.Toast(toast);
+                    bsToast.hide();
+                }, 5000);
             });
         });
         
-        // Global error handler
-        window.addEventListener('error', function(e) {
-            console.error('JavaScript Error:', e.error);
-            document.getElementById('loading-overlay').style.display = 'none';
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
     
