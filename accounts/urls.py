@@ -18,6 +18,9 @@ urlpatterns = [
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit_profile'),
     
+    # ITS Data Sync
+    path('sync-its-data/', views.sync_its_data, name='sync_its_data'),
+    
     # Password management
     path('password/change/', auth_views.PasswordChangeView.as_view(
         template_name='accounts/password_change.html',

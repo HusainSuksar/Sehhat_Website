@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.views.generic import (
     TemplateView, ListView, DetailView, UpdateView, CreateView, FormView
@@ -17,8 +18,11 @@ from django import forms
 from django.db.models import Q, Count
 from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 import json
+from django.utils import timezone
+from django.db import transaction
+import logging
 
-from .models import User, UserProfile, AuditLog
+from .models import User, UserProfile, AuditLog, UserActivityLog
 from .forms import (
     CustomLoginForm, UserRegistrationForm, UserProfileForm, 
     UserEditForm, ITSVerificationForm
@@ -31,6 +35,9 @@ from doctordirectory.models import Doctor as DirDoctor
 from surveys.models import Survey
 from araz.models import Petition
 from photos.models import PhotoAlbum
+from .services import MockITSService
+
+logger = logging.getLogger(__name__)
 
 
 class CustomLoginView(FormView):
@@ -553,7 +560,6 @@ def dashboard(request):
     recent_surveys = Survey.objects.select_related('created_by').order_by('-created_at')[:5]
     
     # Monthly statistics with aggregated queries
-    from django.utils import timezone
     from datetime import timedelta
     
     today = timezone.now().date()
@@ -722,14 +728,36 @@ def test_its_api_view(request):
     return render(request, 'accounts/test_its_api.html')
 
 
+@csrf_protect
 def its_login_view(request):
-    """ITS Login page view"""
-    # If user is already logged in, redirect to appropriate dashboard
-    if request.user.is_authenticated:
-        redirect_url = _get_redirect_url_for_role(request.user.role)
-        return HttpResponseRedirect(redirect_url)
+    """Handle ITS login with comprehensive error handling"""
+    if request.method == 'POST':
+        form = CustomLoginForm(request.POST, request=request)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            
+            # Log successful login
+            UserActivityLog.objects.create(
+                user=user,
+                action='login',
+                details=f'Successful ITS login from {request.META.get("REMOTE_ADDR", "unknown")}'
+            )
+            
+            messages.success(request, f'Welcome back, {user.get_full_name()}!')
+            
+            # Redirect to next page or dashboard
+            next_page = request.GET.get('next', '/')
+            if next_page and next_page != '/accounts/login/':
+                return redirect(next_page)
+            return redirect('dashboard')
+        else:
+            # Form has errors, they will be displayed in the template
+            pass
+    else:
+        form = CustomLoginForm()
     
-    return render(request, 'accounts/its_login.html')
+    return render(request, 'accounts/its_login.html', {'form': form})
 
 
 def _get_redirect_url_for_role(role):
@@ -744,6 +772,7 @@ def _get_redirect_url_for_role(role):
     return role_redirects.get(role, '/accounts/profile/')
 
 
+@login_required
 def user_management_view(request):
     """User management view for admins"""
     if not request.user.is_authenticated or not request.user.is_admin:
@@ -756,6 +785,7 @@ def user_management_view(request):
     })
 
 
+@login_required
 def profile_view(request):
     """Enhanced user profile view showing ITS + Backend data"""
     import logging
@@ -901,3 +931,107 @@ def ajax_delete_user(request, user_id):
             return JsonResponse({'error': f'Failed to delete user: {str(e)}'}, status=500)
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+
+@login_required
+@require_POST
+@csrf_protect
+def sync_its_data(request):
+    """Sync ITS data for the current user"""
+    try:
+        user = request.user
+        its_service = MockITSService()
+        
+        # Fetch fresh data from ITS
+        user_data = its_service.fetch_user_data(user.its_id)
+        
+        if not user_data:
+            return JsonResponse({
+                'success': False,
+                'message': 'Unable to fetch ITS data. Please check your ITS ID or try again later.'
+            })
+        
+        # Update user and profile data
+        with transaction.atomic():
+            # Update User model
+            user.first_name = user_data.get('first_name', user.first_name)
+            user.last_name = user_data.get('last_name', user.last_name)
+            user.email = user_data.get('email', user.email)
+            user.role = user_data.get('role', user.role)
+            user.save()
+            
+            # Update UserProfile
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            
+            # Map ITS fields to profile fields
+            profile_fields = {
+                'contact_number': user_data.get('contact_number', ''),
+                'address': user_data.get('address', ''),
+                'date_of_birth': user_data.get('date_of_birth'),
+                'gender': user_data.get('gender', ''),
+                'jamaat': user_data.get('jamaat', ''),
+                'jamiaat': user_data.get('jamiaat', ''),
+                'moze': user_data.get('moze', ''),
+                'misaq_date': user_data.get('misaq_date'),
+                'education_level': user_data.get('education_level', ''),
+                'occupation': user_data.get('occupation', ''),
+                'emergency_contact_name': user_data.get('emergency_contact_name', ''),
+                'emergency_contact_number': user_data.get('emergency_contact_number', ''),
+                'blood_group': user_data.get('blood_group', ''),
+                'medical_conditions': user_data.get('medical_conditions', ''),
+                'medications': user_data.get('medications', ''),
+                'allergies': user_data.get('allergies', ''),
+                'marital_status': user_data.get('marital_status', ''),
+                'spouse_name': user_data.get('spouse_name', ''),
+                'number_of_children': user_data.get('number_of_children', 0),
+            }
+            
+            # Update only non-empty fields
+            for field, value in profile_fields.items():
+                if value is not None and value != '':
+                    setattr(profile, field, value)
+            
+            profile.its_sync_timestamp = timezone.now()
+            profile.save()
+            
+            # Log the sync activity
+            UserActivityLog.objects.create(
+                user=user,
+                action='its_sync',
+                details='Successfully synced ITS data'
+            )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'ITS data successfully synced for {user.get_full_name()}!',
+            'data': {
+                'name': user.get_full_name(),
+                'email': user.email,
+                'role': user.get_role_display(),
+                'moze': profile.moze if profile else '',
+                'sync_time': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"ITS sync error for user {request.user.its_id}: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': 'An error occurred while syncing ITS data. Please try again.'
+        })
+
+
+def logout_view(request):
+    """Handle user logout"""
+    if request.user.is_authenticated:
+        # Log logout activity
+        UserActivityLog.objects.create(
+            user=request.user,
+            action='logout',
+            details=f'User logged out from {request.META.get("REMOTE_ADDR", "unknown")}'
+        )
+        
+        logout(request)
+        messages.success(request, 'You have been successfully logged out.')
+    
+    return redirect('its_login')

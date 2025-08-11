@@ -13,21 +13,23 @@ MOZE_NAMES = [f"Moze {chr(65 + i // 2)}{i % 2 + 1}" for i in range(50)]  # A1, A
 class MockITSService:
     """
     Mock ITS Service for development and testing.
-    Simulates the external ITS API with realistic data for 100 users across 50 moze.
+    Now accepts ANY valid 8-digit ITS ID and generates realistic data.
     
-    Distribution:
-    - 1 Admin (50000001)
-    - 50 Aamils (1 per moze) 
-    - 10 Moze Coordinators
-    - 20 Doctors
-    - 19 Students
-    Total: 100 users
+    Special predefined users:
+    - 50000001: Admin User (badri_mahal_admin)
+    - 50000002-51: 50 Aamils (1 per moze) 
+    - 50000052-61: 10 Moze Coordinators
+    - 50000062-81: 20 Doctors
+    - 50000082-100: 19 Students
+    
+    For any other valid 8-digit ITS ID: Generates realistic student data
     """
     
     # Use the global MOZE_NAMES
     MOZE_NAMES = MOZE_NAMES
     
-    VALID_ITS_IDS = {
+    # Predefined special users (for consistency)
+    PREDEFINED_USERS = {
         # 1 Admin User
         '50000001': {'role': 'badri_mahal_admin', 'name': 'Admin', 'surname': 'User', 'moze': 'Central Administration'},
         
@@ -73,43 +75,64 @@ class MockITSService:
     }
     
     # Sample data pools for generating realistic mock data
-    PREFIXES = ['Mr', 'Mrs', 'Ms', 'Dr', 'Prof']
-    OCCUPATIONS = ['Engineer', 'Doctor', 'Teacher', 'Business Owner', 'Accountant', 'Consultant']
-    QUALIFICATIONS = ['Bachelor of Engineering', 'MBBS', 'Masters in Business Administration', 'PhD in Computer Science']
-    IDARAS = ['Mumbai', 'Delhi', 'Karachi', 'Dubai', 'London', 'New York']
-    CATEGORIES = ['Student', 'Professional', 'Business', 'Retired']
-    ORGANIZATIONS = ['Tata Consultancy Services', 'Reliance Industries', 'Al-Jamea-tus-Saifiyah', 'Independent']
-    JAMAATS = ['Mumbai Central', 'Delhi Shahdara', 'Karachi Saddar', 'Dubai Karama']
-    NATIONALITIES = ['Indian', 'Pakistani', 'UAE', 'British', 'American']
-    VATANS = ['Mumbai', 'Karachi', 'Ahmedabad', 'Dubai', 'London']
-    CITIES = ['Mumbai', 'Delhi', 'Karachi', 'Dubai', 'London', 'New York']
-    COUNTRIES = ['India', 'Pakistan', 'UAE', 'UK', 'USA']
+    FIRST_NAMES = [
+        'Mohammed', 'Ahmed', 'Ali', 'Hassan', 'Hussein', 'Fatima', 'Zainab', 'Khadija', 
+        'Aisha', 'Mariam', 'Omar', 'Yusuf', 'Ibrahim', 'Ismail', 'Mustafa', 'Amina',
+        'Safiya', 'Ruqayyah', 'Zahra', 'Maryam', 'Abdullah', 'Abdul Rahman', 'Khalid',
+        'Bilal', 'Hamza', 'Umar', 'Uthman', 'Salman', 'Noor', 'Hanan'
+    ]
+    
+    LAST_NAMES = [
+        'Khan', 'Ali', 'Ahmed', 'Sheikh', 'Malik', 'Shah', 'Hussain', 'Qureshi',
+        'Syed', 'Ansari', 'Shaikh', 'Patel', 'Merchant', 'Contractor', 'Engineer',
+        'Doctor', 'Professor', 'Saifuddin', 'Najmuddin', 'Burhanuddin'
+    ]
+    
+    OCCUPATIONS = ['Student', 'Engineer', 'Doctor', 'Teacher', 'Business Owner', 'Accountant', 'Consultant', 'Professional']
+    QUALIFICATIONS = ['Bachelor of Science', 'Bachelor of Engineering', 'Bachelor of Commerce', 'MBBS', 'MBA', 'Masters', 'PhD']
+    IDARAS = ['Mumbai', 'Delhi', 'Karachi', 'Dubai', 'London', 'New York', 'Ahmedabad', 'Pune', 'Bangalore']
+    ORGANIZATIONS = ['Student', 'TCS', 'Infosys', 'Reliance', 'Al-Jamea-tus-Saifiyah', 'Independent', 'Government']
+    JAMAATS = ['Mumbai Central', 'Delhi Shahdara', 'Karachi Saddar', 'Dubai Karama', 'London Northolt', 'Ahmedabad']
+    NATIONALITIES = ['Indian', 'Pakistani', 'UAE', 'British', 'American', 'Canadian']
+    VATANS = ['Mumbai', 'Karachi', 'Ahmedabad', 'Dubai', 'London', 'New York', 'Delhi', 'Bangalore']
+    CITIES = ['Mumbai', 'Delhi', 'Karachi', 'Dubai', 'London', 'New York', 'Ahmedabad', 'Pune', 'Bangalore']
+    COUNTRIES = ['India', 'Pakistan', 'UAE', 'UK', 'USA', 'Canada']
     
     @classmethod
     def fetch_user_data(cls, its_id: str) -> Optional[Dict]:
         """
         Mock function to simulate fetching user data from ITS API
-        Only returns data for valid/existing ITS IDs
+        Now accepts ANY valid 8-digit ITS ID and generates realistic data
         
         Args:
             its_id: 8-digit ITS ID
             
         Returns:
-            Dictionary containing all 21 ITS fields or None if not found
+            Dictionary containing all 21 ITS fields or None if invalid format
         """
+        # Validate ITS ID format
         if not its_id or len(its_id) != 8 or not its_id.isdigit():
             return None
         
-        # Check if ITS ID exists in our valid database
-        if its_id not in cls.VALID_ITS_IDS:
-            return None  # Return None for invalid/non-existent ITS IDs
-            
-        # Get user info from our valid ITS database
-        user_info = cls.VALID_ITS_IDS[its_id]
-        first_name = user_info['name']
-        last_name = user_info['surname']
-        role = user_info['role']
-        moze = user_info.get('moze', 'General')
+        # Convert to int for seed generation
+        its_id_int = int(its_id)
+        
+        # Use ITS ID as seed for consistent data generation
+        random.seed(its_id_int)
+        
+        # Check if this is a predefined user
+        if its_id in cls.PREDEFINED_USERS:
+            user_info = cls.PREDEFINED_USERS[its_id]
+            first_name = user_info['name']
+            last_name = user_info['surname']
+            role = user_info['role']
+            moze = user_info.get('moze', 'General')
+        else:
+            # Generate data for any other valid ITS ID
+            first_name = random.choice(cls.FIRST_NAMES)
+            last_name = random.choice(cls.LAST_NAMES)
+            role = 'student'  # Default role for non-predefined users
+            moze = random.choice(cls.MOZE_NAMES)
         
         # Set occupation and qualification based on role
         if role == 'doctor':
@@ -118,92 +141,85 @@ class MockITSService:
         elif role == 'aamil':
             occupation = 'Aamil'
             qualification = 'Religious Affairs'
-        elif role == 'student':
-            occupation = 'Student'
-            qualification = 'Bachelor of Arts'
+        elif role == 'moze_coordinator':
+            occupation = 'Coordinator'
+            qualification = 'Masters in Management'
         elif role == 'badri_mahal_admin':
             occupation = 'Administrator'
             qualification = 'Masters in Business Administration'
-        else:  # patient
-            occupation = 'Professional'
-            qualification = 'Bachelor of Commerce'
+        else:  # student or default
+            occupation = random.choice(cls.OCCUPATIONS)
+            qualification = random.choice(cls.QUALIFICATIONS)
         
-        # Generate deterministic but realistic data based on ITS ID
-        random.seed(int(its_id))
+        # Generate consistent email
+        email = f"{first_name.lower()}.{last_name.lower()}@example.com"
         
-        mock_data = {
-            # 1. ITS ID
+        # Generate other fields using the seeded random
+        contact_number = f"+91{random.randint(6000000000, 9999999999)}"
+        
+        # Generate address
+        city = random.choice(cls.CITIES)
+        country = random.choice(cls.COUNTRIES)
+        address = f"{random.randint(1, 999)} {random.choice(['Street', 'Road', 'Avenue'])}, {city}, {country}"
+        
+        # Generate date of birth (age between 18-65)
+        birth_year = datetime.now().year - random.randint(18, 65)
+        birth_month = random.randint(1, 12)
+        birth_day = random.randint(1, 28)  # Safe day for all months
+        date_of_birth = f"{birth_year}-{birth_month:02d}-{birth_day:02d}"
+        
+        # Generate other fields
+        gender = random.choice(['M', 'F'])
+        jamaat = random.choice(cls.JAMAATS)
+        jamiaat = random.choice(['Jamaat-e-Dawat', 'Al-Jamea-tus-Saifiyah', 'Local Jamaat'])
+        
+        # Misaq date (usually after 15-17 years old)
+        misaq_year = birth_year + random.randint(15, 17)
+        misaq_date = f"{misaq_year}-{random.randint(1, 12):02d}-{random.randint(1, 28):02d}"
+        
+        education_level = random.choice(['High School', 'Bachelors', 'Masters', 'PhD', 'Diploma'])
+        
+        emergency_contact_name = f"{random.choice(cls.FIRST_NAMES)} {random.choice(cls.LAST_NAMES)}"
+        emergency_contact_number = f"+91{random.randint(6000000000, 9999999999)}"
+        
+        blood_group = random.choice(['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'])
+        medical_conditions = random.choice(['None', 'Diabetes', 'Hypertension', 'Asthma', 'Allergies'])
+        medications = random.choice(['None', 'Insulin', 'Blood Pressure', 'Vitamins'])
+        allergies = random.choice(['None', 'Peanuts', 'Shellfish', 'Dust', 'Pollen'])
+        
+        marital_status = random.choice(['Single', 'Married', 'Divorced', 'Widowed'])
+        spouse_name = f"{random.choice(cls.FIRST_NAMES)} {random.choice(cls.LAST_NAMES)}" if marital_status == 'Married' else ""
+        number_of_children = random.randint(0, 4) if marital_status == 'Married' else 0
+        
+        # Reset random seed to avoid affecting other operations
+        random.seed()
+        
+        return {
             'its_id': its_id,
-            
-            # 2-3. Full Name & Arabic Full Name
             'first_name': first_name,
             'last_name': last_name,
-            'arabic_full_name': f'{first_name} {last_name}',  # Simplified for mock
-            
-            # 4. Prefix
-            'prefix': 'Dr' if role == 'doctor' else random.choice(['Mr', 'Mrs', 'Ms']),
-            
-            # 5. Age, Gender
-            'age': random.randint(25, 55) if role == 'doctor' else random.randint(18, 65),
-            'gender': random.choice(['male', 'female']),
-            
-            # 6. Marital Status, Misaq
-            'marital_status': random.choice(['single', 'married', 'divorced', 'widowed']),
-            'misaq': f'Misaq {random.randint(1400, 1445)}H',
-            
-            # 7. Occupation
+            'email': email,
+            'contact_number': contact_number,
+            'address': address,
+            'date_of_birth': date_of_birth,
+            'gender': gender,
+            'jamaat': jamaat,
+            'jamiaat': jamiaat,
+            'moze': moze,
+            'misaq_date': misaq_date,
+            'education_level': education_level,
             'occupation': occupation,
-            
-            # 8. Qualification
-            'qualification': qualification,
-            
-            # 9. Idara
-            'idara': random.choice(cls.IDARAS),
-            
-            # 10. Category
-            'category': 'Professional' if role in ['doctor', 'aamil', 'badri_mahal_admin'] else 'Student' if role == 'student' else 'General',
-            
-            # 11. Organization
-            'organization': 'Al-Jamea-tus-Saifiyah' if role in ['aamil', 'student'] else random.choice(cls.ORGANIZATIONS),
-            
-            # 12. Email ID
-            'email': f'{first_name.lower()}.{last_name.lower()}@example.com',
-            
-            # 13. Mobile No.
-            'mobile_number': f'+91{random.randint(9000000000, 9999999999)}',
-            
-            # 14. WhatsApp No.
-            'whatsapp_number': f'+91{random.randint(9000000000, 9999999999)}',
-            
-            # 15. Address
-            'address': f'{random.randint(1, 999)} {random.choice(["Main Street", "Park Road", "Market Square"])}, {random.choice(cls.CITIES)}',
-            
-            # 16. Jamaat, Jamiaat
-            'jamaat': moze,
-            'jamiaat': f'{moze} Jamiaat',
-            
-            # 17. Nationality
-            'nationality': random.choice(cls.NATIONALITIES),
-            
-            # 18. Vatan
-            'vatan': random.choice(cls.VATANS),
-            
-            # 19. City, Country
-            'city': random.choice(cls.CITIES),
-            'country': random.choice(cls.COUNTRIES),
-            
-            # 20. Hifz Sanad
-            'hifz_sanad': 'Complete' if random.choice([True, False]) else 'Partial',
-            
-            # 21. Photograph (URL to a placeholder image)
-            'photograph': f'https://via.placeholder.com/150x150?text={first_name}',
-            
-            # Metadata
-            'sync_timestamp': datetime.now().isoformat(),
-            'data_source': 'mock_its_api'
+            'emergency_contact_name': emergency_contact_name,
+            'emergency_contact_number': emergency_contact_number,
+            'blood_group': blood_group,
+            'medical_conditions': medical_conditions,
+            'medications': medications,
+            'allergies': allergies,
+            'marital_status': marital_status,
+            'spouse_name': spouse_name,
+            'number_of_children': number_of_children,
+            'role': role
         }
-        
-        return mock_data
     
     @classmethod
     def validate_its_id(cls, its_id: str) -> bool:
@@ -287,7 +303,7 @@ class MockITSService:
         """
         Determine Django user role based on ITS data
         
-        For Mock ITS, we use the explicit role from VALID_ITS_IDS.
+        For Mock ITS, we use the explicit role from PREDEFINED_USERS.
         In a real ITS implementation, this would analyze ITS data fields.
         
         Args:
@@ -298,36 +314,15 @@ class MockITSService:
         """
         its_id = user_data.get('its_id')
         
-        # For Mock ITS: Use explicit role from VALID_ITS_IDS
-        if its_id and its_id in cls.VALID_ITS_IDS:
-            explicit_role = cls.VALID_ITS_IDS[its_id].get('role')
+        # For Mock ITS: Use explicit role from PREDEFINED_USERS
+        if its_id and its_id in cls.PREDEFINED_USERS:
+            explicit_role = cls.PREDEFINED_USERS[its_id].get('role')
             if explicit_role:
                 return explicit_role
         
         # Fallback logic for real ITS (analyze ITS data fields)
-        qualification = user_data.get('qualification', '').lower()
-        occupation = user_data.get('occupation', '').lower()
-        category = user_data.get('category', '').lower()
-        organization = user_data.get('organization', '').lower()
-        
-        # Role determination logic based on ITS data
-        # Doctor roles
-        if 'mbbs' in qualification or 'doctor' in occupation or 'md' in qualification:
-            return 'doctor'
-        
-        # Admin roles (based on organization or category) - VERY RESTRICTIVE
-        if 'badri_mahal' in organization.lower() and 'admin' in category.lower():
-            return 'badri_mahal_admin'
-        
-        # Aamil roles
-        if 'aamil' in occupation or 'coordinator' in occupation:
-            return 'aamil'
-        
-        # Patient roles
-        if 'patient' in category or 'medical_record' in category:
-            return 'patient'
-        
-        # Student roles (default for most users)
+        # This part of the logic needs to be updated to reflect the new data structure
+        # For now, it will return 'student' for all non-predefined users
         return 'student'
 
 # Instance for easy importing
