@@ -260,12 +260,24 @@ class MockITSService:
         """
         Determine Django user role based on ITS data
         
+        For Mock ITS, we use the explicit role from VALID_ITS_IDS.
+        In a real ITS implementation, this would analyze ITS data fields.
+        
         Args:
             user_data: ITS user data dictionary
             
         Returns:
             Role string for Django User model
         """
+        its_id = user_data.get('its_id')
+        
+        # For Mock ITS: Use explicit role from VALID_ITS_IDS
+        if its_id and its_id in cls.VALID_ITS_IDS:
+            explicit_role = cls.VALID_ITS_IDS[its_id].get('role')
+            if explicit_role:
+                return explicit_role
+        
+        # Fallback logic for real ITS (analyze ITS data fields)
         qualification = user_data.get('qualification', '').lower()
         occupation = user_data.get('occupation', '').lower()
         category = user_data.get('category', '').lower()
@@ -276,19 +288,19 @@ class MockITSService:
         if 'mbbs' in qualification or 'doctor' in occupation or 'md' in qualification:
             return 'doctor'
         
-        # Admin roles (based on organization or category)
-        if 'jamea' in organization.lower() or 'admin' in category:
+        # Admin roles (based on organization or category) - VERY RESTRICTIVE
+        if 'badri_mahal' in organization.lower() and 'admin' in category.lower():
             return 'badri_mahal_admin'
         
         # Aamil roles
         if 'aamil' in occupation or 'coordinator' in occupation:
             return 'aamil'
         
-        # Student roles (default for most users)
-        if 'student' in category or user_data.get('age', 0) < 30:
-            return 'student'
+        # Patient roles
+        if 'patient' in category or 'medical_record' in category:
+            return 'patient'
         
-        # Default fallback
+        # Student roles (default for most users)
         return 'student'
 
 # Instance for easy importing
