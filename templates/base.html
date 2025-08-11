@@ -474,7 +474,15 @@
                 {% for message in messages %}
                     <div class="toast show" role="alert">
                         <div class="toast-header">
-                            <i class="fas fa-{{ message.tags == 'error' and 'exclamation-triangle' or message.tags == 'success' and 'check-circle' or 'info-circle' }} me-2"></i>
+                            {% if message.tags == 'error' or message.tags == 'danger' %}
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle me-2"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle me-2"></i>
+                            {% endif %}
                             <strong class="me-auto">{{ message.tags|capfirst }}</strong>
                             <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
                         </div>
