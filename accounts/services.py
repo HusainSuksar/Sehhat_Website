@@ -14,7 +14,6 @@ class MockITSService:
     VALID_ITS_IDS = {
         # Admin users
         '50000001': {'role': 'badri_mahal_admin', 'name': 'Admin', 'surname': 'User'},
-        '50000002': {'role': 'badri_mahal_admin', 'name': 'Super', 'surname': 'Admin'},
         
         # Aamil users  
         '50000051': {'role': 'aamil', 'name': 'Ahmed', 'surname': 'Ali'},
@@ -22,6 +21,7 @@ class MockITSService:
         '50000053': {'role': 'aamil', 'name': 'Hassan', 'surname': 'Sheikh'},
         
         # Doctor users
+        '50000002': {'role': 'doctor', 'name': 'Mariam', 'surname': 'Shaikh'},
         '50000014': {'role': 'doctor', 'name': 'Ahmed', 'surname': 'Abdulla'},
         '50000015': {'role': 'doctor', 'name': 'Sara', 'surname': 'Sheikh'},
         '50000016': {'role': 'doctor', 'name': 'Omar', 'surname': 'Khan'},

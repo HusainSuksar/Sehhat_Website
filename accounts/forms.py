@@ -83,7 +83,7 @@ class CustomLoginForm(forms.Form):
                 }
             )
             
-            # Update existing user data with fresh ITS data (sync ALL fields)
+            # Update existing user data with fresh ITS data (sync profile fields only, preserve role)
             if not created:
                 user.first_name = user_data['first_name']
                 user.last_name = user_data['last_name']
@@ -110,7 +110,8 @@ class CustomLoginForm(forms.Form):
                 user.country = user_data['country']
                 user.hifz_sanad = user_data['hifz_sanad']
                 user.profile_photo = user_data['photograph']
-                user.role = role
+                # DO NOT override role for existing users - preserve database role
+                # user.role = role  # REMOVED - this was causing admin privilege escalation
                 from django.utils import timezone
                 user.its_last_sync = timezone.now()
                 user.save()
