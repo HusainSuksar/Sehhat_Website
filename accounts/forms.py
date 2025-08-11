@@ -94,77 +94,131 @@ class CustomLoginForm(forms.Form):
         
         if its_id and password:
             try:
-                # Fetch or create user from ITS API
+                # Fetch user data from ITS API
                 its_service = MockITSService()
                 user_data = its_service.fetch_user_data(its_id)
                 
                 if not user_data:
-                    raise ValidationError('Invalid ITS ID or password')
+                    raise ValidationError('Invalid ITS ID. Please check your credentials.')
                 
-                # Get or create user
-                user, created = User.objects.get_or_create(
-                    its_id=its_id,
-                    defaults={
-                        'username': its_id,
-                        'first_name': user_data.get('first_name', ''),
-                        'last_name': user_data.get('last_name', ''),
-                        'email': user_data.get('email', ''),
-                        'role': user_data.get('role', 'student'),
-                    }
-                )
+                # Simple password validation (for mock system, we'll accept any password)
+                if len(password.strip()) < 1:
+                    raise ValidationError('Password is required.')
                 
-                # Update user data if not created (existing user)
-                if not created:
-                    # Update user fields from ITS data
+                # Get or create user (but don't save during form validation)
+                try:
+                    user = User.objects.get(its_id=its_id)
+                    # User exists, update their data
                     user.first_name = user_data.get('first_name', user.first_name)
                     user.last_name = user_data.get('last_name', user.last_name)
                     user.email = user_data.get('email', user.email)
                     user.role = user_data.get('role', user.role)
-                    user.save()
+                    # Don't save here - will save after successful authentication
+                    
+                except User.DoesNotExist:
+                    # Create new user
+                    user = User(
+                        its_id=its_id,
+                        username=its_id,
+                        first_name=user_data.get('first_name', ''),
+                        last_name=user_data.get('last_name', ''),
+                        email=user_data.get('email', ''),
+                        role=user_data.get('role', 'student'),
+                        is_active=True
+                    )
+                    # Don't save here - will save after successful authentication
                 
-                # Update or create user profile
-                profile, profile_created = UserProfile.objects.get_or_create(user=user)
+                # Store user data for later use
+                self._user_data = user_data
+                self._user_instance = user
+                self._is_new_user = not user.pk
                 
-                # Update profile with ITS data
-                profile_fields = [
-                    'contact_number', 'address', 'date_of_birth', 'gender',
-                    'jamaat', 'jamiaat', 'moze', 'misaq_date', 'education_level',
-                    'occupation', 'emergency_contact_name', 'emergency_contact_number',
-                    'blood_group', 'medical_conditions', 'medications', 'allergies',
-                    'marital_status', 'spouse_name', 'number_of_children'
-                ]
-                
-                for field in profile_fields:
-                    if field in user_data and user_data[field]:
-                        setattr(profile, field, user_data[field])
-                
-                profile.save()
-                
-                # Set password if user is newly created
-                if created:
+                # For authentication, we'll use a simple approach
+                # Set a temporary password if needed
+                if not user.pk or not user.has_usable_password():
                     user.set_password(password)
-                    user.save()
                 
-                # Authenticate user
-                authenticated_user = authenticate(
-                    self.request,
-                    username=user.username,
-                    password=password
-                )
+                # Now authenticate
+                if user.pk:
+                    # Existing user - try to authenticate
+                    authenticated_user = authenticate(
+                        self.request,
+                        username=user.username,
+                        password=password
+                    )
+                    if not authenticated_user:
+                        # Password might have changed, update it
+                        user.set_password(password)
+                        user.save()
+                        authenticated_user = authenticate(
+                            self.request,
+                            username=user.username,
+                            password=password
+                        )
+                else:
+                    # New user - save first then authenticate
+                    user.save()
+                    authenticated_user = authenticate(
+                        self.request,
+                        username=user.username,
+                        password=password
+                    )
                 
                 if authenticated_user and authenticated_user.is_active:
                     self.user_cache = authenticated_user
+                    
+                    # Now safely update user data and profile
+                    self._post_auth_updates()
                 else:
-                    raise ValidationError('Invalid credentials or account disabled')
+                    raise ValidationError('Authentication failed. Please try again.')
                     
             except ValidationError:
                 raise
             except Exception as e:
                 # Log the error for debugging
-                print(f"Login error for ITS ID {its_id}: {e}")
-                raise ValidationError('Authentication failed. Please try again.')
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Login error for ITS ID {its_id}: {e}")
+                raise ValidationError('Authentication system error. Please try again.')
         
         return cleaned_data
+    
+    def _post_auth_updates(self):
+        """Update user data and profile after successful authentication"""
+        try:
+            user = self.user_cache
+            user_data = self._user_data
+            
+            # Update user fields if needed
+            user.first_name = user_data.get('first_name', user.first_name)
+            user.last_name = user_data.get('last_name', user.last_name)
+            user.email = user_data.get('email', user.email)
+            user.role = user_data.get('role', user.role)
+            user.save()
+            
+            # Update or create user profile
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            
+            # Update profile with ITS data
+            profile_fields = [
+                'contact_number', 'address', 'date_of_birth', 'gender',
+                'jamaat', 'jamiaat', 'moze', 'misaq_date', 'education_level',
+                'occupation', 'emergency_contact_name', 'emergency_contact_number',
+                'blood_group', 'medical_conditions', 'medications', 'allergies',
+                'marital_status', 'spouse_name', 'number_of_children'
+            ]
+            
+            for field in profile_fields:
+                if field in user_data and user_data[field]:
+                    setattr(profile, field, user_data[field])
+            
+            profile.save()
+            
+        except Exception as e:
+            # Log error but don't break authentication
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error updating user data after authentication: {e}")
     
     def get_user(self):
         """Return the authenticated user"""
