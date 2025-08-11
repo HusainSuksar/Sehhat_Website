@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.db import transaction
 import logging
 
-from .models import User, UserProfile, AuditLog, UserActivityLog
+from .models import User, UserProfile, AuditLog
 from .forms import (
     CustomLoginForm, UserRegistrationForm, UserProfileForm, 
     UserEditForm, ITSVerificationForm
@@ -738,10 +738,16 @@ def its_login_view(request):
             login(request, user)
             
             # Log successful login
-            UserActivityLog.objects.create(
+            AuditLog.objects.create(
                 user=user,
                 action='login',
-                details=f'Successful ITS login from {request.META.get("REMOTE_ADDR", "unknown")}'
+                object_type='User',
+                object_id=str(user.pk),
+                object_repr=str(user),
+                extra_data={
+                    'details': f'Successful ITS login from {request.META.get("REMOTE_ADDR", "unknown")}',
+                    'ip_address': request.META.get("REMOTE_ADDR", "unknown")
+                }
             )
             
             messages.success(request, f'Welcome back, {user.get_full_name()}!')
@@ -995,10 +1001,13 @@ def sync_its_data(request):
             profile.save()
             
             # Log the sync activity
-            UserActivityLog.objects.create(
+            AuditLog.objects.create(
                 user=user,
-                action='its_sync',
-                details='Successfully synced ITS data'
+                action='other',  # Use 'other' since 'its_sync' is not in ACTION_CHOICES
+                object_type='UserProfile', 
+                object_id=str(profile.pk),
+                object_repr=str(profile),
+                extra_data={'details': 'Successfully synced ITS data'}
             )
         
         return JsonResponse({
@@ -1025,10 +1034,16 @@ def logout_view(request):
     """Handle user logout"""
     if request.user.is_authenticated:
         # Log logout activity
-        UserActivityLog.objects.create(
+        AuditLog.objects.create(
             user=request.user,
             action='logout',
-            details=f'User logged out from {request.META.get("REMOTE_ADDR", "unknown")}'
+            object_type='User',
+            object_id=str(request.user.pk),
+            object_repr=str(request.user),
+            extra_data={
+                'details': f'User logged out from {request.META.get("REMOTE_ADDR", "unknown")}',
+                'ip_address': request.META.get("REMOTE_ADDR", "unknown")
+            }
         )
         
         logout(request)
