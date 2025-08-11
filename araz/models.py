@@ -2,6 +2,12 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.utils import timezone
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
 from doctordirectory.models import Doctor
 
 
@@ -389,3 +395,82 @@ class ArazNotification(models.Model):
     
     def __str__(self):
         return f"Notification for {self.recipient} about {self.araz}"
+
+
+# Signal handlers for data consistency
+@receiver(pre_save, sender=Petition)
+def track_petition_status_changes(sender, instance, **kwargs):
+    """Track petition status changes before saving"""
+    try:
+        if instance.pk:  # Only for existing instances
+            try:
+                old_instance = Petition.objects.get(pk=instance.pk)
+                instance._old_status = old_instance.status
+                instance._old_priority = old_instance.priority
+            except Petition.DoesNotExist:
+                # Instance was deleted between operations
+                pass
+    except Exception as e:
+        logger.error(f"Failed to track petition changes for petition {instance.pk}: {e}")
+
+
+@receiver(post_save, sender=Petition)
+def handle_petition_status_change(sender, instance, created, **kwargs):
+    """Handle petition status changes with proper logging and notifications"""
+    try:
+        with transaction.atomic():
+            # Skip processing during signal handling to prevent recursion
+            if hasattr(instance, '_signal_processing'):
+                return
+            
+            instance._signal_processing = True
+            
+            try:
+                # Handle new petition creation
+                if created:
+                    PetitionUpdate.objects.create(
+                        petition=instance,
+                        status='pending',
+                        description='Petition submitted',
+                        created_by=instance.created_by
+                    )
+                    logger.info(f"New petition created: {instance.pk} by {instance.created_by}")
+                
+                # Handle status changes for existing petitions
+                elif hasattr(instance, '_old_status') and instance._old_status != instance.status:
+                    status_descriptions = {
+                        'pending': 'Petition moved to pending',
+                        'in_progress': 'Petition processing started',
+                        'resolved': 'Petition resolved',
+                        'rejected': 'Petition rejected',
+                    }
+                    
+                    description = status_descriptions.get(instance.status, f'Status changed to {instance.status}')
+                    
+                    # Only create update if it doesn't already exist (prevent duplicates)
+                    recent_updates = PetitionUpdate.objects.filter(
+                        petition=instance,
+                        status=instance.status,
+                        created_at__gte=timezone.now() - timezone.timedelta(seconds=30)
+                    )
+                    
+                    if not recent_updates.exists():
+                        PetitionUpdate.objects.create(
+                            petition=instance,
+                            status=instance.status,
+                            description=description,
+                            created_by=instance.created_by
+                        )
+                    
+                    logger.info(f"Petition {instance.pk} status changed from {instance._old_status} to {instance.status}")
+                
+            finally:
+                # Clean up signal processing flag
+                if hasattr(instance, '_signal_processing'):
+                    delattr(instance, '_signal_processing')
+                
+    except Exception as e:
+        # Clean up flag on error
+        if hasattr(instance, '_signal_processing'):
+            delattr(instance, '_signal_processing')
+        logger.error(f"Failed to handle petition status change for petition {instance.pk}: {e}")

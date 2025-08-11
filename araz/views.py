@@ -9,6 +9,9 @@ from django.db.models import Q, Count
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods, require_POST
+from django.core.exceptions import ValidationError, PermissionDenied
 import json
 from datetime import datetime, timedelta
 
@@ -113,39 +116,62 @@ class PetitionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         
+        # Base queryset with optimized select_related and prefetch_related
+        base_queryset = Petition.objects.select_related(
+            'created_by', 
+            'created_by__profile',
+            'category', 
+            'moze',
+            'moze__aamil',
+            'moze__moze_coordinator'
+        ).prefetch_related(
+            'assignments__assigned_to',
+            'assignments__assigned_by',
+            'comments__user',
+            'updates__created_by'
+        )
+        
         # Base queryset based on user role
         if user.is_admin:
-            queryset = Petition.objects.all()
+            queryset = base_queryset
         elif user.is_aamil or user.is_moze_coordinator:
-            queryset = Petition.objects.filter(
+            queryset = base_queryset.filter(
                 Q(moze__aamil=user) | Q(moze__moze_coordinator=user) | Q(created_by=user)
             )
         else:
-            queryset = Petition.objects.filter(created_by=user)
+            queryset = base_queryset.filter(created_by=user)
         
-        # Apply filters
+        # Apply filters efficiently
         status = self.request.GET.get('status')
-        if status:
+        if status and status in ['pending', 'in_progress', 'resolved', 'rejected']:
             queryset = queryset.filter(status=status)
         
         priority = self.request.GET.get('priority')
-        if priority:
+        if priority and priority in ['low', 'medium', 'high', 'urgent']:
             queryset = queryset.filter(priority=priority)
         
         category = self.request.GET.get('category')
         if category:
-            queryset = queryset.filter(category_id=category)
+            try:
+                category_id = int(category)
+                queryset = queryset.filter(category_id=category_id)
+            except (ValueError, TypeError):
+                pass  # Invalid category ID, ignore filter
         
         search = self.request.GET.get('search')
         if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(created_by__first_name__icontains=search) |
-                Q(created_by__last_name__icontains=search)
-            )
+            # Sanitize search input
+            search = search.strip()[:100]  # Limit search length
+            if search:
+                queryset = queryset.filter(
+                    Q(title__icontains=search) |
+                    Q(description__icontains=search) |
+                    Q(created_by__first_name__icontains=search) |
+                    Q(created_by__last_name__icontains=search) |
+                    Q(its_id__icontains=search)
+                )
         
-        return queryset.select_related('created_by', 'category', 'moze').order_by('-created_at')
+        return queryset.order_by('-created_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -312,9 +338,11 @@ class PetitionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 
 @login_required
+@csrf_protect
+@require_POST
 def add_comment(request, pk):
     """Add a comment to a petition"""
-    if request.method == 'POST':
+    try:
         petition = get_object_or_404(Petition, pk=pk)
         
         # Check permissions
@@ -327,10 +355,22 @@ def add_comment(request, pk):
         )
         
         if not can_comment:
-            return JsonResponse({'error': 'Permission denied'}, status=403)
+            raise PermissionDenied("You do not have permission to comment on this petition")
         
+        # Validate and sanitize content
         content = request.POST.get('content', '').strip()
-        if content:
+        if not content:
+            return JsonResponse({'error': 'Comment content is required'}, status=400)
+        
+        # Validate content length
+        if len(content) > 1000:
+            return JsonResponse({'error': 'Comment too long (max 1000 characters)'}, status=400)
+        
+        # Check for spam/malicious content
+        if content.count('http') > 3:  # Basic spam detection
+            return JsonResponse({'error': 'Comment contains too many links'}, status=400)
+        
+        with transaction.atomic():
             comment = PetitionComment.objects.create(
                 petition=petition,
                 user=user,
@@ -346,58 +386,98 @@ def add_comment(request, pk):
                     'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
                 }
             })
-        
-        return JsonResponse({'error': 'Comment content is required'}, status=400)
-    
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+            
+    except PermissionDenied as e:
+        return JsonResponse({'error': str(e)}, status=403)
+    except ValidationError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in add_comment: {e}")
+        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
 
 @login_required
+@csrf_protect
+@require_POST
 def assign_petition(request, pk):
     """Assign a petition to a user"""
-    if request.method == 'POST':
+    try:
         petition = get_object_or_404(Petition, pk=pk)
         
         # Check permissions
         user = request.user
         if not (user.is_admin or user.is_aamil or user.is_moze_coordinator):
-            return JsonResponse({'error': 'Permission denied'}, status=403)
+            raise PermissionDenied("You do not have permission to assign petitions.")
         
+        # Validate input data
         assigned_to_id = request.POST.get('assigned_to')
-        notes = request.POST.get('notes', '')
+        notes = request.POST.get('notes', '').strip()
         
+        if not assigned_to_id:
+            return JsonResponse({'error': 'No user selected for assignment'}, status=400)
+        
+        # Validate assigned_to_id is a valid integer
         try:
-            assigned_to = User.objects.get(id=assigned_to_id)
-            
-            # Deactivate previous assignments
-            PetitionAssignment.objects.filter(petition=petition, is_active=True).update(is_active=False)
-            
-            # Create new assignment
-            assignment = PetitionAssignment.objects.create(
-                petition=petition,
-                assigned_to=assigned_to,
-                assigned_by=user,
-                notes=notes
-            )
-            
-            # Update petition status
-            petition.status = 'in_progress'
-            petition.save()
-            
-            # Create status update
-            PetitionUpdate.objects.create(
-                petition=petition,
-                status='in_progress',
-                description=f'Assigned to {assigned_to.get_full_name()}',
-                created_by=user
-            )
-            
-            return JsonResponse({'success': True, 'message': 'Petition assigned successfully'})
-            
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'Invalid user selected'}, status=400)
-    
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+            assigned_to_id = int(assigned_to_id)
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Invalid user ID format'}, status=400)
+        
+        # Validate notes length
+        if len(notes) > 500:
+            return JsonResponse({'error': 'Notes too long (max 500 characters)'}, status=400)
+        
+        with transaction.atomic():
+            try:
+                assigned_to = User.objects.get(id=assigned_to_id)
+                
+                # Verify assigned user has appropriate role
+                if not (assigned_to.is_admin or assigned_to.is_aamil or assigned_to.is_moze_coordinator or assigned_to.is_doctor):
+                    return JsonResponse({'error': 'User cannot be assigned petitions'}, status=400)
+                
+                # Deactivate previous assignments
+                PetitionAssignment.objects.filter(petition=petition, is_active=True).update(is_active=False)
+                
+                # Create new assignment
+                assignment = PetitionAssignment.objects.create(
+                    petition=petition,
+                    assigned_to=assigned_to,
+                    assigned_by=user,
+                    notes=notes
+                )
+                
+                # Update petition status
+                petition.status = 'in_progress'
+                petition.save()
+                
+                # Create status update
+                description = f'Assigned to {assigned_to.get_full_name()}'
+                if notes:
+                    description += f': {notes}'
+                
+                PetitionUpdate.objects.create(
+                    petition=petition,
+                    status='in_progress',
+                    description=description,
+                    created_by=user
+                )
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': f'Petition assigned to {assigned_to.get_full_name()}'
+                })
+                
+            except User.DoesNotExist:
+                return JsonResponse({'error': 'Invalid user selected'}, status=400)
+                
+    except PermissionDenied as e:
+        return JsonResponse({'error': str(e)}, status=403)
+    except ValidationError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        # Log the error for debugging (in production, use proper logging)
+        print(f"Error in assign_petition: {e}")
+        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
 
 @login_required

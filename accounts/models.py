@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import RegexValidator
-from django.db.models.signals import post_save, post_delete, m2m_changed
+from django.db.models.signals import post_save, post_delete, m2m_changed, pre_save
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 from django.utils import timezone
@@ -216,84 +216,183 @@ class AuditLog(models.Model):
 
 @receiver(user_logged_in)
 def log_user_login(sender, user, request, **kwargs):
-    AuditLog.objects.create(
-        user=user,
-        action='login',
-        object_type='User',
-        object_id=str(user.pk),
-        object_repr=str(user),
-        extra_data={'ip': request.META.get('REMOTE_ADDR')}
-    )
+    """Log user login with atomic transaction and error handling"""
+    try:
+        with transaction.atomic():
+            # Safely get IP address
+            ip_address = 'unknown'
+            if request and hasattr(request, 'META'):
+                ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                if not ip_address:
+                    ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+            
+            AuditLog.objects.create(
+                user=user,
+                action='login',
+                object_type='User',
+                object_id=str(user.pk),
+                object_repr=str(user),
+                extra_data={
+                    'ip': ip_address,
+                    'user_agent': request.META.get('HTTP_USER_AGENT', '')[:500] if request else '',
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+    except Exception as e:
+        # Log the error but don't break the login process
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to log user login for user {user.pk}: {e}")
 
 @receiver(user_logged_out)
 def log_user_logout(sender, user, request, **kwargs):
-    AuditLog.objects.create(
-        user=user,
-        action='logout',
-        object_type='User',
-        object_id=str(user.pk),
-        object_repr=str(user),
-        extra_data={'ip': request.META.get('REMOTE_ADDR')}
-    )
+    """Log user logout with atomic transaction and error handling"""
+    try:
+        with transaction.atomic():
+            # Handle case where user might be None
+            if not user:
+                return
+            
+            # Safely get IP address
+            ip_address = 'unknown'
+            if request and hasattr(request, 'META'):
+                ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+                if not ip_address:
+                    ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+            
+            AuditLog.objects.create(
+                user=user,
+                action='logout',
+                object_type='User',
+                object_id=str(user.pk),
+                object_repr=str(user),
+                extra_data={
+                    'ip': ip_address,
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+    except Exception as e:
+        # Log the error but don't break the logout process
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to log user logout for user {user.pk if user else 'None'}: {e}")
 
 @receiver(post_save, sender=User)
 def log_user_save(sender, instance, created, **kwargs):
-    AuditLog.objects.create(
-        user=instance,
-        action='create' if created else 'update',
-        object_type='User',
-        object_id=str(instance.pk),
-        object_repr=str(instance),
-        extra_data={}
-    )
-
-@receiver(post_delete, sender=User)
-def log_user_delete(sender, instance, **kwargs):
-    # Create audit log without user reference since user is being deleted
-    # Set user to None to avoid referential integrity issues
-    AuditLog.objects.create(
-        user=None,  # User is being deleted, can't reference it
-        action='delete',
-        object_type='User',
-        object_id=str(instance.pk) if instance.pk else 'unknown',
-        object_repr=str(instance) if instance else 'Deleted User',
-        extra_data={
-            'deleted_user_username': getattr(instance, 'username', 'unknown'),
-            'deleted_user_email': getattr(instance, 'email', 'unknown'),
-            'deletion_timestamp': timezone.now().isoformat()
-        }
-    )
-
-@receiver(m2m_changed, sender=User.groups.through)
-def log_group_membership_change(sender, instance, action, pk_set, **kwargs):
-    if action in ['post_add', 'post_remove', 'post_clear']:
-        try:
-            # Safely handle group names with proper error handling
-            group_names = []
-            if pk_set:
-                for pk in pk_set:
-                    try:
-                        group = Group.objects.get(pk=pk)
-                        group_names.append(group.name)
-                    except Group.DoesNotExist:
-                        group_names.append(f'Unknown Group (ID: {pk})')
+    """Log user creation/update with atomic transaction and duplicate prevention"""
+    try:
+        # Prevent recursive signal calls during signal handling
+        if hasattr(instance, '_signal_processing'):
+            return
+        
+        with transaction.atomic():
+            instance._signal_processing = True
+            
+            # Prepare audit data
+            action = 'create' if created else 'update'
+            extra_data = {
+                'timestamp': timezone.now().isoformat(),
+                'role': getattr(instance, 'role', 'unknown'),
+                'is_active': getattr(instance, 'is_active', False),
+            }
+            
+            # Add change tracking for updates
+            if not created and hasattr(instance, '_old_values'):
+                changed_fields = []
+                for field, old_value in instance._old_values.items():
+                    new_value = getattr(instance, field, None)
+                    if old_value != new_value:
+                        changed_fields.append({
+                            'field': field,
+                            'old_value': str(old_value)[:100],
+                            'new_value': str(new_value)[:100]
+                        })
+                extra_data['changed_fields'] = changed_fields
             
             AuditLog.objects.create(
                 user=instance,
-                action='permission_change',
+                action=action,
+                object_type='User',
+                object_id=str(instance.pk),
+                object_repr=str(instance)[:256],  # Limit length
+                extra_data=extra_data
+            )
+            
+            # Create user profile if it doesn't exist
+            if created:
+                UserProfile.objects.get_or_create(user=instance)
+            
+            # Clean up flag
+            delattr(instance, '_signal_processing')
+            
+    except Exception as e:
+        # Clean up flag on error
+        if hasattr(instance, '_signal_processing'):
+            delattr(instance, '_signal_processing')
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to log user save for user {instance.pk}: {e}")
+
+@receiver(post_delete, sender=User)
+def log_user_delete(sender, instance, **kwargs):
+    """Log user deletion with atomic transaction and safe handling"""
+    try:
+        with transaction.atomic():
+            # Create audit log without user reference since user is being deleted
+            AuditLog.objects.create(
+                user=None,  # User is being deleted, can't reference it
+                action='delete',
                 object_type='User',
                 object_id=str(instance.pk) if instance.pk else 'unknown',
-                object_repr=str(instance) if instance else 'Unknown User',
+                object_repr=str(instance)[:256] if instance else 'Deleted User',
                 extra_data={
-                    'groups': group_names,
-                    'action': action
+                    'deleted_user_username': getattr(instance, 'username', 'unknown'),
+                    'deleted_user_email': getattr(instance, 'email', 'unknown'),
+                    'deleted_user_role': getattr(instance, 'role', 'unknown'),
+                    'deletion_timestamp': timezone.now().isoformat()
                 }
             )
-        except Exception as e:
-            # Log the error but don't break the signal
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error logging group membership change: {e}")
+            
+            # Clean up related data if needed
+            # Note: Django CASCADE should handle most relationships
+            
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to log user deletion for user {instance.pk if instance else 'unknown'}: {e}")
+
+@receiver(m2m_changed, sender=User.groups.through)
+def log_group_membership_change(sender, instance, action, pk_set, **kwargs):
+    """Log group membership changes with atomic transaction and error handling"""
+    if action not in ['post_add', 'post_remove', 'post_clear']:
+        return
+    
+    try:
+        with transaction.atomic():
+            # Safely handle group names with proper error handling
+            group_names = []
+            if pk_set:
+                # Use select_related to optimize queries
+                groups = Group.objects.filter(pk__in=pk_set)
+                group_names = [group.name for group in groups]
+            
+            AuditLog.objects.create(
+                user=instance,
+                action=f'group_{action.replace("post_", "")}',
+                object_type='UserGroups',
+                object_id=str(instance.pk),
+                object_repr=f"{instance.username} group membership",
+                extra_data={
+                    'action': action,
+                    'groups': group_names,
+                    'group_count': len(group_names),
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to log group membership change for user {instance.pk}: {e}")
 
 @receiver(m2m_changed, sender=User.user_permissions.through)
 def log_user_permission_change(sender, instance, action, pk_set, **kwargs):
@@ -325,3 +424,28 @@ def log_user_permission_change(sender, instance, action, pk_set, **kwargs):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error logging user permission change: {e}")
+
+@receiver(pre_save, sender=User)
+def track_user_changes(sender, instance, **kwargs):
+    """Track changes to user fields before saving"""
+    try:
+        if instance.pk:  # Only for existing instances
+            try:
+                old_instance = User.objects.get(pk=instance.pk)
+                instance._old_values = {
+                    'username': old_instance.username,
+                    'email': old_instance.email,
+                    'first_name': old_instance.first_name,
+                    'last_name': old_instance.last_name,
+                    'role': old_instance.role,
+                    'is_active': old_instance.is_active,
+                    'is_staff': old_instance.is_staff,
+                    'is_superuser': old_instance.is_superuser,
+                }
+            except User.DoesNotExist:
+                # Instance was deleted between operations
+                pass
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to track user changes for user {instance.pk}: {e}")

@@ -14,7 +14,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Count
 from guardian.shortcuts import assign_perm, remove_perm, get_perms, get_objects_for_user
 import json
 
@@ -526,21 +526,63 @@ class ObjectPermissionManagementView(LoginRequiredMixin, UserPassesTestMixin, Te
 
 
 @login_required
-def dashboard_view(request):
-    """Simple dashboard view"""
-    context = {
-        'user': request.user,
-        'role_display': request.user.get_role_display(),
-        'total_users': User.objects.count(),
-        'total_students': Student.objects.count(),
-        'total_doctors': DirDoctor.objects.count(),
-        'total_moze': Moze.objects.count(),
-        'total_hospitals': Hospital.objects.count(),
-        'total_surveys': Survey.objects.count(),
-        'total_petitions': Petition.objects.count(),
-        'total_albums': PhotoAlbum.objects.count(),
-        'show_audit_log_link': request.user.is_admin,
+def dashboard(request):
+    """Enhanced dashboard with comprehensive statistics and optimized queries"""
+    user = request.user
+    
+    # Optimized queries with select_related and prefetch_related
+    total_users = User.objects.select_related('profile').count()
+    
+    # Use select_related for foreign key relationships to avoid N+1
+    total_students = Student.objects.select_related('user', 'user__profile').count()
+    total_doctors = DirDoctor.objects.select_related('user', 'user__profile').count() if DirDoctor else 0
+    total_moze = Moze.objects.select_related('aamil', 'moze_coordinator').count()
+    total_hospitals = Hospital.objects.select_related('created_by').count() if Hospital else 0
+    total_surveys = Survey.objects.select_related('created_by').count()
+    total_petitions = Petition.objects.select_related('created_by', 'moze').count()
+    total_albums = PhotoAlbum.objects.select_related('created_by').count()
+    
+    # Get role-specific statistics with optimized queries
+    role_stats = User.objects.values('role').annotate(count=Count('id')).order_by('role')
+    
+    # Recent activity with optimized queries
+    recent_users = User.objects.select_related('profile').order_by('-date_joined')[:5]
+    recent_petitions = Petition.objects.select_related(
+        'created_by', 'moze', 'category'
+    ).order_by('-created_at')[:5]
+    recent_surveys = Survey.objects.select_related('created_by').order_by('-created_at')[:5]
+    
+    # Monthly statistics with aggregated queries
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    today = timezone.now().date()
+    last_30_days = today - timedelta(days=30)
+    
+    # Use aggregate queries instead of multiple database hits
+    monthly_stats = {
+        'new_users': User.objects.filter(date_joined__date__gte=last_30_days).count(),
+        'new_petitions': Petition.objects.filter(created_at__date__gte=last_30_days).count(),
+        'new_surveys': Survey.objects.filter(created_at__date__gte=last_30_days).count(),
     }
+    
+    context = {
+        'user': user,
+        'total_users': total_users,
+        'total_students': total_students,
+        'total_doctors': total_doctors,
+        'total_moze': total_moze,
+        'total_hospitals': total_hospitals,
+        'total_surveys': total_surveys,
+        'total_petitions': total_petitions,
+        'total_albums': total_albums,
+        'role_stats': role_stats,
+        'recent_users': recent_users,
+        'recent_petitions': recent_petitions,
+        'recent_surveys': recent_surveys,
+        'monthly_stats': monthly_stats,
+    }
+    
     return render(request, 'accounts/dashboard.html', context)
 
 

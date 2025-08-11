@@ -1,126 +1,173 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import authenticate, login
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+from django.utils.html import escape
+import re
 from .models import User, UserProfile
-
-User = get_user_model()
+from .services import MockITSService
 
 
 class CustomLoginForm(forms.Form):
-    """ITS-based login form - authenticates via ITS API only"""
+    """Custom login form using ITS ID instead of username"""
+    
     its_id = forms.CharField(
-        label='ITS ID',
-        max_length=20,
+        max_length=8,
+        min_length=8,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter your ITS ID',
-            'autofocus': True
-        })
+            'placeholder': '8-digit ITS ID',
+            'autofocus': True,
+            'autocomplete': 'username',
+            'inputmode': 'numeric',
+            'pattern': '[0-9]{8}',
+            'title': 'Enter your 8-digit ITS ID'
+        }),
+        validators=[
+            RegexValidator(
+                regex=r'^\d{8}$',
+                message='ITS ID must be exactly 8 digits'
+            )
+        ],
+        error_messages={
+            'required': 'ITS ID is required',
+            'max_length': 'ITS ID must be exactly 8 digits',
+            'min_length': 'ITS ID must be exactly 8 digits',
+        }
     )
+    
     password = forms.CharField(
-        label='Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter your ITS password'
-        })
+            'placeholder': 'Password',
+            'autocomplete': 'current-password'
+        }),
+        max_length=128,
+        error_messages={
+            'required': 'Password is required',
+        }
     )
     
-    def __init__(self, request=None, *args, **kwargs):
-        self.request = request
-        self.user_cache = None
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        self.user_cache = None
+    
+    def clean_its_id(self):
+        """Validate and clean ITS ID"""
+        its_id = self.cleaned_data.get('its_id')
+        if its_id:
+            # Sanitize input
+            its_id = escape(its_id.strip())
+            
+            # Additional validation
+            if not its_id.isdigit():
+                raise ValidationError('ITS ID must contain only numbers')
+            
+            if len(its_id) != 8:
+                raise ValidationError('ITS ID must be exactly 8 digits')
+                
+        return its_id
+    
+    def clean_password(self):
+        """Validate and clean password"""
+        password = self.cleaned_data.get('password')
+        if password:
+            # Sanitize input
+            password = password.strip()
+            
+            # Basic password validation
+            if len(password) < 4:
+                raise ValidationError('Password too short')
+            
+            if len(password) > 128:
+                raise ValidationError('Password too long')
+                
+        return password
     
     def clean(self):
+        """Validate the form and authenticate user"""
         cleaned_data = super().clean()
         its_id = cleaned_data.get('its_id')
         password = cleaned_data.get('password')
         
         if its_id and password:
-            from .services import MockITSService
-            
-            # Authenticate with ITS API
-            auth_result = MockITSService.authenticate_user(its_id, password)
-            
-            if not auth_result or not auth_result.get('authenticated'):
-                raise forms.ValidationError('Invalid ITS credentials. Please check your ITS ID and password.')
-            
-            # Get or create Django user with ITS data
-            user_data = auth_result['user_data']
-            role = auth_result['role']
-            
-            # Create or update Django user
-            user, created = User.objects.get_or_create(
-                its_id=its_id,
-                defaults={
-                    'username': user_data['email'],
-                    'email': user_data['email'],
-                    'first_name': user_data['first_name'],
-                    'last_name': user_data['last_name'],
-                    'arabic_full_name': user_data['arabic_full_name'],
-                    'prefix': user_data['prefix'],
-                    'age': user_data['age'],
-                    'gender': user_data['gender'],
-                    'marital_status': user_data['marital_status'],
-                    'misaq': user_data['misaq'],
-                    'occupation': user_data['occupation'],
-                    'qualification': user_data['qualification'],
-                    'idara': user_data['idara'],
-                    'category': user_data['category'],
-                    'organization': user_data['organization'],
-                    'mobile_number': user_data['mobile_number'],
-                    'whatsapp_number': user_data['whatsapp_number'],
-                    'address': user_data['address'],
-                    'jamaat': user_data['jamaat'],
-                    'jamiaat': user_data['jamiaat'],
-                    'nationality': user_data['nationality'],
-                    'vatan': user_data['vatan'],
-                    'city': user_data['city'],
-                    'country': user_data['country'],
-                    'hifz_sanad': user_data['hifz_sanad'],
-                    'profile_photo': user_data['photograph'],
-                    'role': role,
-                    'is_active': True,
-                }
-            )
-            
-            # Update existing user data with fresh ITS data (sync profile fields only, preserve role)
-            if not created:
-                user.first_name = user_data['first_name']
-                user.last_name = user_data['last_name']
-                user.email = user_data['email']
-                user.arabic_full_name = user_data['arabic_full_name']
-                user.prefix = user_data['prefix']
-                user.age = user_data['age']
-                user.gender = user_data['gender']
-                user.marital_status = user_data['marital_status']
-                user.misaq = user_data['misaq']
-                user.occupation = user_data['occupation']
-                user.qualification = user_data['qualification']
-                user.idara = user_data['idara']
-                user.category = user_data['category']
-                user.organization = user_data['organization']
-                user.mobile_number = user_data['mobile_number']
-                user.whatsapp_number = user_data['whatsapp_number']
-                user.address = user_data['address']
-                user.jamaat = user_data['jamaat']
-                user.jamiaat = user_data['jamiaat']
-                user.nationality = user_data['nationality']
-                user.vatan = user_data['vatan']
-                user.city = user_data['city']
-                user.country = user_data['country']
-                user.hifz_sanad = user_data['hifz_sanad']
-                user.profile_photo = user_data['photograph']
-                # DO NOT override role for existing users - preserve database role
-                # user.role = role  # REMOVED - this was causing admin privilege escalation
-                from django.utils import timezone
-                user.its_last_sync = timezone.now()
-                user.save()
-            
-            self.user_cache = user
+            try:
+                # Fetch or create user from ITS API
+                its_service = MockITSService()
+                user_data = its_service.fetch_user_data(its_id)
+                
+                if not user_data:
+                    raise ValidationError('Invalid ITS ID or password')
+                
+                # Get or create user
+                user, created = User.objects.get_or_create(
+                    its_id=its_id,
+                    defaults={
+                        'username': its_id,
+                        'first_name': user_data.get('first_name', ''),
+                        'last_name': user_data.get('last_name', ''),
+                        'email': user_data.get('email', ''),
+                        'role': user_data.get('role', 'student'),
+                    }
+                )
+                
+                # Update user data if not created (existing user)
+                if not created:
+                    # Update user fields from ITS data
+                    user.first_name = user_data.get('first_name', user.first_name)
+                    user.last_name = user_data.get('last_name', user.last_name)
+                    user.email = user_data.get('email', user.email)
+                    user.role = user_data.get('role', user.role)
+                    user.save()
+                
+                # Update or create user profile
+                profile, profile_created = UserProfile.objects.get_or_create(user=user)
+                
+                # Update profile with ITS data
+                profile_fields = [
+                    'contact_number', 'address', 'date_of_birth', 'gender',
+                    'jamaat', 'jamiaat', 'moze', 'misaq_date', 'education_level',
+                    'occupation', 'emergency_contact_name', 'emergency_contact_number',
+                    'blood_group', 'medical_conditions', 'medications', 'allergies',
+                    'marital_status', 'spouse_name', 'number_of_children'
+                ]
+                
+                for field in profile_fields:
+                    if field in user_data and user_data[field]:
+                        setattr(profile, field, user_data[field])
+                
+                profile.save()
+                
+                # Set password if user is newly created
+                if created:
+                    user.set_password(password)
+                    user.save()
+                
+                # Authenticate user
+                authenticated_user = authenticate(
+                    self.request,
+                    username=user.username,
+                    password=password
+                )
+                
+                if authenticated_user and authenticated_user.is_active:
+                    self.user_cache = authenticated_user
+                else:
+                    raise ValidationError('Invalid credentials or account disabled')
+                    
+            except ValidationError:
+                raise
+            except Exception as e:
+                # Log the error for debugging
+                print(f"Login error for ITS ID {its_id}: {e}")
+                raise ValidationError('Authentication failed. Please try again.')
         
         return cleaned_data
     
     def get_user(self):
+        """Return the authenticated user"""
         return self.user_cache
 
 
