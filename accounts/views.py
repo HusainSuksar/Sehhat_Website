@@ -959,45 +959,51 @@ def sync_its_data(request):
         
         # Update user and profile data
         with transaction.atomic():
-            # Update User model
+            # Update User model with ITS fields
             user.first_name = user_data.get('first_name', user.first_name)
             user.last_name = user_data.get('last_name', user.last_name)
             user.email = user_data.get('email', user.email)
             user.role = user_data.get('role', user.role)
+            
+            # Map ITS data to User model fields (these fields exist in User model)
+            user.mobile_number = user_data.get('contact_number', user.mobile_number)
+            user.address = user_data.get('address', user.address)
+            user.gender = user_data.get('gender', user.gender)
+            user.jamaat = user_data.get('jamaat', user.jamaat)
+            user.jamiaat = user_data.get('jamiaat', user.jamiaat)
+            user.occupation = user_data.get('occupation', user.occupation)
+            user.marital_status = user_data.get('marital_status', user.marital_status)
+            
+            # Update ITS sync metadata
+            user.its_last_sync = timezone.now()
+            user.its_sync_status = 'synced'
             user.save()
             
-            # Update UserProfile
+            # Update UserProfile with fields that actually exist
             profile, created = UserProfile.objects.get_or_create(user=user)
             
-            # Map ITS fields to profile fields
-            profile_fields = {
-                'contact_number': user_data.get('contact_number', ''),
-                'address': user_data.get('address', ''),
-                'date_of_birth': user_data.get('date_of_birth'),
-                'gender': user_data.get('gender', ''),
-                'jamaat': user_data.get('jamaat', ''),
-                'jamiaat': user_data.get('jamiaat', ''),
-                'moze': user_data.get('moze', ''),
-                'misaq_date': user_data.get('misaq_date'),
-                'education_level': user_data.get('education_level', ''),
-                'occupation': user_data.get('occupation', ''),
-                'emergency_contact_name': user_data.get('emergency_contact_name', ''),
-                'emergency_contact_number': user_data.get('emergency_contact_number', ''),
-                'blood_group': user_data.get('blood_group', ''),
-                'medical_conditions': user_data.get('medical_conditions', ''),
-                'medications': user_data.get('medications', ''),
-                'allergies': user_data.get('allergies', ''),
-                'marital_status': user_data.get('marital_status', ''),
-                'spouse_name': user_data.get('spouse_name', ''),
-                'number_of_children': user_data.get('number_of_children', 0),
-            }
+            # Only set fields that exist in UserProfile model
+            if user_data.get('date_of_birth'):
+                try:
+                    # Convert date string to date object if needed
+                    from datetime import datetime
+                    if isinstance(user_data.get('date_of_birth'), str):
+                        profile.date_of_birth = datetime.strptime(user_data.get('date_of_birth'), '%Y-%m-%d').date()
+                    else:
+                        profile.date_of_birth = user_data.get('date_of_birth')
+                except:
+                    pass  # Skip if date conversion fails
             
-            # Update only non-empty fields
-            for field, value in profile_fields.items():
-                if value is not None and value != '':
-                    setattr(profile, field, value)
+            if user_data.get('emergency_contact_name'):
+                profile.emergency_contact_name = user_data.get('emergency_contact_name')
             
-            profile.its_sync_timestamp = timezone.now()
+            if user_data.get('emergency_contact_number'):
+                profile.emergency_contact = user_data.get('emergency_contact_number')
+            
+            # Set location from address if available
+            if user_data.get('address'):
+                profile.location = user_data.get('address')[:100]  # Truncate to fit field
+            
             profile.save()
             
             # Log the sync activity
@@ -1049,4 +1055,4 @@ def logout_view(request):
         logout(request)
         messages.success(request, 'You have been successfully logged out.')
     
-    return redirect('its_login')
+    return redirect('accounts:its_login')
