@@ -4,46 +4,72 @@ This will be replaced with actual ITS API integration
 """
 import random
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
+
+# Generate 50 moze names - defined outside class
+MOZE_NAMES = [f"Moze {chr(65 + i // 2)}{i % 2 + 1}" for i in range(50)]  # A1, A2, B1, B2, etc.
 
 class MockITSService:
-    """Mock service to simulate ITS API responses"""
+    """
+    Mock ITS Service for development and testing.
+    Simulates the external ITS API with realistic data for 100 users across 50 moze.
     
-    # Valid ITS IDs that should return data (simulating real ITS database)
+    Distribution:
+    - 1 Admin (50000001)
+    - 50 Aamils (1 per moze) 
+    - 10 Moze Coordinators
+    - 20 Doctors
+    - 19 Students
+    Total: 100 users
+    """
+    
+    # Use the global MOZE_NAMES
+    MOZE_NAMES = MOZE_NAMES
+    
     VALID_ITS_IDS = {
-        # Admin users
-        '50000001': {'role': 'badri_mahal_admin', 'name': 'Admin', 'surname': 'User'},
+        # 1 Admin User
+        '50000001': {'role': 'badri_mahal_admin', 'name': 'Admin', 'surname': 'User', 'moze': 'Central Administration'},
         
-        # Aamil users  
-        '50000051': {'role': 'aamil', 'name': 'Ahmed', 'surname': 'Ali'},
-        '50000052': {'role': 'aamil', 'name': 'Fatima', 'surname': 'Khan'}, 
-        '50000053': {'role': 'aamil', 'name': 'Hassan', 'surname': 'Sheikh'},
+        # 50 Aamils (1 per moze) - IDs: 50000002 to 50000051
+        **{
+            f'500000{str(i+2).zfill(2)}': {
+                'role': 'aamil',
+                'name': f'Aamil{i+1}',
+                'surname': f'Khan{i+1}',
+                'moze': MOZE_NAMES[i]
+            } for i in range(50)
+        },
         
-        # Doctor users
-        '50000002': {'role': 'doctor', 'name': 'Mariam', 'surname': 'Shaikh'},
-        '50000014': {'role': 'doctor', 'name': 'Ahmed', 'surname': 'Abdulla'},
-        '50000015': {'role': 'doctor', 'name': 'Sara', 'surname': 'Sheikh'},
-        '50000016': {'role': 'doctor', 'name': 'Omar', 'surname': 'Khan'},
+        # 10 Moze Coordinators - IDs: 50000052 to 50000061
+        **{
+            f'500000{str(i+52).zfill(2)}': {
+                'role': 'moze_coordinator',
+                'name': f'Coordinator{i+1}',
+                'surname': f'Ahmed{i+1}',
+                'moze': MOZE_NAMES[i * 5]  # Distribute across moze
+            } for i in range(10)
+        },
         
-        # Student users
-        '50000101': {'role': 'student', 'name': 'Aisha', 'surname': 'Khan'},
-        '50000102': {'role': 'student', 'name': 'Mohammed', 'surname': 'Ahmed'},
-        '50000103': {'role': 'student', 'name': 'Zainab', 'surname': 'Patel'},
-        '50000104': {'role': 'student', 'name': 'Ali', 'surname': 'Hussein'},
-        '50000105': {'role': 'student', 'name': 'Mariam', 'surname': 'Shaikh'},
+        # 20 Doctors - IDs: 50000062 to 50000081
+        **{
+            f'500000{str(i+62).zfill(2)}': {
+                'role': 'doctor',
+                'name': f'Dr{i+1}',
+                'surname': f'Shaikh{i+1}',
+                'moze': MOZE_NAMES[i % 50]  # Distribute across moze
+            } for i in range(20)
+        },
         
-        # Patient users
-        '50000201': {'role': 'patient', 'name': 'Khadija', 'surname': 'Rahman'},
-        '50000202': {'role': 'patient', 'name': 'Omar', 'surname': 'Qureshi'},
-        '50000203': {'role': 'patient', 'name': 'Fatima', 'surname': 'Ali'},
-        
-        # Additional sample users for testing
-        '50000301': {'role': 'student', 'name': 'Yusuf', 'surname': 'Sheikh'},
-        '50000302': {'role': 'doctor', 'name': 'Layla', 'surname': 'Ahmed'},
-        '50000303': {'role': 'patient', 'name': 'Ibrahim', 'surname': 'Khan'},
-        '50000304': {'role': 'student', 'name': 'Nadia', 'surname': 'Hassan'},
-        '50000305': {'role': 'patient', 'name': 'Rashid', 'surname': 'Patel'},
+        # 19 Students - IDs: 50000082 to 50000100
+        **{
+            f'50000{str(i+82).zfill(3)}': {
+                'role': 'student',
+                'name': f'Student{i+1}',
+                'surname': f'Ali{i+1}',
+                'moze': MOZE_NAMES[i % 50]  # Distribute across moze
+            } for i in range(19)
+        }
     }
     
     # Sample data pools for generating realistic mock data
@@ -83,6 +109,7 @@ class MockITSService:
         first_name = user_info['name']
         last_name = user_info['surname']
         role = user_info['role']
+        moze = user_info.get('moze', 'General')
         
         # Set occupation and qualification based on role
         if role == 'doctor':
@@ -152,8 +179,8 @@ class MockITSService:
             'address': f'{random.randint(1, 999)} {random.choice(["Main Street", "Park Road", "Market Square"])}, {random.choice(cls.CITIES)}',
             
             # 16. Jamaat, Jamiaat
-            'jamaat': random.choice(cls.JAMAATS),
-            'jamiaat': random.choice(cls.JAMAATS) + ' Jamiaat',
+            'jamaat': moze,
+            'jamiaat': f'{moze} Jamiaat',
             
             # 17. Nationality
             'nationality': random.choice(cls.NATIONALITIES),
