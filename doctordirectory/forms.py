@@ -4,8 +4,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta, time
 
 from .models import (
-    Doctor, DoctorSchedule, PatientLog, DoctorAvailability,
-    MedicalService, Patient, Appointment, MedicalRecord, Prescription, LabTest, VitalSigns
+    Doctor, DoctorSchedule, MedicalService, Patient, Appointment
 )
 
 User = get_user_model()
@@ -17,13 +16,23 @@ class DoctorForm(forms.ModelForm):
     class Meta:
         model = Doctor
         fields = [
-            'license_number', 'experience_years', 'consultation_fee',
-            'assigned_moze', 'is_verified', 'bio'
+            'license_number', 'specialty', 'qualification', 'experience_years', 
+            'consultation_fee', 'bio', 'hospital_affiliation', 'phone_number', 
+            'email', 'address', 'is_active', 'is_accepting_patients', 'assigned_moze'
         ]
         widgets = {
             'license_number': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Medical license number'
+            }),
+            'specialty': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Medical specialty'
+            }),
+            'qualification': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Medical qualifications'
             }),
             'experience_years': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -35,15 +44,35 @@ class DoctorForm(forms.ModelForm):
                 'min': '0',
                 'step': '0.01'
             }),
-            'assigned_moze': forms.Select(attrs={'class': 'form-control'}),
-            'is_verified': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            }),
             'bio': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
                 'placeholder': 'Brief professional biography...'
             }),
+            'hospital_affiliation': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Hospital affiliation'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'doctor@example.com'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Address'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'is_accepting_patients': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'assigned_moze': forms.Select(attrs={'class': 'form-control'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -68,35 +97,31 @@ class DoctorForm(forms.ModelForm):
 
 
 class AppointmentForm(forms.ModelForm):
-    """Form for booking appointments"""
+    """Form for creating and editing appointments"""
     
     class Meta:
         model = Appointment
-        fields = [
-            'doctor', 'patient', 'appointment_date', 'appointment_time',
-            'service', 'reason_for_visit', 'notes'
-        ]
+        fields = ['doctor', 'patient', 'appointment_date', 'appointment_time', 'reason', 'notes']
         widgets = {
             'doctor': forms.Select(attrs={'class': 'form-control'}),
             'patient': forms.Select(attrs={'class': 'form-control'}),
             'appointment_date': forms.DateInput(attrs={
                 'class': 'form-control',
-                'type': 'date',
-                'min': timezone.now().date().isoformat()
+                'type': 'date'
             }),
             'appointment_time': forms.TimeInput(attrs={
                 'class': 'form-control',
                 'type': 'time'
             }),
-            'service': forms.Select(attrs={'class': 'form-control'}),
-            'reason_for_visit': forms.TextInput(attrs={
+            'reason': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Brief reason for the visit'
+                'rows': 3,
+                'placeholder': 'Reason for appointment...'
             }),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Additional notes (optional)'
+                'rows': 2,
+                'placeholder': 'Additional notes...'
             }),
         }
     
@@ -175,72 +200,37 @@ class AppointmentForm(forms.ModelForm):
         return cleaned_data
 
 
-class MedicalRecordForm(forms.ModelForm):
-    """Form for creating medical records"""
+class MedicalRecordForm(forms.Form):
+    """Simple form for adding medical notes to appointments"""
     
-    class Meta:
-        model = MedicalRecord
-        fields = [
-            'diagnosis', 'symptoms', 'treatment_plan', 'medications',
-            'follow_up_required', 'follow_up_date', 'notes'
-        ]
-        widgets = {
-            'diagnosis': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Primary diagnosis'
-            }),
-            'symptoms': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Symptoms observed or reported'
-            }),
-            'treatment_plan': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Treatment plan and recommendations'
-            }),
-            'medications': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Prescribed medications'
-            }),
-            'follow_up_required': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            }),
-            'follow_up_date': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Additional notes'
-            }),
-        }
+    notes = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Medical notes and observations...'
+        }),
+        required=True,
+        help_text='Enter medical notes for this appointment'
+    )
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Set required fields
-        self.fields['diagnosis'].required = True
-        self.fields['symptoms'].required = True
-        self.fields['treatment_plan'].required = True
-        
-        # Add help text
-        self.fields['follow_up_required'].help_text = 'Check if follow-up appointment is needed'
-        self.fields['follow_up_date'].help_text = 'Recommended follow-up date'
+    diagnosis = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Diagnosis'
+        }),
+        required=False,
+        help_text='Primary diagnosis'
+    )
     
-    def clean_follow_up_date(self):
-        follow_up_date = self.cleaned_data.get('follow_up_date')
-        follow_up_required = self.cleaned_data.get('follow_up_required')
-        
-        if follow_up_required and not follow_up_date:
-            raise forms.ValidationError('Follow-up date is required when follow-up is needed.')
-        
-        if follow_up_date and follow_up_date <= timezone.now().date():
-            raise forms.ValidationError('Follow-up date must be in the future.')
-        
-        return follow_up_date
+    treatment = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 3,
+            'placeholder': 'Treatment plan...'
+        }),
+        required=False,
+        help_text='Treatment recommendations'
+    )
 
 
 class PrescriptionForm(forms.ModelForm):
@@ -295,15 +285,13 @@ class PrescriptionForm(forms.ModelForm):
 
 
 class DoctorScheduleForm(forms.ModelForm):
-    """Form for managing doctor schedules"""
+    """Form for creating and editing doctor schedules"""
     
     class Meta:
         model = DoctorSchedule
-        fields = [
-            'date', 'start_time', 'end_time', 'is_available',
-            'moze', 'notes'
-        ]
+        fields = ['doctor', 'date', 'start_time', 'end_time', 'is_available', 'max_patients', 'notes']
         widgets = {
+            'doctor': forms.Select(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
@@ -319,11 +307,15 @@ class DoctorScheduleForm(forms.ModelForm):
             'is_available': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
-            'moze': forms.Select(attrs={'class': 'form-control'}),
+            'max_patients': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'max': '50'
+            }),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Schedule notes'
+                'rows': 3,
+                'placeholder': 'Schedule notes...'
             }),
         }
     
@@ -383,6 +375,94 @@ class DoctorAvailabilityForm(forms.ModelForm):
         
         # Add help text
         self.fields['is_active'].help_text = 'Mark as available for this day'
+
+
+class PatientForm(forms.ModelForm):
+    """Form for creating and editing patients"""
+    
+    class Meta:
+        model = Patient
+        fields = [
+            'full_name', 'date_of_birth', 'gender', 'phone_number', 'email', 
+            'address', 'blood_group', 'allergies', 'medical_history',
+            'emergency_contact_name', 'emergency_contact_phone'
+        ]
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Full name'
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'patient@example.com'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Address'
+            }),
+            'blood_group': forms.Select(attrs={'class': 'form-control'}),
+            'allergies': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Known allergies...'
+            }),
+            'medical_history': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Medical history...'
+            }),
+            'emergency_contact_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Emergency contact name'
+            }),
+            'emergency_contact_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Emergency contact phone'
+            }),
+        }
+
+
+class MedicalServiceForm(forms.ModelForm):
+    """Form for creating and editing medical services"""
+    
+    class Meta:
+        model = MedicalService
+        fields = ['doctor', 'name', 'description', 'duration_minutes', 'price', 'is_active']
+        widgets = {
+            'doctor': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Service name'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Service description...'
+            }),
+            'duration_minutes': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '5',
+                'max': '480'
+            }),
+            'price': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'step': '0.01'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
 
 
 class PatientLogForm(forms.ModelForm):

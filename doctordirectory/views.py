@@ -2,27 +2,23 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+from django.http import JsonResponse, HttpResponse, Http404
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.db.models import Q, Count, Avg
-from django.http import JsonResponse
 from django.core.paginator import Paginator
+from django.urls import reverse_lazy
 from django.utils import timezone
 from datetime import datetime, timedelta, date
 from django.core.mail import send_mail
 from django.conf import settings
 
 from .models import (
-    Doctor, DoctorSchedule, PatientLog, DoctorAvailability,
-    MedicalService, Patient, Appointment, MedicalRecord, Prescription, LabTest, VitalSigns
+    Doctor, DoctorSchedule, MedicalService, Patient, Appointment
 )
 from .forms import (
-    DoctorForm, DoctorScheduleForm, PatientLogForm, DoctorAvailabilityForm,
-    AppointmentForm, MedicalRecordForm, PrescriptionForm, LabTestForm, VitalSignsForm
+    DoctorForm, DoctorScheduleForm, AppointmentForm
 )
 from accounts.models import User
-# Import mahalshifa doctors for stats
-from mahalshifa.models import Doctor as MahalShifaDoctor
 
 
 class DoctorAccessMixin(UserPassesTestMixin):
@@ -550,7 +546,7 @@ def schedule_management(request):
 
 @login_required
 def add_medical_record(request, patient_id):
-    """Add medical record for a patient"""
+    """Add medical notes for a patient"""
     user = request.user
     
     if not user.is_doctor:
@@ -566,16 +562,36 @@ def add_medical_record(request, patient_id):
         return redirect('/')
     
     if request.method == 'POST':
+        from .forms import MedicalRecordForm
         form = MedicalRecordForm(request.POST)
         if form.is_valid():
-            medical_record = form.save(commit=False)
-            medical_record.patient = patient
-            medical_record.doctor = doctor
-            medical_record.save()
+            # Since we removed MedicalRecord model, we'll add notes to the most recent appointment
+            notes = form.cleaned_data['notes']
+            diagnosis = form.cleaned_data.get('diagnosis', '')
+            treatment = form.cleaned_data.get('treatment', '')
             
-            messages.success(request, 'Medical record added successfully!')
+            # Find the most recent appointment for this patient with this doctor
+            appointment = Appointment.objects.filter(
+                patient=patient,
+                doctor=doctor
+            ).order_by('-appointment_date', '-appointment_time').first()
+            
+            if appointment:
+                # Combine the notes
+                medical_notes = f"DIAGNOSIS: {diagnosis}\n\nTREATMENT: {treatment}\n\nNOTES: {notes}"
+                if appointment.notes:
+                    appointment.notes += f"\n\n--- Medical Record Added ---\n{medical_notes}"
+                else:
+                    appointment.notes = medical_notes
+                appointment.save()
+                
+                messages.success(request, 'Medical notes added to appointment successfully!')
+            else:
+                messages.warning(request, 'No appointment found to attach medical notes.')
+            
             return redirect('doctordirectory:patient_detail', pk=patient.pk)
     else:
+        from .forms import MedicalRecordForm
         form = MedicalRecordForm()
     
     context = {
