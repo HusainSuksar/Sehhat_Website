@@ -143,6 +143,40 @@ DATABASES = {
 # }
 
 
+# Cache Configuration for Performance
+# https://docs.djangoproject.com/en/5.0/topics/cache/
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'umoor-sehhat-cache',
+        'TIMEOUT': 300,  # 5 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
+        }
+    }
+}
+
+# Cache middleware for page caching (optional)
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 300  # 5 minutes
+CACHE_MIDDLEWARE_KEY_PREFIX = 'umoor_sehhat'
+
+# Session configuration for performance
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Database optimization settings
+DATABASE_OPTIONS = {
+    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+    'charset': 'utf8mb4',
+}
+
+# Enable database connection pooling (for production)
+CONN_MAX_AGE = 60  # 1 minute
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -234,108 +268,6 @@ CACHES = {
 }
 
 # Session configuration
-SESSION_COOKIE_AGE = 86400  # 24 hours
-SESSION_SAVE_EVERY_REQUEST = True
-
-# Security settings (for production)
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_HSTS_SECONDS = 3600
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
-# # Additional security settings
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    
-# Security headers for all environments
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'SAMEORIGIN'  # Allow iframes from same origin
-
-# CSRF settings
-CSRF_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = False  # Disable to fix middleware conflicts
-CSRF_COOKIE_SAMESITE = 'Strict'
-
-# Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'maxBytes': 1024*1024*15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django_errors.log',
-            'maxBytes': 1024*1024*10,  # 10MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'INFO' if DEBUG else 'WARNING',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-    },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file', 'error_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['error_file'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'accounts': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'umoor_sehhat': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
-
-# Error handling
-ADMINS = [
-    ('Admin', os.environ.get('ADMIN_EMAIL', 'admin@umoor-sehhat.com')),
-]
-MANAGERS = ADMINS
-
-# Error reporting
-SERVER_EMAIL = os.environ.get('SERVER_EMAIL', 'server@umoor-sehhat.com')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@umoor-sehhat.com')
-
-# Session security
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

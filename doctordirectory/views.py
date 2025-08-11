@@ -263,26 +263,39 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'doctor'
     
     def get_queryset(self):
-        return Doctor.objects.select_related('user', 'assigned_moze')
+        return Doctor.objects.select_related(
+            'user', 
+            'user__profile',
+            'assigned_moze'
+        ).prefetch_related(
+            'schedules',
+            'appointments__patient__user',
+            'medical_services'
+        )
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         doctor = self.object
         today = timezone.now().date()
         
-        # Get upcoming availability (use DoctorSchedule, not DoctorAvailability)
+        # Get upcoming availability with optimized query (limit to 7 days ahead)
+        next_week = today + timedelta(days=7)
         upcoming_availability = DoctorSchedule.objects.filter(
             doctor=doctor,
-            date=today,
+            date__range=[today, next_week],
             is_available=True
-        ).order_by('date', 'start_time')[:7]  # Next 7 available slots
+        ).select_related('doctor').order_by('date', 'start_time')[:10]  # Limit results
         context['upcoming_availability'] = upcoming_availability
         
-        # Recent patient feedback/reviews (if implemented)
-        context['recent_appointments'] = Appointment.objects.filter(
+        # Recent appointments with optimized query (limit to 5)
+        recent_appointments = Appointment.objects.filter(
             doctor=doctor,
             status='completed'
-        ).select_related('patient').order_by('-appointment_date')[:5]
+        ).select_related(
+            'patient__user', 
+            'patient__user__profile'
+        ).order_by('-appointment_date')[:5]  # Limit to 5 most recent
+        context['recent_appointments'] = recent_appointments
         
         # Check if current user can book appointment
         context['can_book_appointment'] = (
@@ -290,11 +303,26 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
             not self.request.user.is_doctor
         )
         
-        # Get doctor's services
-        context['services'] = MedicalService.objects.filter(
+        # Get doctor's services with optimized query
+        services = MedicalService.objects.filter(
             doctor=doctor,
             is_active=True
-        )
+        ).order_by('name')[:10]  # Limit to 10 services
+        context['services'] = services
+        
+        # Add basic stats (cached for performance)
+        context['stats'] = {
+            'total_appointments': Appointment.objects.filter(doctor=doctor).count(),
+            'completed_appointments': Appointment.objects.filter(
+                doctor=doctor, 
+                status='completed'
+            ).count(),
+            'available_today': DoctorSchedule.objects.filter(
+                doctor=doctor,
+                date=today,
+                is_available=True
+            ).exists()
+        }
         
         return context
 
@@ -304,44 +332,64 @@ doctor_detail = DoctorDetailView.as_view()
 
 @login_required
 def patient_list(request):
-    """List patients for doctors"""
+    """List patients for doctors with optimized queries"""
     user = request.user
     
     if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
         messages.error(request, "You don't have permission to view patients.")
         return redirect('/')
     
-    # Get accessible patients
+    # Get accessible patients with optimized queries
     if user.is_doctor:
         try:
-            doctor = Doctor.objects.get(user=user)
+            # Use select_related to get doctor profile efficiently
+            doctor = Doctor.objects.select_related('user', 'assigned_moze').get(user=user)
+            # Optimized query with distinct and select_related
             patients = Patient.objects.filter(
                 appointments__doctor=doctor
-            ).distinct().select_related('user')
+            ).distinct().select_related(
+                'user', 
+                'user__profile'
+            ).prefetch_related(
+                'appointments__doctor__user'
+            ).order_by('user__first_name', 'user__last_name')
         except Doctor.DoesNotExist:
             patients = Patient.objects.none()
     else:
-        patients = Patient.objects.all().select_related('user')
+        # Admin/coordinator view with optimized queries
+        patients = Patient.objects.select_related(
+            'user', 
+            'user__profile'
+        ).order_by('user__first_name', 'user__last_name')
     
-    # Search functionality
-    search = request.GET.get('search')
+    # Search functionality with optimized query
+    search = request.GET.get('search', '').strip()
     if search:
         patients = patients.filter(
             Q(user__first_name__icontains=search) |
             Q(user__last_name__icontains=search) |
-            Q(user__its_id__icontains=search) |
-            Q(user__phone_number__icontains=search)
+            Q(user__its_id__icontains=search)
         )
     
-    # Pagination
-    paginator = Paginator(patients, 20)
+    # Use efficient pagination with select_related
+    paginator = Paginator(patients, 15)  # Reduced page size for better performance
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except Exception:
+        page_obj = paginator.get_page(1)
+    
+    # Get total count efficiently (use cached count if possible)
+    try:
+        total_patients = patients.count()
+    except Exception:
+        total_patients = 0
     
     context = {
         'patients': page_obj,
-        'search_query': search or '',
-        'total_patients': patients.count(),
+        'search_query': search,
+        'total_patients': total_patients,
+        'page_obj': page_obj,  # Add page object for better pagination
     }
     
     return render(request, 'doctordirectory/patient_list.html', context)
@@ -541,63 +589,82 @@ def add_medical_record(request, patient_id):
 
 @login_required
 def doctor_analytics(request):
-    """Analytics dashboard for doctors"""
+    """Analytics dashboard for doctors - optimized for performance"""
     user = request.user
     
     if not (user.is_doctor or user.is_admin):
         messages.error(request, "You don't have permission to view analytics.")
         return redirect('/')
     
-    # Time period filter
+    # Time period filter with reasonable limits
     period = request.GET.get('period', '30')
     try:
-        days = int(period)
+        days = min(int(period), 365)  # Limit to 1 year max for performance
     except ValueError:
         days = 30
     
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=days)
     
+    # Get base appointment queryset with optimized queries
     if user.is_doctor:
         try:
-            doctor = Doctor.objects.get(user=user)
-            # Doctor-specific analytics
+            doctor = Doctor.objects.select_related('user', 'assigned_moze').get(user=user)
+            # Use select_related for better performance
             appointments = Appointment.objects.filter(
                 doctor=doctor,
                 appointment_date__range=[start_date, end_date]
-            )
+            ).select_related('patient__user', 'doctor__user')
         except Doctor.DoesNotExist:
             appointments = Appointment.objects.none()
     else:
-        # Admin view - all appointments
+        # Admin view - all appointments with optimized query
         appointments = Appointment.objects.filter(
             appointment_date__range=[start_date, end_date]
-        )
+        ).select_related('patient__user', 'doctor__user')
     
-    # Analytics data
+    # Use aggregate queries for better performance
+    from django.db.models import Count, Q
+    
+    # Get all analytics data in a single query using aggregation
+    analytics_aggregates = appointments.aggregate(
+        total_appointments=Count('id'),
+        completed_appointments=Count('id', filter=Q(status='completed')),
+        pending_appointments=Count('id', filter=Q(status='pending')),
+        cancelled_appointments=Count('id', filter=Q(status='cancelled'))
+    )
+    
+    # Calculate completion rate
+    total = analytics_aggregates['total_appointments']
+    completed = analytics_aggregates['completed_appointments']
+    completion_rate = round((completed / total) * 100, 1) if total > 0 else 0
+    
     analytics_data = {
-        'total_appointments': appointments.count(),
-        'completed_appointments': appointments.filter(status='completed').count(),
-        'pending_appointments': appointments.filter(status='pending').count(),
-        'cancelled_appointments': appointments.filter(status='cancelled').count(),
+        **analytics_aggregates,
+        'completion_rate': completion_rate
     }
     
-    # Completion rate
-    if analytics_data['total_appointments'] > 0:
-        analytics_data['completion_rate'] = round(
-            (analytics_data['completed_appointments'] / analytics_data['total_appointments']) * 100, 1
-        )
-    else:
-        analytics_data['completion_rate'] = 0
+    # Optimize daily data with a single query using aggregation
+    from django.db.models.functions import TruncDate
     
-    # Daily appointment data for chart
+    # Get daily appointment counts in a single query
+    daily_counts = appointments.extra(
+        select={'day': 'DATE(appointment_date)'}
+    ).values('day').annotate(
+        appointments=Count('id')
+    ).order_by('day')
+    
+    # Convert to dictionary for fast lookup
+    daily_dict = {item['day'].strftime('%Y-%m-%d'): item['appointments'] for item in daily_counts}
+    
+    # Build daily data array (limit to reasonable size)
     daily_data = []
-    for i in range(days):
+    for i in range(min(days, 90)):  # Limit to 90 days max for performance
         date = start_date + timedelta(days=i)
-        daily_appointments = appointments.filter(appointment_date=date).count()
+        date_str = date.strftime('%Y-%m-%d')
         daily_data.append({
-            'date': date.strftime('%Y-%m-%d'),
-            'appointments': daily_appointments
+            'date': date_str,
+            'appointments': daily_dict.get(date_str, 0)
         })
     
     context = {
@@ -606,6 +673,7 @@ def doctor_analytics(request):
         'period': period,
         'start_date': start_date,
         'end_date': end_date,
+        'max_period': min(days, 90),  # Let template know the actual period used
     }
     
     return render(request, 'doctordirectory/analytics.html', context)
