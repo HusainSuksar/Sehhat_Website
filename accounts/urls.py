@@ -12,10 +12,10 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
 
     # Dashboard URL
-    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 
     # Profile URLs
-    path('profile/', views.profile_view, name='profile'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/edit/', views.EditProfileView.as_view(), name='edit_profile'),
     
     # Password management
