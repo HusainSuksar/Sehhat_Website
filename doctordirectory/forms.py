@@ -166,8 +166,8 @@ class PatientForm(forms.ModelForm):
         model = Patient
         fields = [
             'full_name', 'date_of_birth', 'gender', 'phone_number', 'email', 
-            'address', 'blood_group', 'allergies', 'medical_history',
-            'emergency_contact_name', 'emergency_contact_phone'
+            'address', 'blood_type', 'allergies', 'medical_history', 'current_medications',
+            'emergency_contact', 'emergency_phone'
         ]
         widgets = {
             'full_name': forms.TextInput(attrs={
@@ -192,7 +192,7 @@ class PatientForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Address'
             }),
-            'blood_group': forms.Select(attrs={'class': 'form-control'}),
+            'blood_type': forms.Select(attrs={'class': 'form-control'}),
             'allergies': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 2,
@@ -203,11 +203,16 @@ class PatientForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Medical history...'
             }),
-            'emergency_contact_name': forms.TextInput(attrs={
+            'current_medications': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Current medications...'
+            }),
+            'emergency_contact': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Emergency contact name'
             }),
-            'emergency_contact_phone': forms.TextInput(attrs={
+            'emergency_phone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Emergency contact phone'
             }),

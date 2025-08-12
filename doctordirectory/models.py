@@ -98,12 +98,17 @@ class Doctor(models.Model):
     
     @property
     def total_patients(self):
-        """Get total number of patients treated"""
-        return self.appointments.values('patient').distinct().count()
+        """Get total number of patients for this doctor"""
+        return self.patients.count()
+    
+    @property
+    def total_appointments(self):
+        """Get total number of appointments for this doctor"""
+        return self.appointments.count()
 
 
 class Patient(models.Model):
-    """Patient model"""
+    """Patient model for the doctor directory"""
     
     user_account = models.OneToOneField(
         User,
@@ -112,8 +117,6 @@ class Patient(models.Model):
         null=True,
         blank=True
     )
-    
-    # Personal Information
     full_name = models.CharField(max_length=200)
     date_of_birth = models.DateField()
     gender = models.CharField(
@@ -124,8 +127,6 @@ class Patient(models.Model):
             ('other', 'Other')
         ]
     )
-    
-    # Contact Information
     phone_number = models.CharField(
         max_length=15,
         validators=[RegexValidator(
@@ -135,30 +136,33 @@ class Patient(models.Model):
     )
     email = models.EmailField(blank=True, null=True)
     address = models.TextField()
+    emergency_contact = models.CharField(max_length=200, blank=True, null=True)
+    emergency_phone = models.CharField(max_length=15, blank=True, null=True)
     
     # Medical Information
-    blood_group = models.CharField(
+    blood_type = models.CharField(
         max_length=5,
         choices=[
             ('A+', 'A+'), ('A-', 'A-'),
             ('B+', 'B+'), ('B-', 'B-'),
             ('AB+', 'AB+'), ('AB-', 'AB-'),
-            ('O+', 'O+'), ('O-', 'O-'),
+            ('O+', 'O+'), ('O-', 'O-')
         ],
         blank=True,
         null=True
     )
     allergies = models.TextField(blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
+    current_medications = models.TextField(blank=True, null=True)
     
-    # Emergency Contact
-    emergency_contact_name = models.CharField(max_length=200)
-    emergency_contact_phone = models.CharField(
-        max_length=15,
-        validators=[RegexValidator(
-            regex=r'^\+?1?\d{9,15}$',
-            message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.'
-        )]
+    # System fields
+    is_active = models.BooleanField(default=True)
+    assigned_moze = models.ForeignKey(
+        'moze.Moze',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_patients'
     )
     
     # Metadata
@@ -171,11 +175,11 @@ class Patient(models.Model):
         verbose_name_plural = 'Patients'
         # Add database indexes for performance
         indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['assigned_moze']),
             models.Index(fields=['full_name']),
-            models.Index(fields=['phone_number']),
-            models.Index(fields=['user_account']),
-            models.Index(fields=['created_at']),
             models.Index(fields=['date_of_birth']),
+            models.Index(fields=['created_at']),
         ]
     
     def __str__(self):
@@ -183,50 +187,52 @@ class Patient(models.Model):
     
     @property
     def age(self):
-        """Calculate age from date of birth"""
+        """Calculate patient age"""
         today = timezone.now().date()
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+    
+    @property
+    def total_appointments(self):
+        """Get total number of appointments for this patient"""
+        return self.appointments.count()
 
 
 class Appointment(models.Model):
-    """Appointment model"""
+    """Appointment model for scheduling doctor visits"""
     
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
+        ('scheduled', 'Scheduled'),
         ('confirmed', 'Confirmed'),
+        ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('no_show', 'No Show'),
+        ('no_show', 'No Show')
     ]
     
-    doctor = models.ForeignKey(
-        Doctor,
-        on_delete=models.CASCADE,
-        related_name='appointments'
-    )
     patient = models.ForeignKey(
         Patient,
         on_delete=models.CASCADE,
         related_name='appointments'
     )
-    
+    doctor = models.ForeignKey(
+        Doctor,
+        on_delete=models.CASCADE,
+        related_name='appointments'
+    )
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
+    duration_minutes = models.PositiveIntegerField(default=30)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='pending'
+        default='scheduled'
     )
-    
-    # Appointment details
-    reason = models.TextField(
-        help_text='Reason for the appointment'
-    )
+    reason = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
-    # Metadata
+    # System fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -257,6 +263,76 @@ class Appointment(models.Model):
     
     def __str__(self):
         return f"{self.patient.full_name} - {self.doctor.get_full_name()} on {self.appointment_date}"
+
+
+class PatientLog(models.Model):
+    """Patient visit log for tracking consultations"""
+    
+    VISIT_TYPE_CHOICES = [
+        ('consultation', 'Consultation'),
+        ('follow_up', 'Follow-up'),
+        ('emergency', 'Emergency'),
+        ('screening', 'Screening')
+    ]
+    
+    patient_its_id = models.CharField(
+        max_length=8,
+        validators=[RegexValidator(
+            regex=r'^\d{8}$',
+            message='Patient ITS ID must be exactly 8 digits'
+        )]
+    )
+    patient_name = models.CharField(max_length=100, blank=True, null=True)
+    ailment = models.TextField()
+    symptoms = models.TextField(blank=True, null=True)
+    diagnosis = models.TextField(blank=True, null=True)
+    prescription = models.TextField(blank=True, null=True)
+    follow_up_required = models.BooleanField(default=False)
+    follow_up_date = models.DateField(blank=True, null=True)
+    visit_type = models.CharField(
+        max_length=20,
+        choices=VISIT_TYPE_CHOICES,
+        default='consultation'
+    )
+    
+    # Relationships
+    moze = models.ForeignKey(
+        'moze.Moze',
+        on_delete=models.CASCADE,
+        related_name='patient_logs'
+    )
+    schedule = models.ForeignKey(
+        'DoctorSchedule',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='patient_logs'
+    )
+    seen_by = models.ForeignKey(
+        Doctor,
+        on_delete=models.CASCADE,
+        related_name='patient_logs'
+    )
+    
+    # Metadata
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Patient Log'
+        verbose_name_plural = 'Patient Logs'
+        # Add database indexes for performance
+        indexes = [
+            models.Index(fields=['patient_its_id']),
+            models.Index(fields=['seen_by', 'timestamp']),
+            models.Index(fields=['moze', 'timestamp']),
+            models.Index(fields=['visit_type']),
+            models.Index(fields=['follow_up_required']),
+        ]
+    
+    def __str__(self):
+        return f"{self.patient_name} - {self.ailment} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
 
 
 class DoctorSchedule(models.Model):

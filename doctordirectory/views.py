@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from .models import (
-    Doctor, DoctorSchedule, MedicalService, Patient, Appointment
+    Doctor, DoctorSchedule, MedicalService, Patient, Appointment, PatientLog
 )
 from .forms import (
     DoctorForm, DoctorScheduleForm, AppointmentForm

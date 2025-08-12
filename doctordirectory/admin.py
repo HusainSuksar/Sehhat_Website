@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
 from .models import (
-    Doctor, DoctorSchedule, MedicalService, Patient, Appointment
+    Doctor, DoctorSchedule, MedicalService, Patient, Appointment, PatientLog
 )
 
 
@@ -69,7 +69,7 @@ class DoctorAdmin(admin.ModelAdmin):
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
     list_display = ['full_name', 'user_account', 'phone_number', 'date_of_birth', 'gender', 'get_age', 'get_appointment_count', 'created_at']
-    list_filter = ['gender', 'blood_group', 'created_at']
+    list_filter = ['gender', 'blood_type', 'created_at']
     search_fields = ['full_name', 'phone_number', 'email', 'user_account__first_name', 'user_account__last_name']
     readonly_fields = ['created_at', 'updated_at', 'get_age']
     ordering = ['full_name']
@@ -82,10 +82,10 @@ class PatientAdmin(admin.ModelAdmin):
             'fields': ('phone_number', 'email', 'address')
         }),
         ('Medical Information', {
-            'fields': ('blood_group', 'allergies', 'medical_history')
+            'fields': ('blood_type', 'allergies', 'medical_history', 'current_medications')
         }),
         ('Emergency Contact', {
-            'fields': ('emergency_contact_name', 'emergency_contact_phone')
+            'fields': ('emergency_contact', 'emergency_phone')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
