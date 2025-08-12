@@ -37,7 +37,7 @@ class MedicalServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = MedicalService
         fields = [
-            'id', 'name', 'description', 'duration_minutes', 'price', 
+            'id', 'name', 'description', 'duration_minutes', 'fee', 
             'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -73,20 +73,19 @@ class DoctorSerializer(serializers.ModelSerializer):
     assigned_moze_id = serializers.PrimaryKeyRelatedField(
         queryset=Moze.objects.all(), write_only=True, source='assigned_moze', required=False
     )
-    medical_services = MedicalServiceSerializer(many=True, read_only=True)
-    total_patients = serializers.ReadOnlyField()
+    services = MedicalServiceSerializer(many=True, read_only=True)
     
     class Meta:
         model = Doctor
         fields = [
             'id', 'user', 'user_id', 'license_number', 'specialty', 'qualification',
-            'experience_years', 'consultation_fee', 'bio', 'profile_photo',
-            'phone_number', 'email', 'address', 'hospital_affiliation',
-            'consultation_hours', 'is_active', 'is_accepting_patients',
-            'assigned_moze', 'assigned_moze_id', 'medical_services',
-            'total_patients', 'created_at', 'updated_at'
+            'experience_years', 'consultation_fee', 'bio',
+            'phone', 'email', 'address', 'languages_spoken',
+            'is_verified', 'is_available',
+            'assigned_moze', 'assigned_moze_id', 'services',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'total_patients']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class DoctorCreateSerializer(serializers.ModelSerializer):
@@ -94,50 +93,50 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = [
             'license_number', 'specialty', 'qualification', 'experience_years',
-            'consultation_fee', 'bio', 'phone_number', 'email', 'address',
-            'hospital_affiliation', 'is_active', 'is_accepting_patients',
+            'consultation_fee', 'bio', 'phone', 'email', 'address',
+            'languages_spoken', 'is_verified', 'is_available',
             'assigned_moze'
         ]
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    user_account = UserBasicSerializer(read_only=True)
-    user_account_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True, source='user_account', required=False
+    user = UserBasicSerializer(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True, source='user', required=False
     )
-    age = serializers.ReadOnlyField()
     
     class Meta:
         model = Patient
         fields = [
-            'id', 'user_account', 'user_account_id', 'full_name', 'date_of_birth',
-            'gender', 'phone_number', 'email', 'address', 'blood_group',
-            'allergies', 'medical_history', 'emergency_contact_name',
-            'emergency_contact_phone', 'age', 'created_at', 'updated_at'
+            'id', 'user', 'user_id', 'date_of_birth', 'gender',
+            'blood_group', 'emergency_contact', 'medical_history', 'allergies',
+            'current_medications', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'age']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class PatientCreateSerializer(serializers.ModelSerializer):
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True, source='user'
+    )
+
     class Meta:
         model = Patient
         fields = [
-            'full_name', 'date_of_birth', 'gender', 'phone_number', 'email',
-            'address', 'blood_group', 'allergies', 'medical_history',
-            'emergency_contact_name', 'emergency_contact_phone'
+            'user_id', 'date_of_birth', 'gender', 'blood_group', 'medical_history',
+            'allergies', 'current_medications', 'emergency_contact'
         ]
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer(read_only=True)
     doctor_id = serializers.PrimaryKeyRelatedField(
-        queryset=Doctor.objects.filter(is_active=True), write_only=True, source='doctor'
+        queryset=Doctor.objects.all(), write_only=True, source='doctor'
     )
     patient = PatientSerializer(read_only=True)
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(), write_only=True, source='patient'
     )
-    created_by = UserBasicSerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
@@ -145,9 +144,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'doctor', 'doctor_id', 'patient', 'patient_id',
             'appointment_date', 'appointment_time', 'status', 'status_display',
-            'reason', 'notes', 'created_by', 'created_at', 'updated_at'
+            'reason_for_visit', 'notes', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'created_by']
+        read_only_fields = ['created_at', 'updated_at']
     
     def validate_appointment_date(self, value):
         if value < timezone.now().date():
@@ -160,7 +159,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = [
             'doctor', 'patient', 'appointment_date', 'appointment_time',
-            'reason', 'notes'
+            'reason_for_visit', 'notes'
         ]
     
     def validate_appointment_date(self, value):
