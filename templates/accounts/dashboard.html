@@ -121,7 +121,7 @@
         font-size: 1.1rem;
     }
 
-    /* 🎯 ENHANCED STATS CARDS */
+    /* 🎯 ENHANCED STATS CARDS WITH HYPERLINKS */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -138,6 +138,10 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
     }
 
     .stat-card::before {
@@ -153,6 +157,12 @@
     .stat-card:hover {
         transform: translateY(-4px);
         box-shadow: var(--shadow-xl);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .stat-card:active {
+        transform: translateY(-2px);
     }
 
     .stat-header {
@@ -227,8 +237,8 @@
         color: var(--error-color);
     }
 
-    /* 🎯 ENHANCED QUICK ACTIONS */
-    .quick-actions {
+    /* 🎯 ENHANCED AUDIT LOGS FOR ADMINS */
+    .audit-logs {
         background: rgba(255, 255, 255, 0.95);
         border-radius: var(--border-radius-lg);
         padding: 2rem;
@@ -237,7 +247,7 @@
         margin-bottom: 3rem;
     }
 
-    .quick-actions h3 {
+    .audit-logs h3 {
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--text-dark);
@@ -247,38 +257,57 @@
         gap: 0.75rem;
     }
 
-    .actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
     }
 
-    .action-btn {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.25rem;
+    .audit-table th {
         background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        text-decoration: none;
-        color: var(--text-dark);
+        padding: 1rem;
+        text-align: left;
         font-weight: 600;
-        transition: all 0.3s ease;
+        color: var(--text-dark);
+        border-bottom: 2px solid var(--border-color);
     }
 
-    .action-btn:hover {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        text-decoration: none;
+    .audit-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
     }
 
-    .action-btn i {
-        font-size: 1.5rem;
-        width: 40px;
-        text-align: center;
+    .audit-table tbody tr:hover {
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .audit-action {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .audit-action.create {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
+
+    .audit-action.update {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary-color);
+    }
+
+    .audit-action.delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error-color);
+    }
+
+    .audit-action.login {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
     }
 
     /* 🎯 ENHANCED RECENT ACTIVITY */
@@ -366,13 +395,18 @@
             gap: 1rem;
         }
         
-        .actions-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .quick-actions,
+        .audit-logs,
         .recent-activity {
             padding: 1.5rem;
+        }
+        
+        .audit-table {
+            font-size: 0.9rem;
+        }
+        
+        .audit-table th,
+        .audit-table td {
+            padding: 0.75rem;
         }
     }
 </style>
@@ -408,9 +442,9 @@
         </div>
     </div>
 
-    <!-- 🎯 ENHANCED STATS GRID WITH REAL DATA -->
+    <!-- 🎯 ENHANCED STATS GRID WITH HYPERLINKS -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <a href="{% url 'accounts:user_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_users|default:"0" }}</div>
@@ -424,9 +458,9 @@
                     <i class="fas fa-users"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_doctors|default:"0" }}</div>
@@ -440,9 +474,9 @@
                     <i class="fas fa-stethoscope"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'students:student_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_students|default:"0" }}</div>
@@ -456,9 +490,9 @@
                     <i class="fas fa-graduation-cap"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'moze:list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_moze|default:"0" }}</div>
@@ -472,9 +506,9 @@
                     <i class="fas fa-mosque"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'araz:petition_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_petitions|default:"0" }}</div>
@@ -488,9 +522,9 @@
                     <i class="fas fa-file-alt"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:hospital_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_hospitals|default:"0" }}</div>
@@ -504,9 +538,9 @@
                     <i class="fas fa-hospital"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'surveys:list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_surveys|default:"0" }}</div>
@@ -520,9 +554,9 @@
                     <i class="fas fa-poll"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="stat-card">
+        <a href="{% url 'photos:album_list' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_albums|default:"0" }}</div>
@@ -536,50 +570,64 @@
                     <i class="fas fa-images"></i>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <!-- 🎯 ENHANCED QUICK ACTIONS -->
-    <div class="quick-actions">
+    <!-- 🎯 ENHANCED AUDIT LOGS FOR ADMINS ONLY -->
+    {% if user.is_admin %}
+    <div class="audit-logs">
         <h3>
-            <i class="fas fa-bolt"></i>
-            Quick Actions
+            <i class="fas fa-shield-alt"></i>
+            System Audit Logs
         </h3>
-        <div class="actions-grid">
-            <a href="{% url 'araz:petition_list' %}" class="action-btn">
-                <i class="fas fa-file-alt"></i>
-                <span>View Petitions ({{ total_petitions|default:"0" }})</span>
-            </a>
-            <a href="{% url 'students:student_list' %}" class="action-btn">
-                <i class="fas fa-graduation-cap"></i>
-                <span>Manage Students ({{ total_students|default:"0" }})</span>
-            </a>
-            <a href="{% url 'doctordirectory:doctor_list' %}" class="action-btn">
-                <i class="fas fa-user-md"></i>
-                <span>Doctor Directory ({{ total_doctors|default:"0" }})</span>
-            </a>
-            <a href="{% url 'mahalshifa:hospital_list' %}" class="action-btn">
-                <i class="fas fa-hospital"></i>
-                <span>Hospital Management ({{ total_hospitals|default:"0" }})</span>
-            </a>
-            <a href="{% url 'moze:list' %}" class="action-btn">
-                <i class="fas fa-building"></i>
-                <span>Moze Management ({{ total_moze|default:"0" }})</span>
-            </a>
-            <a href="{% url 'evaluation:form_list' %}" class="action-btn">
-                <i class="fas fa-chart-line"></i>
-                <span>Evaluations</span>
-            </a>
-            <a href="{% url 'surveys:list' %}" class="action-btn">
-                <i class="fas fa-poll"></i>
-                <span>Surveys ({{ total_surveys|default:"0" }})</span>
-            </a>
-            <a href="{% url 'photos:album_list' %}" class="action-btn">
-                <i class="fas fa-images"></i>
-                <span>Photo Gallery ({{ total_albums|default:"0" }})</span>
+        <div class="table-responsive">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>IP Address</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs|slice:":10" %}
+                    <tr>
+                        <td>
+                            <strong>{{ log.user.get_full_name|default:log.user.username }}</strong>
+                            <br>
+                            <small class="text-muted">{{ log.user.role|title }}</small>
+                        </td>
+                        <td>
+                            <span class="audit-action {{ log.action|lower }}">
+                                {{ log.action|title }}
+                            </span>
+                        </td>
+                        <td>{{ log.resource|default:"N/A" }}</td>
+                        <td>
+                            <code>{{ log.ip_address|default:"N/A" }}</code>
+                        </td>
+                        <td>{{ log.timestamp|timesince }} ago</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No audit logs available
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'accounts:audit_logs' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>View All Audit Logs
             </a>
         </div>
     </div>
+    {% endif %}
 
     <!-- 🎯 ENHANCED RECENT ACTIVITY WITH REAL DATA -->
     <div class="recent-activity">

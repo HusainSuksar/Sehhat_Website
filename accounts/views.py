@@ -572,6 +572,15 @@ def dashboard(request):
         'new_surveys': Survey.objects.filter(created_at__date__gte=last_30_days).count(),
     }
     
+    # Get audit logs for admin users
+    audit_logs = []
+    if user.is_admin:
+        try:
+            audit_logs = AuditLog.objects.select_related('user').order_by('-timestamp')[:10]
+        except:
+            # If AuditLog model doesn't exist, create empty list
+            audit_logs = []
+    
     context = {
         'user': user,
         'total_users': total_users,
@@ -587,6 +596,7 @@ def dashboard(request):
         'recent_petitions': recent_petitions,
         'recent_surveys': recent_surveys,
         'monthly_stats': monthly_stats,
+        'audit_logs': audit_logs,
         'today': timezone.now().date(),
         'now': timezone.now(),
     }
