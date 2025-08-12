@@ -19,6 +19,7 @@ from .forms import (
     DoctorForm, DoctorScheduleForm, AppointmentForm
 )
 from accounts.models import User
+from mahalshifa.models import Doctor as MahalShifaDoctor, MedicalRecord
 
 
 class DoctorAccessMixin(UserPassesTestMixin):
