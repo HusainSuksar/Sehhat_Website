@@ -254,7 +254,10 @@ def download_template(request, upload_type):
         template = UploadTemplate.objects.get(upload_type=upload_type, is_active=True)
         
         # Create Excel file with template
-        from openpyxl import Workbook
+        try:
+            from openpyxl import Workbook
+        except ImportError as exc:
+            return JsonResponse({'error': 'openpyxl is required to generate Excel templates.'}, status=500)
         wb = Workbook()
         ws = wb.active
         ws.title = f"{template.name} Template"

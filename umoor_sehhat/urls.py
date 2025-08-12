@@ -50,7 +50,7 @@ urlpatterns = [
     # App URLs
     path('accounts/', include('accounts.urls')),
     path('araz/', include('araz.urls')),
-    path('doctordirectory/', include('doctordirectory.urls')),
+    # path('doctordirectory/', include('doctordirectory.urls')),
     path('mahalshifa/', include('mahalshifa.urls')),
     path('students/', include('students.urls')),
     path('moze/', include('moze.urls')),
@@ -61,8 +61,8 @@ urlpatterns = [
 
     # API URLs
     path('api/', include('accounts.api_urls')),
-    path('api/araz/', include('araz.api_urls')),
-    path('api/doctordirectory/', include('doctordirectory.api_urls')),
+    path('api/araz/', include(('araz.api_urls', 'araz_api'), namespace='araz_api')),
+    # path('api/doctordirectory/', include('doctordirectory.api_urls')),
     path('api/mahalshifa/', include('mahalshifa.api_urls')),
     path('api/students/', include('students.api_urls')),
     path('api/moze/', include('moze.api_urls')),

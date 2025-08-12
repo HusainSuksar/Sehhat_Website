@@ -17,8 +17,8 @@ class DoctorForm(forms.ModelForm):
         model = Doctor
         fields = [
             'license_number', 'specialty', 'qualification', 'experience_years', 
-            'consultation_fee', 'bio', 'hospital_affiliation', 'phone_number', 
-            'email', 'address', 'is_active', 'is_accepting_patients', 'assigned_moze'
+            'consultation_fee', 'bio', 'phone', 
+            'email', 'address', 'is_verified', 'is_available', 'assigned_moze'
         ]
         widgets = {
             'license_number': forms.TextInput(attrs={
@@ -29,9 +29,8 @@ class DoctorForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Medical specialty'
             }),
-            'qualification': forms.Textarea(attrs={
+            'qualification': forms.TextInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
                 'placeholder': 'Medical qualifications'
             }),
             'experience_years': forms.NumberInput(attrs={
@@ -49,11 +48,7 @@ class DoctorForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Brief professional biography...'
             }),
-            'hospital_affiliation': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Hospital affiliation'
-            }),
-            'phone_number': forms.TextInput(attrs={
+            'phone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '+1234567890'
             }),
@@ -66,10 +61,10 @@ class DoctorForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Address'
             }),
-            'is_active': forms.CheckboxInput(attrs={
+            'is_verified': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
-            'is_accepting_patients': forms.CheckboxInput(attrs={
+            'is_available': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
             'assigned_moze': forms.Select(attrs={'class': 'form-control'}),
@@ -128,7 +123,7 @@ class AppointmentForm(forms.ModelForm):
     
     class Meta:
         model = Appointment
-        fields = ['doctor', 'patient', 'appointment_date', 'appointment_time', 'reason', 'notes']
+        fields = ['doctor', 'patient', 'appointment_date', 'appointment_time', 'reason_for_visit', 'notes']
         widgets = {
             'doctor': forms.Select(attrs={'class': 'form-control'}),
             'patient': forms.Select(attrs={'class': 'form-control'}),
@@ -140,7 +135,7 @@ class AppointmentForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'time'
             }),
-            'reason': forms.Textarea(attrs={
+            'reason_for_visit': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Reason for appointment...'
@@ -165,51 +160,34 @@ class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
         fields = [
-            'full_name', 'date_of_birth', 'gender', 'phone_number', 'email', 
-            'address', 'blood_group', 'allergies', 'medical_history',
-            'emergency_contact_name', 'emergency_contact_phone'
+            'date_of_birth', 'gender', 'blood_group', 'medical_history', 'allergies',
+            'current_medications', 'emergency_contact'
         ]
         widgets = {
-            'full_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Full name'
-            }),
             'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
             }),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '+1234567890'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'patient@example.com'
-            }),
-            'address': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Address'
-            }),
             'blood_group': forms.Select(attrs={'class': 'form-control'}),
-            'allergies': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Known allergies...'
-            }),
             'medical_history': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Medical history...'
             }),
-            'emergency_contact_name': forms.TextInput(attrs={
+            'allergies': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Emergency contact name'
+                'rows': 2,
+                'placeholder': 'Known allergies...'
             }),
-            'emergency_contact_phone': forms.TextInput(attrs={
+            'current_medications': forms.Textarea(attrs={
                 'class': 'form-control',
-                'placeholder': 'Emergency contact phone'
+                'rows': 2,
+                'placeholder': 'Current medications...'
+            }),
+            'emergency_contact': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
             }),
         }
 
@@ -219,7 +197,7 @@ class MedicalServiceForm(forms.ModelForm):
     
     class Meta:
         model = MedicalService
-        fields = ['doctor', 'name', 'description', 'duration_minutes', 'price', 'is_active']
+        fields = ['doctor', 'name', 'description', 'duration_minutes', 'fee', 'is_active']
         widgets = {
             'doctor': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={
@@ -236,7 +214,7 @@ class MedicalServiceForm(forms.ModelForm):
                 'min': '5',
                 'max': '480'
             }),
-            'price': forms.NumberInput(attrs={
+            'fee': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
                 'step': '0.01'

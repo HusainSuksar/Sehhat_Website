@@ -8,8 +8,6 @@ from datetime import datetime, date
 from decimal import Decimal
 import re
 
-import openpyxl
-import xlrd
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -44,6 +42,10 @@ class FileProcessor:
         data = []
         
         if self.file_type == 'xlsx':
+            try:
+                import openpyxl  # Lazy import to avoid hard dependency at module import time
+            except ImportError as exc:
+                raise ImportError("openpyxl is required to process .xlsx files. Please install openpyxl.") from exc
             workbook = openpyxl.load_workbook(self.file_path)
             sheet = workbook.active
             
@@ -69,6 +71,10 @@ class FileProcessor:
                     data.append(row_data)
         
         elif self.file_type == 'xls':
+            try:
+                import xlrd  # Lazy import
+            except ImportError as exc:
+                raise ImportError("xlrd is required to process .xls files. Please install xlrd.") from exc
             workbook = xlrd.open_workbook(self.file_path)
             sheet = workbook.sheet_by_index(0)
             
