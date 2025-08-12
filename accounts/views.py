@@ -587,6 +587,8 @@ def dashboard(request):
         'recent_petitions': recent_petitions,
         'recent_surveys': recent_surveys,
         'monthly_stats': monthly_stats,
+        'today': timezone.now().date(),
+        'now': timezone.now(),
     }
     
     return render(request, 'accounts/dashboard.html', context)
