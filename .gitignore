@@ -70,20 +70,22 @@ cleanup_*_data.py
 
 # PythonAnywhere & Production
 *pythonanywhere*
-*production*
 settings_pythonanywhere.py
-settings_production.py
 .env.pythonanywhere*
-.env.production*
 requirements_pythonanywhere.txt
-requirements_production.txt
 deploy_pythonanywhere.sh
 pythonanywhere_*.py
 health_check.py
 manage_database.py
 
+# Production files (allow these)
+!umoor_sehhat/production.py
+!umoor_sehhat/wsgi_production.py
+!deploy_production.sh
+!gunicorn.conf.py
+!.env.production
+
 # Deployment & Infrastructure
-deploy*.sh
 quick_setup.sh
 backup/
 monitoring/
@@ -91,17 +93,24 @@ nginx/
 systemd/
 services/
 
+# Production deployment (allow these)
+!deploy_production.sh
+!gunicorn.conf.py
+
 # Documentation (temporary files)
 *TESTING_GUIDE.md
 *SETUP_GUIDE.md
 *DEPLOYMENT_GUIDE.md
 *PYTHONANYWHERE*.md
-*PRODUCTION*.md
 API_TESTING_GUIDE.md
 OFFLINE_SETUP_GUIDE.md
 QUICK_FIX_INSTRUCTIONS.md
 POPULATE_DASHBOARD_DATA.md
 PHOTOS_FAKE_DATA*.md
+
+# Production documentation (allow these)
+!PRODUCTION_DEPLOYMENT.md
+!PRODUCTION_READINESS_SUMMARY.md
 
 # Security
 .env
@@ -109,3 +118,6 @@ PHOTOS_FAKE_DATA*.md
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Allow production environment template
+!.env.production
