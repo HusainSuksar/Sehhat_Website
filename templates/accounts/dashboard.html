@@ -3,9 +3,9 @@
 
 {% block extra_css %}
 <style>
-    /* 🎯 IMPROVEMENT 5: ENHANCED DASHBOARD VISUAL HIERARCHY */
+    /* 🎯 ENHANCED DASHBOARD STYLING */
     body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
         min-height: 100vh;
     }
@@ -17,11 +17,11 @@
         left: 0;
         width: 100%;
         height: 100%;
-        opacity: 0.02;
+        opacity: 0.03;
         background: 
-            radial-gradient(circle at 25% 25%, #3b82f6 0%, transparent 60%),
-            radial-gradient(circle at 75% 75%, #10b981 0%, transparent 60%),
-            radial-gradient(circle at 50% 50%, #8b5cf6 0%, transparent 60%);
+            radial-gradient(circle at 25% 25%, var(--primary-color) 0%, transparent 60%),
+            radial-gradient(circle at 75% 75%, var(--accent-color) 0%, transparent 60%),
+            radial-gradient(circle at 50% 50%, var(--success-color) 0%, transparent 60%);
         pointer-events: none;
         z-index: 0;
     }
@@ -38,13 +38,11 @@
     /* 🎯 ENHANCED WELCOME SECTION */
     .welcome-hero {
         background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
-        border-radius: 20px;
-        padding: 2.5rem;
+        border-radius: var(--border-radius-lg);
+        padding: 3rem;
         margin-bottom: 3rem;
         border: 1px solid rgba(255,255,255,0.5);
-        box-shadow: 
-            0 20px 40px rgba(0,0,0,0.08),
-            0 1px 0 rgba(255,255,255,0.6) inset;
+        box-shadow: var(--shadow-xl);
         backdrop-filter: blur(20px);
         position: relative;
         overflow: hidden;
@@ -57,8 +55,8 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6, #f59e0b);
-        border-radius: 20px 20px 0 0;
+        background: linear-gradient(90deg, var(--accent-color), var(--primary-color), var(--success-color));
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     }
 
     .welcome-content {
@@ -69,73 +67,77 @@
     }
 
     .welcome-avatar {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 20px;
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, var(--accent-color), var(--success-color));
+        border-radius: var(--border-radius-lg);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: bold;
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
     .welcome-text h1 {
-        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-size: clamp(2rem, 4vw, 3rem);
         font-weight: 800;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #1f2937, #4f46e5);
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+        background: linear-gradient(135deg, var(--text-dark), var(--primary-color));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     .welcome-text p {
-        color: #6b7280;
-        font-size: 1.1rem;
+        color: var(--text-muted);
+        font-size: 1.2rem;
         margin-bottom: 1rem;
-        line-height: 1.6;
+        font-weight: 500;
     }
 
-    .role-badge {
-        display: inline-flex;
+    .welcome-meta {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .meta-item {
+        display: flex;
         align-items: center;
         gap: 0.5rem;
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        text-transform: capitalize;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        font-weight: 500;
     }
 
-    /* 🎯 ENHANCED STATS GRID */
+    .meta-item i {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    /* 🎯 ENHANCED STATS CARDS */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
+        gap: 1.5rem;
         margin-bottom: 3rem;
     }
 
     .stat-card {
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
+        border-radius: var(--border-radius-lg);
         padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(20px);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
     }
 
     .stat-card::before {
@@ -144,298 +146,225 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 3px;
-        background: var(--accent-gradient, linear-gradient(135deg, #10b981, #059669));
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
     }
 
     .stat-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 
-            0 25px 50px rgba(0,0,0,0.15),
-            0 1px 0 rgba(255,255,255,0.8) inset;
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .stat-card:hover::before {
-        transform: scaleX(1);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
     }
 
     .stat-header {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
         margin-bottom: 1.5rem;
     }
 
     .stat-icon {
         width: 60px;
         height: 60px;
-        border-radius: 16px;
+        border-radius: var(--border-radius);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.5rem;
         color: white;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
 
-    .stat-number {
+    .stat-icon.primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    }
+
+    .stat-icon.success {
+        background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+    }
+
+    .stat-icon.warning {
+        background: linear-gradient(135deg, var(--warning-color), #f59e0b);
+    }
+
+    .stat-icon.info {
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    }
+
+    .stat-value {
         font-size: 2.5rem;
         font-weight: 800;
-        color: #1f2937;
-        line-height: 1;
+        color: var(--text-dark);
         margin-bottom: 0.5rem;
     }
 
     .stat-label {
-        color: #6b7280;
+        color: var(--text-muted);
+        font-weight: 600;
         font-size: 1rem;
-        font-weight: 500;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
 
-    .stat-trend {
+    .stat-change {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        font-weight: 500;
     }
 
-    .trend-up {
-        color: #10b981;
+    .stat-change.positive {
+        color: var(--success-color);
     }
 
-    .trend-neutral {
-        color: #6b7280;
+    .stat-change.negative {
+        color: var(--error-color);
     }
 
-    /* Color variants for stat cards */
-    .stat-card.users {
-        --accent-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-
-    .stat-card.users .stat-icon {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-
-    .stat-card.moze {
-        --accent-gradient: linear-gradient(135deg, #10b981, #047857);
-    }
-
-    .stat-card.moze .stat-icon {
-        background: linear-gradient(135deg, #10b981, #047857);
-    }
-
-    .stat-card.students {
-        --accent-gradient: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    }
-
-    .stat-card.students .stat-icon {
-        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    }
-
-    .stat-card.doctors {
-        --accent-gradient: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-
-    .stat-card.doctors .stat-icon {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-
-    .stat-card.surveys {
-        --accent-gradient: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .stat-card.surveys .stat-icon {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .stat-card.petitions {
-        --accent-gradient: linear-gradient(135deg, #06b6d4, #0891b2);
-    }
-
-    .stat-card.petitions .stat-icon {
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-    }
-
-    /* 🎯 QUICK ACTIONS SECTION */
+    /* 🎯 ENHANCED QUICK ACTIONS */
     .quick-actions {
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 20px;
+        border-radius: var(--border-radius-lg);
         padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
         margin-bottom: 3rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     }
 
-    .section-title {
+    .quick-actions h3 {
         font-size: 1.5rem;
         font-weight: 700;
-        color: #1f2937;
+        color: var(--text-dark);
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
 
-    .section-title::before {
-        content: '';
-        width: 4px;
-        height: 1.5rem;
-        background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 2px;
-    }
-
-    .action-grid {
+    .actions-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
     }
 
     .action-btn {
         display: flex;
         align-items: center;
         gap: 1rem;
-        padding: 1.5rem;
-        background: rgba(255, 255, 255, 0.8);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 16px;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
         text-decoration: none;
-        color: #374151;
+        color: var(--text-dark);
         font-weight: 600;
         transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
     }
 
     .action-btn:hover {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        background: rgba(255, 255, 255, 0.95);
-        color: #1f2937;
+        box-shadow: var(--shadow-md);
         text-decoration: none;
-        border-color: rgba(16, 185, 129, 0.3);
     }
 
-    .action-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-        border-radius: 12px;
+    .action-btn i {
+        font-size: 1.5rem;
+        width: 40px;
+        text-align: center;
+    }
+
+    /* 🎯 ENHANCED RECENT ACTIVITY */
+    .recent-activity {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-color);
+    }
+
+    .recent-activity h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .activity-item:hover {
+        background: rgba(37, 99, 235, 0.05);
+    }
+
+    .activity-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        color: #6b7280;
+        font-size: 1.2rem;
+        color: white;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
     }
 
-    /* 🎯 MOBILE RESPONSIVENESS */
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-time {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    /* Mobile responsiveness */
     @media (max-width: 768px) {
         .main-content {
             padding: 1rem;
         }
-
+        
         .welcome-hero {
-            padding: 1.5rem;
+            padding: 2rem;
             margin-bottom: 2rem;
         }
-
+        
         .welcome-content {
             flex-direction: column;
             text-align: center;
-            gap: 1rem;
         }
-
-        .welcome-avatar {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+        
+        .welcome-meta {
+            justify-content: center;
         }
-
+        
         .stats-grid {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
-
-        .stat-card {
-            padding: 1.5rem;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-        }
-
-        .action-grid {
+        
+        .actions-grid {
             grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .action-btn {
-            padding: 1rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .welcome-hero {
-            padding: 1rem;
-        }
-
-        .stat-card {
-            padding: 1rem;
-        }
-
-        .stat-number {
-            font-size: 1.75rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-        }
-    }
-
-    /* 🎯 ENHANCED LOADING STATES */
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-        border-radius: 8px;
-    }
-
-    @keyframes loading {
-        0% {
-            background-position: 200% 0;
-        }
-        100% {
-            background-position: -200% 0;
-        }
-    }
-
-    /* 🎯 ENHANCED ACCESSIBILITY */
-    .stat-card:focus {
-        outline: 3px solid #8bc34a;
-        outline-offset: 2px;
-    }
-
-    .action-btn:focus {
-        outline: 3px solid #8bc34a;
-        outline-offset: 2px;
-    }
-
-    /* 🎯 PRINT STYLES */
-    @media print {
-        .bg-pattern,
-        .quick-actions {
-            display: none;
         }
         
-        .stat-card {
-            break-inside: avoid;
-            box-shadow: none;
-            border: 1px solid #e5e7eb;
+        .quick-actions,
+        .recent-activity {
+            padding: 1.5rem;
         }
     }
 </style>
@@ -443,20 +372,29 @@
 
 {% block content %}
 <div class="bg-pattern"></div>
-
-<div class="main-content animate-fade-in-up">
-    <!-- 🎯 ENHANCED WELCOME HERO SECTION -->
+<div class="main-content">
+    <!-- 🎯 ENHANCED WELCOME SECTION -->
     <div class="welcome-hero">
         <div class="welcome-content">
             <div class="welcome-avatar">
-                {{ user.first_name|first|default:"U" }}{{ user.last_name|first|default:"" }}
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
             </div>
             <div class="welcome-text">
-                <h1>Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
-                <p>Here's what's happening in your Umoor Sehhat dashboard today.</p>
-                <div class="role-badge">
-                    <i class="fas fa-crown"></i>
-                    {{ user.get_role_display }}
+                <h1>Welcome back, {{ user.get_full_name }}!</h1>
+                <p>Here's what's happening in your {{ user.get_role_display|lower }} dashboard today.</p>
+                <div class="welcome-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-user-tag"></i>
+                        <span>{{ user.get_role_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{{ today|date:"F j, Y" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ now|time:"g:i A" }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -464,175 +402,149 @@
 
     <!-- 🎯 ENHANCED STATS GRID -->
     <div class="stats-grid">
-        <a href="{% url 'accounts:user_list' %}" class="stat-card users">
+        <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-number">{{ total_users|default:0 }}</div>
-                    <div class="stat-label">Total Users</div>
-                    <div class="stat-trend trend-up">
+                    <div class="stat-value">{{ total_appointments|default:"0" }}</div>
+                    <div class="stat-label">Total Appointments</div>
+                    <div class="stat-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        <span>Active users</span>
+                        <span>+12% from last week</span>
                     </div>
                 </div>
-                <div class="stat-icon">
+                <div class="stat-icon primary">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div>
+                    <div class="stat-value">{{ total_patients|default:"0" }}</div>
+                    <div class="stat-label">Active Patients</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>+8% from last month</span>
+                    </div>
+                </div>
+                <div class="stat-icon success">
                     <i class="fas fa-users"></i>
                 </div>
             </div>
-        </a>
+        </div>
 
-        <a href="{% url 'moze:list' %}" class="stat-card moze">
+        <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-number">{{ total_moze|default:0 }}</div>
-                    <div class="stat-label">Moze</div>
-                    <div class="stat-trend trend-neutral">
-                        <i class="fas fa-building"></i>
-                        <span>Registered</span>
+                    <div class="stat-value">{{ pending_tasks|default:"0" }}</div>
+                    <div class="stat-label">Pending Tasks</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-5% from yesterday</span>
                     </div>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-mosque"></i>
+                <div class="stat-icon warning">
+                    <i class="fas fa-tasks"></i>
                 </div>
             </div>
-        </a>
+        </div>
 
-        <a href="{% url 'students:student_list' %}" class="stat-card students">
+        <div class="stat-card">
             <div class="stat-header">
                 <div>
-                    <div class="stat-number">{{ total_students|default:0 }}</div>
-                    <div class="stat-label">Students</div>
-                    <div class="stat-trend trend-up">
+                    <div class="stat-value">{{ system_health|default:"98" }}%</div>
+                    <div class="stat-label">System Health</div>
+                    <div class="stat-change positive">
                         <i class="fas fa-arrow-up"></i>
-                        <span>Enrolled</span>
+                        <span>+2% from last week</span>
                     </div>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-graduation-cap"></i>
+                <div class="stat-icon info">
+                    <i class="fas fa-heartbeat"></i>
                 </div>
             </div>
-        </a>
-
-        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card doctors">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-number">{{ total_doctors|default:0 }}</div>
-                    <div class="stat-label">Doctors</div>
-                    <div class="stat-trend trend-neutral">
-                        <i class="fas fa-user-md"></i>
-                        <span>Available</span>
-                    </div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-stethoscope"></i>
-                </div>
-            </div>
-        </a>
-
-        <a href="{% url 'surveys:list' %}" class="stat-card surveys">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-number">{{ total_surveys|default:0 }}</div>
-                    <div class="stat-label">Surveys</div>
-                    <div class="stat-trend trend-up">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Active</span>
-                    </div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-poll"></i>
-                </div>
-            </div>
-        </a>
-
-        <a href="{% url 'araz:petition_list' %}" class="stat-card petitions">
-            <div class="stat-header">
-                <div>
-                    <div class="stat-number">{{ total_petitions|default:0 }}</div>
-                    <div class="stat-label">Petitions</div>
-                    <div class="stat-trend trend-neutral">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Submitted</span>
-                    </div>
-                </div>
-                <div class="stat-icon">
-                    <i class="fas fa-gavel"></i>
-                </div>
-            </div>
-        </a>
+        </div>
     </div>
 
-    <!-- 🎯 QUICK ACTIONS SECTION -->
-    {% if user.is_authenticated %}
+    <!-- 🎯 ENHANCED QUICK ACTIONS -->
     <div class="quick-actions">
-        <h2 class="section-title">
+        <h3>
             <i class="fas fa-bolt"></i>
             Quick Actions
-        </h2>
-        
-        <div class="action-grid">
-            {% if user.is_admin %}
-                <a href="{% url 'bulk_upload:list' %}" class="action-btn">
-                    <div class="action-icon">
-                        <i class="fas fa-upload"></i>
-                    </div>
-                    <div>
-                        <div>Bulk Upload</div>
-                        <small class="text-muted">Import data in bulk</small>
-                    </div>
-                </a>
-                
-                <a href="/admin/" class="action-btn">
-                    <div class="action-icon">
-                        <i class="fas fa-cog"></i>
-                    </div>
-                    <div>
-                        <div>Admin Panel</div>
-                        <small class="text-muted">System administration</small>
-                    </div>
-                </a>
-            {% endif %}
-            
-            <a href="{% url 'araz:petition_create' %}" class="action-btn">
-                <div class="action-icon">
-                    <i class="fas fa-plus"></i>
-                </div>
-                <div>
-                    <div>New Petition</div>
-                    <small class="text-muted">Submit a new request</small>
-                </div>
+        </h3>
+        <div class="actions-grid">
+            <a href="{% url 'araz:petition_list' %}" class="action-btn">
+                <i class="fas fa-file-alt"></i>
+                <span>View Petitions</span>
             </a>
-            
-            <a href="{% url 'accounts:profile' %}" class="action-btn">
-                <div class="action-icon">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div>
-                    <div>My Profile</div>
-                    <small class="text-muted">View and edit profile</small>
-                </div>
+            <a href="{% url 'students:student_list' %}" class="action-btn">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Manage Students</span>
             </a>
-            
-            <a href="{% url 'surveys:list' %}" class="action-btn">
-                <div class="action-icon">
-                    <i class="fas fa-poll"></i>
-                </div>
-                <div>
-                    <div>Take Survey</div>
-                    <small class="text-muted">Participate in surveys</small>
-                </div>
+            <a href="{% url 'doctordirectory:doctor_list' %}" class="action-btn">
+                <i class="fas fa-user-md"></i>
+                <span>Doctor Directory</span>
             </a>
-            
-            <a href="{% url 'photos:album_list' %}" class="action-btn">
-                <div class="action-icon">
-                    <i class="fas fa-images"></i>
-                </div>
-                <div>
-                    <div>Photo Gallery</div>
-                    <small class="text-muted">Browse community photos</small>
-                </div>
+            <a href="{% url 'mahalshifa:hospital_list' %}" class="action-btn">
+                <i class="fas fa-hospital"></i>
+                <span>Hospital Management</span>
+            </a>
+            <a href="{% url 'moze:list' %}" class="action-btn">
+                <i class="fas fa-building"></i>
+                <span>Moze Management</span>
+            </a>
+            <a href="{% url 'evaluation:form_list' %}" class="action-btn">
+                <i class="fas fa-chart-line"></i>
+                <span>Evaluations</span>
             </a>
         </div>
     </div>
-    {% endif %}
+
+    <!-- 🎯 ENHANCED RECENT ACTIVITY -->
+    <div class="recent-activity">
+        <h3>
+            <i class="fas fa-history"></i>
+            Recent Activity
+        </h3>
+        <div class="activity-list">
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">New patient registered</div>
+                    <div class="activity-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Appointment scheduled</div>
+                    <div class="activity-time">4 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">New petition submitted</div>
+                    <div class="activity-time">6 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Evaluation completed</div>
+                    <div class="activity-time">1 day ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

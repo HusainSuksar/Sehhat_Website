@@ -14,39 +14,50 @@
     
     <!-- Custom CSS -->
     <style>
+        /* 🎯 FIX 1: CONSISTENT COLOR SCHEME & BRANDING */
         :root {
-            --primary-color: #2c5530;
-            --secondary-color: #5a8a61;
-            --accent-color: #8bc34a;
-            --text-dark: #2d3436;
-            --bg-light: #f8f9fa;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --secondary-color: #64748b;
+            --accent-color: #10b981;
+            --accent-light: #34d399;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --border-color: #e2e8f0;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
         }
         
-        /* 🎯 IMPROVEMENT 1: LOADING STATES & ANIMATIONS */
+        /* 🎯 FIX 2: ENHANCED LOADING STATES & ANIMATIONS */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            backdrop-filter: blur(4px);
         }
         
         .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary-color);
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -59,7 +70,7 @@
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -70,7 +81,7 @@
         @keyframes slideInRight {
             from {
                 opacity: 0;
-                transform: translateX(30px);
+                transform: translateX(20px);
             }
             to {
                 opacity: 1;
@@ -86,73 +97,90 @@
             animation: slideInRight 0.4s ease-out;
         }
         
-        /* 🎯 IMPROVEMENT 2: MOBILE RESPONSIVENESS */
+        /* 🎯 FIX 3: IMPROVED TYPOGRAPHY & SPACING */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-light);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
             line-height: 1.6;
+            color: var(--text-dark);
             overflow-x: hidden;
         }
         
+        /* 🎯 FIX 4: ENHANCED NAVIGATION */
         .navbar-brand {
-            font-weight: bold;
+            font-weight: 700;
             color: white !important;
-            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            font-size: clamp(1.25rem, 2.5vw, 1.5rem);
             margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .navbar-custom {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: var(--shadow-md);
-            padding: 0.5rem 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            box-shadow: var(--shadow-lg);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .navbar-custom .navbar-nav .nav-link {
-            color: white !important;
+            color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
             transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
             margin: 0 0.25rem;
+            position: relative;
         }
         
-        /* 🎯 IMPROVEMENT 4: MODERN HOVER EFFECTS */
         .navbar-custom .navbar-nav .nav-link:hover {
-            color: var(--accent-color) !important;
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: var(--shadow-sm);
+            color: white !important;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
         }
         
+        .navbar-custom .navbar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+        
+        /* 🎯 FIX 5: ENHANCED DROPDOWN STYLING */
         .dropdown-menu {
             border: none;
-            box-shadow: var(--shadow-lg);
-            border-radius: 12px;
-            padding: 0.5rem;
+            box-shadow: var(--shadow-xl);
+            border-radius: var(--border-radius-lg);
+            padding: 0.75rem;
             animation: fadeInUp 0.3s ease-out;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
         }
         
         .dropdown-item {
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             padding: 0.75rem 1rem;
             transition: all 0.2s ease;
             margin-bottom: 0.25rem;
+            color: var(--text-dark);
+            font-weight: 500;
         }
         
         .dropdown-item:hover {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             color: white !important;
             transform: translateX(4px);
         }
         
-        /* 🎯 IMPROVEMENT 3: ERROR HANDLING & FEEDBACK */
+        /* 🎯 FIX 6: ENHANCED ALERT STYLING */
         .alert {
             border: none;
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius-lg);
+            padding: 1.25rem 1.5rem;
             margin-bottom: 1.5rem;
             box-shadow: var(--shadow-sm);
             animation: fadeInUp 0.5s ease-out;
+            font-weight: 500;
         }
         
         .alert-success {
@@ -176,70 +204,87 @@
         .alert-info {
             background: linear-gradient(135deg, #eff6ff, #dbeafe);
             color: #1e40af;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid var(--primary-color);
         }
         
-        /* Enhanced Form Styling */
+        /* 🎯 FIX 7: ENHANCED FORM STYLING */
         .form-control {
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 0.875rem 1rem;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-white);
+            font-weight: 500;
         }
         
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             transform: translateY(-1px);
         }
         
         .form-control:hover {
-            border-color: var(--secondary-color);
+            border-color: var(--primary-light);
         }
         
-        /* Enhanced Button Styling */
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* 🎯 FIX 8: ENHANCED BUTTON STYLING */
         .btn {
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            padding: 0.875rem 1.75rem;
             font-weight: 600;
             font-size: 0.95rem;
             transition: all 0.3s ease;
             text-transform: none;
             letter-spacing: 0.025em;
+            border: none;
+            position: relative;
+            overflow: hidden;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             box-shadow: var(--shadow-sm);
         }
         
         .btn-primary:hover {
-            background: linear-gradient(135deg, #1e3a21, #4a7852);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
         
         .btn-success {
-            background: linear-gradient(135deg, var(--success-color), #059669);
-            border: none;
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
         }
         
         .btn-success:hover {
-            background: linear-gradient(135deg, #047857, #065f46);
+            background: linear-gradient(135deg, #047857, var(--success-color));
             transform: translateY(-2px);
         }
         
-        /* Enhanced Card Styling */
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #f59e0b);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error-color), #ef4444);
+        }
+        
+        /* 🎯 FIX 9: ENHANCED CARD STYLING */
         .card {
             border: none;
-            border-radius: 16px;
+            border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-sm);
             transition: all 0.3s ease;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
         }
         
         .card:hover {
@@ -249,12 +294,44 @@
         
         .card-header {
             background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-bottom: 1px solid #e2e8f0;
-            border-radius: 16px 16px 0 0 !important;
-            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+            padding: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
         }
         
-        /* 🎯 IMPROVEMENT 2: MOBILE RESPONSIVE UTILITIES */
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* 🎯 FIX 10: ENHANCED TABLE STYLING */
+        .table {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background: var(--bg-white);
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 1rem;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+        
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        /* 🎯 FIX 11: ENHANCED MOBILE RESPONSIVENESS */
         @media (max-width: 768px) {
             .navbar-brand {
                 font-size: 1.2rem;
@@ -273,6 +350,7 @@
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
                 margin-top: 0.5rem;
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }
             
             .container {
@@ -288,6 +366,17 @@
             .card {
                 margin-bottom: 1rem;
             }
+            
+            .table-responsive {
+                border-radius: var(--border-radius);
+                box-shadow: var(--shadow-sm);
+            }
+            
+            .table thead th,
+            .table tbody td {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
         }
         
         @media (max-width: 576px) {
@@ -296,26 +385,31 @@
             }
             
             .btn {
-                padding: 0.875rem 1rem;
+                padding: 1rem;
                 font-size: 0.9rem;
             }
             
             .form-control {
-                padding: 0.875rem;
+                padding: 1rem;
                 font-size: 0.95rem;
+            }
+            
+            .card-header,
+            .card-body {
+                padding: 1rem;
             }
         }
         
-        /* Enhanced Focus States for Accessibility */
+        /* 🎯 FIX 12: ENHANCED ACCESSIBILITY */
         .btn:focus,
         .form-control:focus,
         .nav-link:focus,
         .dropdown-item:focus {
-            outline: 2px solid var(--accent-color);
+            outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
         
-        /* Notification Toast Styling */
+        /* 🎯 FIX 13: ENHANCED TOAST STYLING */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -324,13 +418,14 @@
         }
         
         .toast {
-            border-radius: 12px;
+            border-radius: var(--border-radius-lg);
             border: none;
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-xl);
             backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
         }
         
-        /* Loading Button State */
+        /* 🎯 FIX 14: ENHANCED LOADING BUTTON STATE */
         .btn-loading {
             position: relative;
             color: transparent !important;
@@ -350,24 +445,61 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
+        /* 🎯 FIX 15: ENHANCED BADGE STYLING */
+        .badge {
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius);
+        }
+        
+        .badge.bg-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light)) !important;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color)) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, var(--warning-color), #f59e0b) !important;
+        }
+        
+        .badge.bg-danger {
+            background: linear-gradient(135deg, var(--error-color), #ef4444) !important;
+        }
+        
+        /* 🎯 FIX 16: ENHANCED MAIN CONTENT SPACING */
+        main.container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            main.container {
+                padding: 1rem;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- 🎯 IMPROVEMENT 1: LOADING OVERLAY -->
+    <!-- 🎯 FIX 1: ENHANCED LOADING OVERLAY -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="text-center">
             <div class="loading-spinner"></div>
-            <p class="mt-3 text-muted">Loading...</p>
+            <p class="mt-3 text-muted fw-semibold">Loading...</p>
         </div>
     </div>
     
-    <!-- Navigation -->
+    <!-- 🎯 FIX 2: ENHANCED NAVIGATION -->
     <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
             <a class="navbar-brand" href="{% url 'accounts:dashboard' %}">
-                <i class="fas fa-heartbeat me-2"></i>Umoor Sehhat
+                <i class="fas fa-heartbeat"></i>
+                <span>Umoor Sehhat</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -466,22 +598,22 @@
         </div>
     </nav>
     
-    <!-- Main Content -->
+    <!-- 🎯 FIX 3: ENHANCED MAIN CONTENT -->
     <main class="container mt-4 animate-fade-in-up">
-        <!-- 🎯 IMPROVEMENT 3: ENHANCED ERROR HANDLING -->
+        <!-- 🎯 FIX 4: ENHANCED ERROR HANDLING -->
         {% if messages %}
             <div class="toast-container">
                 {% for message in messages %}
                     <div class="toast show" role="alert">
                         <div class="toast-header">
                             {% if message.tags == 'error' or message.tags == 'danger' %}
-                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
                             {% elif message.tags == 'success' %}
-                                <i class="fas fa-check-circle me-2"></i>
+                                <i class="fas fa-check-circle me-2 text-success"></i>
                             {% elif message.tags == 'warning' %}
-                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <i class="fas fa-exclamation-circle me-2 text-warning"></i>
                             {% else %}
-                                <i class="fas fa-info-circle me-2"></i>
+                                <i class="fas fa-info-circle me-2 text-info"></i>
                             {% endif %}
                             <strong class="me-auto">{{ message.tags|capfirst }}</strong>
                             <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
@@ -497,10 +629,10 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer -->
+    <!-- 🎯 FIX 5: ENHANCED FOOTER -->
     <footer class="mt-5 py-4 bg-light border-top">
         <div class="container text-center">
-            <p class="text-muted mb-0">
+            <p class="text-muted mb-0 fw-medium">
                 &copy; 2024 Umoor Sehhat Digital System. All rights reserved.
                 <span class="ms-2">
                     <i class="fas fa-heart text-danger"></i>
@@ -513,7 +645,7 @@
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- 🎯 IMPROVEMENT 1: LOADING STATES JAVASCRIPT -->
+    <!-- 🎯 FIX 6: ENHANCED JAVASCRIPT FUNCTIONALITY -->
     <script>
         // Show loading overlay
         function showLoading() {
@@ -525,7 +657,7 @@
             document.getElementById('loadingOverlay').style.display = 'none';
         }
         
-        // Show loading on form submissions
+        // Enhanced page functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Add loading state to all forms
             const forms = document.querySelectorAll('form');
@@ -574,6 +706,15 @@
                     const bsToast = new bootstrap.Toast(toast);
                     bsToast.hide();
                 }, 5000);
+            });
+            
+            // Add active state to current navigation item
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
             });
         });
         
