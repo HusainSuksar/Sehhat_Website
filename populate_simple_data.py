@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Data Population Script for Umoor Sehhat
-Creates 120 users in MOCKITS with all details and populates data for all apps
+Simplified Data Population Script for Umoor Sehhat
+Creates users and basic data without problematic models
 """
 
 import os
@@ -18,36 +18,27 @@ django.setup()
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import transaction
-from django.core.mail import send_mail
-from django.conf import settings
 
-# Import models
+# Import models that work
 from accounts.models import User
 from moze.models import Moze
 from students.models import Student, Course
-from doctordirectory.models import Doctor, Patient, Appointment as DoctorAppointment
-from mahalshifa.models import (
-    Hospital, Doctor as MahalShifaDoctor, Patient as MahalShifaPatient, 
-    Appointment as MahalShifaAppointment, MedicalService, MedicalRecord
-)
+from mahalshifa.models import Hospital, Department, MedicalService
 from araz.models import Petition, PetitionCategory
 from surveys.models import Survey
-from photos.models import PhotoAlbum, Photo
-from evaluation.models import EvaluationForm, EvaluationResponse
+from photos.models import PhotoAlbum
+from evaluation.models import EvaluationForm
 
 User = get_user_model()
 
-class ComprehensiveDataPopulator:
-    """Comprehensive data populator for all apps"""
+class SimpleDataPopulator:
+    """Simplified data populator focusing on working models"""
     
     def __init__(self):
         self.created_users = []
         self.created_mozes = []
         self.created_hospitals = []
-        self.created_doctors = []
-        self.created_patients = []
-        self.created_appointments = []
-        self.created_medical_records = []
+        self.created_services = []
         self.created_petitions = []
         self.created_surveys = []
         self.created_albums = []
@@ -70,17 +61,6 @@ class ComprehensiveDataPopulator:
             'Rizvi', 'Naqvi', 'Jafri', 'Zaidi', 'Abidi', 'Rizvi', 'Naqvi', 'Jafri'
         ]
         
-        self.specializations = [
-            'General Medicine', 'Cardiology', 'Pediatrics', 'Gynecology', 'Orthopedics',
-            'Dermatology', 'Neurology', 'Psychiatry', 'Ophthalmology', 'ENT', 'Dental',
-            'Surgery', 'Emergency Medicine', 'Internal Medicine', 'Family Medicine'
-        ]
-        
-        self.qualifications = [
-            'MBBS', 'MBBS, MD', 'MBBS, MS', 'MBBS, DNB', 'MBBS, FRCS', 'MBBS, MRCP',
-            'MBBS, FRCSEd', 'MBBS, FRCSGlasg', 'MBBS, FRCSEng', 'MBBS, FRCSI'
-        ]
-        
         self.cities = [
             'Mumbai', 'Delhi', 'Karachi', 'Dubai', 'London', 'New York', 'Ahmedabad', 
             'Pune', 'Bangalore', 'Chennai', 'Hyderabad', 'Kolkata', 'Jaipur', 'Lucknow',
@@ -90,29 +70,6 @@ class ComprehensiveDataPopulator:
         self.countries = [
             'India', 'Pakistan', 'UAE', 'UK', 'USA', 'Canada', 'Australia', 'Germany',
             'France', 'Singapore', 'Malaysia', 'Saudi Arabia', 'Qatar', 'Kuwait'
-        ]
-        
-        self.blood_types = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
-        
-        self.ailments = [
-            'Fever', 'Headache', 'Cough', 'Cold', 'Back Pain', 'Joint Pain', 'Diabetes',
-            'Hypertension', 'Asthma', 'Allergies', 'Digestive Issues', 'Skin Problems',
-            'Eye Problems', 'Dental Issues', 'Respiratory Problems', 'Cardiac Issues'
-        ]
-        
-        self.symptoms = [
-            'Pain', 'Fever', 'Cough', 'Fatigue', 'Nausea', 'Dizziness', 'Swelling',
-            'Rash', 'Itching', 'Bleeding', 'Difficulty breathing', 'Chest pain'
-        ]
-        
-        self.diagnoses = [
-            'Viral infection', 'Bacterial infection', 'Chronic disease', 'Acute condition',
-            'Allergic reaction', 'Inflammatory condition', 'Metabolic disorder'
-        ]
-        
-        self.prescriptions = [
-            'Paracetamol 500mg', 'Ibuprofen 400mg', 'Amoxicillin 500mg', 'Omeprazole 20mg',
-            'Cetirizine 10mg', 'Salbutamol inhaler', 'Metformin 500mg', 'Amlodipine 5mg'
         ]
         
         self.petition_categories = [
@@ -150,8 +107,6 @@ class ComprehensiveDataPopulator:
         print(f"   Admins: {num_admins}")
         print(f"   Total: {total_users}")
         
-        user_counter = 1
-        
         # Create Aamils (Moze Managers)
         for i in range(num_aamils):
             first_name = random.choice(self.first_names)
@@ -178,7 +133,6 @@ class ComprehensiveDataPopulator:
             })
             
             self.log_creation("Aamil User", f"{user.get_full_name()} ({username})")
-            user_counter += 1
         
         # Create Moze Coordinators
         for i in range(num_coordinators):
@@ -206,7 +160,6 @@ class ComprehensiveDataPopulator:
             })
             
             self.log_creation("Coordinator User", f"{user.get_full_name()} ({username})")
-            user_counter += 1
         
         # Create Doctors
         for i in range(num_doctors):
@@ -234,7 +187,6 @@ class ComprehensiveDataPopulator:
             })
             
             self.log_creation("Doctor User", f"{user.get_full_name()} ({username})")
-            user_counter += 1
         
         # Create Students
         for i in range(num_students):
@@ -262,7 +214,6 @@ class ComprehensiveDataPopulator:
             })
             
             self.log_creation("Student User", f"{user.get_full_name()} ({username})")
-            user_counter += 1
         
         # Create Admins
         for i in range(num_admins):
@@ -290,7 +241,6 @@ class ComprehensiveDataPopulator:
             })
             
             self.log_creation("Admin User", f"{user.get_full_name()} ({username})")
-            user_counter += 1
         
         print(f"✅ Successfully created {len(self.created_users)} users in MOCKITS")
     
@@ -323,10 +273,16 @@ class ComprehensiveDataPopulator:
             self.created_mozes.append(moze)
             self.log_creation("Moze", f"{moze.name}")
         
-        # Create hospitals
+        # Create hospitals and departments
         hospital_names = [
             'City General Hospital', 'Central Medical Center', 'Community Health Hospital',
             'Regional Medical Center', 'Specialty Care Hospital', 'Emergency Care Center'
+        ]
+        
+        department_names = [
+            'General Medicine', 'Cardiology', 'Pediatrics', 'Gynecology', 'Orthopedics',
+            'Dermatology', 'Neurology', 'Psychiatry', 'Ophthalmology', 'ENT', 'Dental',
+            'Surgery', 'Emergency Medicine', 'Internal Medicine', 'Family Medicine'
         ]
         
         for i, name in enumerate(hospital_names):
@@ -352,8 +308,24 @@ class ComprehensiveDataPopulator:
             
             self.created_hospitals.append(hospital)
             self.log_creation("Hospital", f"{hospital.name}")
+            
+            # Create departments for this hospital
+            hospital_departments = []
+            for j, dept_name in enumerate(random.sample(department_names, random.randint(3, 8))):
+                department = Department.objects.create(
+                    hospital=hospital,
+                    name=dept_name,
+                    description=f"Department of {dept_name} at {hospital.name}",
+                    floor_number=str(random.randint(1, 5)),
+                    phone_extension=str(random.randint(100, 999)),
+                    is_active=True
+                )
+                hospital_departments.append(department)
+            
+            # Store departments for later use
+            hospital.departments_list = hospital_departments
         
-        print(f"✅ Created {len(self.created_mozes)} mozes and {len(self.created_hospitals)} hospitals")
+        print(f"✅ Created {len(self.created_mozes)} mozes and {len(self.created_hospitals)} hospitals with departments")
     
     def create_medical_services(self):
         """Create medical services"""
@@ -370,7 +342,6 @@ class ComprehensiveDataPopulator:
             {'name': 'Mental Health', 'category': 'mental_health', 'duration': 60, 'cost': 700}
         ]
         
-        created_services = []
         for service_data in services:
             service = MedicalService.objects.create(
                 name=service_data['name'],
@@ -380,248 +351,10 @@ class ComprehensiveDataPopulator:
                 cost=Decimal(service_data['cost']),
                 is_active=True
             )
-            created_services.append(service)
+            self.created_services.append(service)
             self.log_creation("Medical Service", f"{service.name}")
         
-        print(f"✅ Created {len(created_services)} medical services")
-        return created_services
-    
-    def create_doctors_and_patients(self):
-        """Create doctors and patients"""
-        print("👨‍⚕️ Creating doctors and patients...")
-        
-        # Get doctor users
-        doctor_users = [u for u in self.created_users if u['role'] == 'doctor']
-        student_users = [u for u in self.created_users if u['role'] == 'student']
-        
-        # Create Doctor Directory doctors
-        for i, user_data in enumerate(doctor_users):
-            try:
-                doctor = Doctor.objects.create(
-                    user=user_data['user'],
-                    license_number=f"LIC{random.randint(10000, 99999)}",
-                    specialty=random.choice(self.specializations),
-                    qualification=random.choice(self.qualifications),
-                    experience_years=random.randint(5, 25),
-                    phone_number=f"+91{random.randint(6000000000, 9999999999)}",
-                    email=user_data['user'].email,
-                    address=f"Doctor Address {i+1}, {random.choice(self.cities)}",
-                    consultation_fee=Decimal(random.randint(200, 800)),
-                    bio=f"Experienced {random.choice(self.specializations)} specialist with {random.randint(5, 25)} years of practice.",
-                    hospital_affiliation=f"{random.choice(self.cities)} Medical Center",
-                    consultation_hours="Monday to Friday: 9 AM - 5 PM, Saturday: 9 AM - 1 PM",
-                    is_active=True,
-                    is_accepting_patients=True,
-                    assigned_moze=random.choice(self.created_mozes)
-                )
-                
-                self.created_doctors.append({
-                    'user_data': user_data,
-                    'doctor_dir': doctor
-                })
-                self.log_creation("Doctor Directory Doctor", f"Dr. {doctor.user.get_full_name()}")
-            except Exception as e:
-                print(f"❌ Error creating doctor {user_data['user'].username}: {str(e)}")
-                # Create a minimal doctor record
-                doctor = Doctor.objects.create(
-                    user=user_data['user'],
-                    license_number=f"LIC{random.randint(10000, 99999)}",
-                    specialty=random.choice(self.specializations),
-                    qualification=random.choice(self.qualifications),
-                    experience_years=random.randint(5, 25),
-                    phone_number=f"+91{random.randint(6000000000, 9999999999)}",
-                    email=user_data['user'].email,
-                    address=f"Doctor Address {i+1}, {random.choice(self.cities)}",
-                    consultation_fee=Decimal(random.randint(200, 800)),
-                    bio=f"Experienced {random.choice(self.specializations)} specialist with {random.randint(5, 25)} years of practice.",
-                    hospital_affiliation=f"{random.choice(self.cities)} Medical Center",
-                    consultation_hours="Monday to Friday: 9 AM - 5 PM, Saturday: 9 AM - 1 PM",
-                    is_active=True,
-                    is_accepting_patients=True
-                )
-                
-                self.created_doctors.append({
-                    'user_data': user_data,
-                    'doctor_dir': doctor
-                })
-                self.log_creation("Doctor Directory Doctor (Minimal)", f"Dr. {doctor.user.get_full_name()}")
-        
-        # Create Mahal Shifa doctors
-        for i, user_data in enumerate(doctor_users):
-            mahal_doctor = MahalShifaDoctor.objects.create(
-                user=user_data['user'],
-                hospital=random.choice(self.created_hospitals),
-                department='General Medicine',
-                specialization=random.choice(self.specializations),
-                qualification=random.choice(self.qualifications),
-                experience_years=random.randint(5, 25),
-                phone=f"+91{random.randint(6000000000, 9999999999)}",
-                email=user_data['user'].email,
-                is_available=True,
-                consultation_fee=Decimal(random.randint(200, 800))
-            )
-            
-            # Link to existing doctor directory entry
-            for doc in self.created_doctors:
-                if doc['user_data']['user'] == user_data['user']:
-                    doc['mahal_doctor'] = mahal_doctor
-                    break
-            
-            self.log_creation("Mahal Shifa Doctor", f"Dr. {mahal_doctor.user.get_full_name()}")
-        
-        # Create patients (from student users)
-        for i, user_data in enumerate(student_users):
-            # Doctor Directory patient
-            patient_dir = Patient.objects.create(
-                user_account=user_data['user'],
-                full_name=user_data['user'].get_full_name(),
-                date_of_birth=timezone.now().date() - timedelta(days=random.randint(6570, 25550)),
-                gender=random.choice(['male', 'female']),
-                phone_number=f"+91{random.randint(6000000000, 9999999999)}",
-                email=user_data['user'].email,
-                address=f"Patient Address {i+1}, {random.choice(self.cities)}",
-                blood_type=random.choice(self.blood_types),
-                allergies=random.choice(['None', 'Peanuts', 'Dust', 'Pollen', '']),
-                medical_history=random.choice(['None', 'Diabetes', 'Hypertension', 'Asthma', '']),
-                emergency_contact=f"Emergency Contact {i+1}",
-                emergency_phone=f"+91{random.randint(6000000000, 9999999999)}"
-            )
-            
-            # Mahal Shifa patient
-            patient_mahal = MahalShifaPatient.objects.create(
-                its_id=user_data['user'].its_id,
-                first_name=user_data['user'].first_name,
-                last_name=user_data['user'].last_name,
-                date_of_birth=patient_dir.date_of_birth,
-                gender=patient_dir.gender,
-                phone_number=patient_dir.phone_number,
-                email=user_data['user'].email,
-                address=patient_dir.address,
-                blood_group=patient_dir.blood_type,
-                allergies=patient_dir.allergies,
-                chronic_conditions=patient_dir.medical_history,
-                emergency_contact_name=patient_dir.emergency_contact,
-                emergency_contact_phone=patient_dir.emergency_phone,
-                registered_moze=random.choice(self.created_mozes),
-                is_active=True
-            )
-            
-            self.created_patients.append({
-                'user_data': user_data,
-                'patient_dir': patient_dir,
-                'patient_mahal': patient_mahal
-            })
-            
-            self.log_creation("Patient", f"{patient_dir.full_name}")
-        
-        print(f"✅ Created {len(self.created_doctors)} doctors and {len(self.created_patients)} patients")
-    
-    def create_appointments(self):
-        """Create appointments"""
-        print("📅 Creating appointments...")
-        
-        # Generate appointment dates (next 90 days)
-        start_date = timezone.now().date()
-        appointment_dates = [start_date + timedelta(days=i) for i in range(90)]
-        
-        # Generate appointment times (9 AM to 6 PM)
-        appointment_times = [
-            timezone.datetime.strptime(f"{hour:02d}:00", "%H:%M").time()
-            for hour in range(9, 19)
-        ]
-        
-        statuses = ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']
-        appointment_types = ['regular', 'follow_up', 'urgent', 'emergency', 'screening', 'consultation']
-        
-        # Create 60 appointments (30 for each system)
-        for i in range(60):
-            # Randomly select doctor and patient
-            doctor_data = random.choice(self.created_doctors)
-            patient_data = random.choice(self.created_patients)
-            
-            # Random appointment details
-            appointment_date = random.choice(appointment_dates)
-            appointment_time = random.choice(appointment_times)
-            status = random.choice(statuses)
-            appointment_type = random.choice(appointment_types)
-            
-            # Create Doctor Directory appointment
-            appointment_dir = DoctorAppointment.objects.create(
-                doctor=doctor_data['doctor_dir'],
-                patient=patient_data['patient_dir'],
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                duration_minutes=random.randint(15, 60),
-                status=status,
-                reason=f"Appointment reason {i+1}: {random.choice(self.ailments)}",
-                notes=f"Appointment notes {i+1}: {random.choice(self.symptoms)}",
-                created_by=doctor_data['user_data']['user']
-            )
-            
-            # Create Mahal Shifa appointment
-            appointment_mahal = MahalShifaAppointment.objects.create(
-                doctor=doctor_data['mahal_doctor'],
-                patient=patient_data['patient_mahal'],
-                moze=patient_data['patient_mahal'].registered_moze,
-                service=random.choice(MedicalService.objects.all()),
-                appointment_date=appointment_date,
-                appointment_time=appointment_time,
-                duration_minutes=random.randint(15, 60),
-                reason=f"Mahal Shifa appointment reason {i+1}: {random.choice(self.ailments)}",
-                symptoms=f"Symptoms: {random.choice(self.symptoms)}",
-                notes=f"Mahal Shifa appointment notes {i+1}",
-                status=status,
-                appointment_type=appointment_type,
-                booked_by=doctor_data['user_data']['user'],
-                booking_method=random.choice(['online', 'phone', 'walk_in', 'staff'])
-            )
-            
-            self.created_appointments.append({
-                'doctor_dir': appointment_dir,
-                'mahal_shifa': appointment_mahal
-            })
-            
-            if i % 10 == 0:
-                self.log_creation("Appointment Batch", f"Created {i+1} appointments")
-        
-        print(f"✅ Created {len(self.created_appointments)} appointments")
-    
-    def create_medical_records(self):
-        """Create medical records"""
-        print("📋 Creating medical records...")
-        
-        # Create medical records for each patient
-        for patient_data in self.created_patients:
-            # Create multiple medical records per patient
-            for i in range(random.randint(1, 3)):
-                medical_record = MedicalRecord.objects.create(
-                    patient=patient_data['patient_mahal'],
-                    doctor=random.choice([d['mahal_doctor'] for d in self.created_doctors]),
-                    moze=patient_data['patient_mahal'].registered_moze,
-                    consultation_date=timezone.now() - timedelta(days=random.randint(1, 365)),
-                    chief_complaint=random.choice(self.ailments),
-                    history_of_present_illness=f"Patient reports {random.choice(self.symptoms)} for {random.randint(1, 7)} days",
-                    past_medical_history=patient_data['patient_dir'].medical_history,
-                    family_history="No significant family history",
-                    social_history="Patient leads a normal lifestyle",
-                    physical_examination=f"General examination reveals {random.choice(self.symptoms)}",
-                    diagnosis=random.choice(self.diagnoses),
-                    differential_diagnosis=f"Consider {random.choice(self.diagnoses)}",
-                    treatment_plan=f"Treatment plan includes {random.choice(self.prescriptions)}",
-                    medications_prescribed=random.choice(self.prescriptions),
-                    lab_tests_ordered=random.choice(['Blood test', 'X-ray', 'ECG', 'None']),
-                    imaging_ordered=random.choice(['Chest X-ray', 'Abdominal ultrasound', 'None']),
-                    referrals=random.choice(['Specialist consultation', 'None']),
-                    follow_up_required=random.choice([True, False]),
-                    follow_up_date=timezone.now().date() + timedelta(days=random.randint(7, 30)) if random.choice([True, False]) else None,
-                    follow_up_instructions=f"Follow up in {random.randint(1, 4)} weeks",
-                    patient_education=f"Patient advised to {random.choice(['rest', 'exercise', 'diet modification', 'medication compliance'])}",
-                    doctor_notes=f"Patient responded well to treatment. {random.choice(['Continue current medication', 'Adjust dosage', 'Monitor progress'])}"
-                )
-                
-                self.created_medical_records.append(medical_record)
-        
-        print(f"✅ Created {len(self.created_medical_records)} medical records")
+        print(f"✅ Created {len(self.created_services)} medical services")
     
     def create_araz_petitions(self):
         """Create araz petitions"""
@@ -643,14 +376,15 @@ class ComprehensiveDataPopulator:
             petition = Petition.objects.create(
                 title=f"Petition {i+1}: {random.choice(['Improve', 'Request', 'Address', 'Support'])} {random.choice(['Healthcare', 'Education', 'Infrastructure', 'Services'])}",
                 description=f"This petition seeks to {random.choice(['improve', 'establish', 'enhance', 'support'])} {random.choice(['community services', 'healthcare facilities', 'educational programs', 'infrastructure development'])} in {moze.name}.",
-                petitioner=petitioner['user'],
+                created_by=petitioner['user'],
+                petitioner_name=petitioner['user'].get_full_name(),
+                petitioner_mobile=f"+91{random.randint(6000000000, 9999999999)}",
+                petitioner_email=petitioner['user'].email,
+                its_id=petitioner['user'].its_id,
                 moze=moze,
                 category=category,
-                priority=random.choice(['low', 'medium', 'high', 'urgent']),
-                status=random.choice(['pending', 'under_review', 'approved', 'rejected', 'implemented']),
-                target_signatures=random.randint(50, 500),
-                current_signatures=random.randint(10, 200),
-                is_active=True
+                priority=random.choice(['low', 'medium', 'high']),
+                status=random.choice(['pending', 'in_progress', 'resolved', 'rejected'])
             )
             
             self.created_petitions.append(petition)
@@ -723,7 +457,7 @@ class ComprehensiveDataPopulator:
                 description=f"This survey aims to gather feedback on {random.choice(self.survey_topics).lower()} in our community.",
                 target_role=random.choice(['all', 'aamil', 'doctor', 'student']),
                 questions=random.choice(sample_questions),
-                creator=creator['user'],
+                created_by=creator['user'],
                 is_active=True,
                 is_anonymous=random.choice([True, False]),
                 allow_multiple_responses=random.choice([True, False]),
@@ -749,12 +483,13 @@ class ComprehensiveDataPopulator:
             moze = random.choice(self.created_mozes)
             
             album = PhotoAlbum.objects.create(
-                title=f"Album {i+1}: {random.choice(['Community Event', 'Health Camp', 'Educational Program', 'Social Gathering', 'Religious Ceremony'])}",
+                name=f"Album {i+1}: {random.choice(['Community Event', 'Health Camp', 'Educational Program', 'Social Gathering', 'Religious Ceremony'])}",
                 description=f"Photos from {random.choice(['recent', 'annual', 'special', 'community'])} {random.choice(['event', 'program', 'celebration', 'gathering'])} in {moze.name}.",
-                creator=creator['user'],
+                created_by=creator['user'],
                 moze=moze,
                 is_public=random.choice([True, False]),
-                is_active=True
+                allow_uploads=random.choice([True, False]),
+                event_date=timezone.now().date() - timedelta(days=random.randint(1, 365)) if random.choice([True, False]) else None
             )
             
             self.created_albums.append(album)
@@ -775,11 +510,12 @@ class ComprehensiveDataPopulator:
             evaluation = EvaluationForm.objects.create(
                 title=f"Evaluation {i+1}: {random.choice(['Program Assessment', 'Service Review', 'Performance Evaluation', 'Quality Check'])}",
                 description=f"This evaluation form is designed to assess {random.choice(['program effectiveness', 'service quality', 'performance metrics', 'community satisfaction'])}.",
-                creator=creator['user'],
-                moze=random.choice(self.created_mozes),
+                evaluation_type=random.choice(['performance', 'satisfaction', 'quality', 'training', 'service', 'facility']),
+                target_role=random.choice(['all', 'doctor', 'student', 'aamil', 'moze_coordinator', 'admin']),
+                created_by=creator['user'],
                 is_active=True,
-                start_date=timezone.now().date() - timedelta(days=random.randint(1, 30)),
-                end_date=timezone.now().date() + timedelta(days=random.randint(30, 90))
+                is_anonymous=random.choice([True, False]),
+                due_date=timezone.now() + timedelta(days=random.randint(30, 90)) if random.choice([True, False]) else None
             )
             
             self.created_evaluations.append(evaluation)
@@ -797,12 +533,14 @@ class ComprehensiveDataPopulator:
         ]
         
         created_courses = []
-        for course_name in courses:
+        for i, course_name in enumerate(courses):
             course, created = Course.objects.get_or_create(
                 name=course_name,
                 defaults={
+                    'code': f'COURSE{i+1:03d}',
                     'description': f'Course in {course_name}',
-                    'duration_months': random.randint(6, 24),
+                    'credits': random.randint(2, 6),
+                    'level': random.choice(['beginner', 'intermediate', 'advanced']),
                     'is_active': True
                 }
             )
@@ -813,21 +551,21 @@ class ComprehensiveDataPopulator:
         for i, user_data in enumerate(student_users):
             student = Student.objects.create(
                 user=user_data['user'],
-                course=random.choice(created_courses),
+                student_id=f"STU{user_data['user'].its_id}",
+                academic_level=random.choice(['undergraduate', 'postgraduate', 'doctoral', 'diploma']),
+                enrollment_status=random.choice(['active', 'suspended', 'graduated', 'withdrawn']),
                 enrollment_date=timezone.now().date() - timedelta(days=random.randint(30, 365)),
-                graduation_date=timezone.now().date() + timedelta(days=random.randint(30, 730)) if random.choice([True, False]) else None,
-                is_active=True,
-                academic_status=random.choice(['enrolled', 'graduated', 'suspended', 'withdrawn'])
+                expected_graduation=timezone.now().date() + timedelta(days=random.randint(30, 730)) if random.choice([True, False]) else None
             )
             
-            self.log_creation("Student Profile", f"{student.user.get_full_name()} - {student.course.name}")
+            self.log_creation("Student Profile", f"{student.user.get_full_name()} - {student.student_id}")
         
         print(f"✅ Created {len(student_users)} student profiles")
     
     def generate_comprehensive_report(self):
         """Generate comprehensive data report"""
         print("\n" + "="*80)
-        print("📊 COMPREHENSIVE DATA POPULATION REPORT")
+        print("📊 SIMPLIFIED DATA POPULATION REPORT")
         print("="*80)
         
         print(f"\n👥 USER STATISTICS:")
@@ -841,22 +579,7 @@ class ComprehensiveDataPopulator:
         print(f"\n🏢 INFRASTRUCTURE:")
         print(f"   Mozes: {len(self.created_mozes)}")
         print(f"   Hospitals: {len(self.created_hospitals)}")
-        
-        print(f"\n👨‍⚕️ MEDICAL PROFESSIONALS:")
-        print(f"   Doctor Directory Doctors: {len(self.created_doctors)}")
-        print(f"   Mahal Shifa Doctors: {len([d for d in self.created_doctors if 'mahal_doctor' in d])}")
-        
-        print(f"\n👥 PATIENTS:")
-        print(f"   Doctor Directory Patients: {len(self.created_patients)}")
-        print(f"   Mahal Shifa Patients: {len([p for p in self.created_patients if 'patient_mahal' in p])}")
-        
-        print(f"\n📅 APPOINTMENTS:")
-        print(f"   Total Appointments: {len(self.created_appointments)}")
-        print(f"   Doctor Directory: {len([a for a in self.created_appointments if 'doctor_dir' in a])}")
-        print(f"   Mahal Shifa: {len([a for a in self.created_appointments if 'mahal_shifa' in a])}")
-        
-        print(f"\n📋 MEDICAL RECORDS:")
-        print(f"   Total Medical Records: {len(self.created_medical_records)}")
+        print(f"   Medical Services: {len(self.created_services)}")
         
         print(f"\n📝 ARAZ PETITIONS:")
         print(f"   Total Petitions: {len(self.created_petitions)}")
@@ -878,12 +601,12 @@ class ComprehensiveDataPopulator:
         print(f"   Username format: role + number (e.g., aamil01, doctor01, student01)")
         print(f"   Email format: username@mockits.com")
         
-        print(f"\n✅ DATA POPULATION COMPLETED SUCCESSFULLY!")
+        print(f"\n✅ SIMPLIFIED DATA POPULATION COMPLETED SUCCESSFULLY!")
         print("="*80)
     
     def run_comprehensive_population(self):
         """Run the complete data population process"""
-        print("🚀 Starting comprehensive data population...")
+        print("🚀 Starting simplified data population...")
         
         try:
             with transaction.atomic():
@@ -895,15 +618,6 @@ class ComprehensiveDataPopulator:
                 
                 # Create medical services
                 self.create_medical_services()
-                
-                # Create doctors and patients
-                self.create_doctors_and_patients()
-                
-                # Create appointments
-                self.create_appointments()
-                
-                # Create medical records
-                self.create_medical_records()
                 
                 # Create araz petitions
                 self.create_araz_petitions()
@@ -930,10 +644,10 @@ class ComprehensiveDataPopulator:
 
 def main():
     """Main function to run the data population"""
-    print("🏥 COMPREHENSIVE DATA POPULATION FOR UMOOR SEHHAT")
+    print("🏥 SIMPLIFIED DATA POPULATION FOR UMOOR SEHHAT")
     print("="*60)
     
-    populator = ComprehensiveDataPopulator()
+    populator = SimpleDataPopulator()
     populator.run_comprehensive_population()
 
 if __name__ == "__main__":
