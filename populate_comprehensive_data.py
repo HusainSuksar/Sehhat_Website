@@ -31,7 +31,7 @@ from mahalshifa.models import (
     Appointment as MahalShifaAppointment, MedicalService, MedicalRecord
 )
 from araz.models import Petition, PetitionCategory
-from surveys.models import Survey, SurveyQuestion, SurveyResponse
+from surveys.models import Survey
 from photos.models import PhotoAlbum, Photo
 from evaluation.models import EvaluationForm, EvaluationResponse
 
@@ -618,8 +618,58 @@ class ComprehensiveDataPopulator:
         print(f"✅ Created {len(self.created_petitions)} petitions")
     
     def create_surveys(self):
-        """Create surveys"""
+        """Create surveys with JSON questions"""
         print("📊 Creating surveys...")
+        
+        # Sample question structures
+        sample_questions = [
+            [
+                {
+                    "id": 1,
+                    "type": "text",
+                    "question": "What is your name?",
+                    "required": True,
+                    "options": []
+                },
+                {
+                    "id": 2,
+                    "type": "multiple_choice",
+                    "question": "How satisfied are you with our services?",
+                    "required": True,
+                    "options": ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very Dissatisfied"]
+                },
+                {
+                    "id": 3,
+                    "type": "rating",
+                    "question": "Rate our service quality (1-5)",
+                    "required": True,
+                    "options": ["1", "2", "3", "4", "5"]
+                }
+            ],
+            [
+                {
+                    "id": 1,
+                    "type": "text",
+                    "question": "What improvements would you suggest?",
+                    "required": False,
+                    "options": []
+                },
+                {
+                    "id": 2,
+                    "type": "checkbox",
+                    "question": "Which services have you used?",
+                    "required": True,
+                    "options": ["Medical Consultation", "Health Screening", "Emergency Care", "Follow-up"]
+                },
+                {
+                    "id": 3,
+                    "type": "yes_no",
+                    "question": "Would you recommend our services to others?",
+                    "required": True,
+                    "options": ["Yes", "No"]
+                }
+            ]
+        ]
         
         # Create surveys
         for i in range(20):
@@ -628,24 +678,16 @@ class ComprehensiveDataPopulator:
             survey = Survey.objects.create(
                 title=f"Survey {i+1}: {random.choice(self.survey_topics)}",
                 description=f"This survey aims to gather feedback on {random.choice(self.survey_topics).lower()} in our community.",
+                target_role=random.choice(['all', 'aamil', 'doctor', 'student']),
+                questions=random.choice(sample_questions),
                 creator=creator['user'],
-                moze=random.choice(self.created_mozes),
                 is_active=True,
-                start_date=timezone.now().date() - timedelta(days=random.randint(1, 30)),
-                end_date=timezone.now().date() + timedelta(days=random.randint(30, 90))
+                is_anonymous=random.choice([True, False]),
+                allow_multiple_responses=random.choice([True, False]),
+                show_results=random.choice([True, False]),
+                start_date=timezone.now() - timedelta(days=random.randint(1, 30)),
+                end_date=timezone.now() + timedelta(days=random.randint(30, 90))
             )
-            
-            # Create survey questions
-            question_types = ['text', 'multiple_choice', 'rating', 'yes_no']
-            for j in range(random.randint(3, 8)):
-                question_type = random.choice(question_types)
-                question = SurveyQuestion.objects.create(
-                    survey=survey,
-                    question_text=f"Question {j+1}: {random.choice(['How satisfied are you with', 'What is your opinion on', 'How often do you use', 'What improvements would you suggest for'])} {random.choice(['healthcare services', 'educational programs', 'community facilities', 'support services'])}?",
-                    question_type=question_type,
-                    is_required=random.choice([True, False]),
-                    order=j+1
-                )
             
             self.created_surveys.append(survey)
             
