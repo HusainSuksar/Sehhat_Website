@@ -45,6 +45,14 @@ class RoleBasedAccessMiddleware(MiddlewareMixin):
         
         if not path_allowed and path != '/':
             messages.error(request, "You don't have permission to access this page.")
-            return redirect('dashboard')
+            # Redirect to appropriate dashboard based on user role
+            if user.is_aamil or user.is_moze_coordinator:
+                return redirect('moze:dashboard')
+            elif user.is_doctor:
+                return redirect('mahalshifa:dashboard')
+            elif user.is_student:
+                return redirect('students:dashboard')
+            else:
+                return redirect('accounts:profile')
         
         return None
