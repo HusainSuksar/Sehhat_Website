@@ -107,10 +107,10 @@ def dashboard(request):
 
 
 class PetitionListView(LoginRequiredMixin, ListView):
-    """List all petitions with filtering and pagination"""
+    """List all araiz with filtering and pagination"""
     model = Petition
     template_name = 'araz/petition_list.html'
-    context_object_name = 'petitions'
+    context_object_name = 'araiz'  # Updated to match template expectations
     paginate_by = 20
     
     def get_queryset(self):
@@ -188,10 +188,10 @@ class PetitionListView(LoginRequiredMixin, ListView):
 
 
 class PetitionDetailView(LoginRequiredMixin, DetailView):
-    """Detailed view of a specific petition"""
+    """Detailed view of a specific araz"""
     model = Petition
     template_name = 'araz/petition_detail.html'
-    context_object_name = 'petition'
+    context_object_name = 'araz'  # Updated to match template expectations
     
     def get_queryset(self):
         user = self.request.user

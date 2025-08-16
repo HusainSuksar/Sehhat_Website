@@ -351,7 +351,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="assign-form" method="post" action="{% url 'araz:assign_petition' araz.pk %}">
+            <form id="assign-form" method="post" action="{% url 'araz:assign_araz' araz.pk %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="form-group">
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
             
-            fetch('{% url "araz:assign_petition" araz.pk %}', {
+            fetch('{% url "araz:assign_araz" araz.pk %}', {
                 method: 'POST',
                 body: formData,
                 headers: {

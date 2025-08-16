@@ -33,4 +33,7 @@ urlpatterns = [
     path('petitions/<int:pk>/', views.PetitionDetailView.as_view(), name='petition_detail'),
     path('petitions/create/', views.PetitionCreateView.as_view(), name='petition_create'),
     path('petitions/<int:pk>/edit/', views.PetitionUpdateView.as_view(), name='petition_update'),
+    path('petitions/<int:pk>/assign/', views.assign_petition, name='assign_petition'),
+    path('petitions/<int:pk>/comment/', views.add_comment, name='petition_add_comment'),
+    path('petitions/<int:pk>/status/', views.update_petition_status, name='petition_update_status'),
 ]
