@@ -1067,4 +1067,4 @@ def logout_view(request):
         logout(request)
         messages.success(request, 'You have been successfully logged out.')
     
-    return redirect('accounts:its_login')
+    return redirect('accounts:login')

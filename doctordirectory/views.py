@@ -216,14 +216,14 @@ class DoctorListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(user__first_name__icontains=search) |
                 Q(user__last_name__icontains=search) |
-                Q(user__specialty__icontains=search) |
+                Q(specialty__icontains=search) |
                 Q(assigned_moze__name__icontains=search)
             )
         
         # Filter by specialty
         specialty = self.request.GET.get('specialty')
         if specialty:
-            queryset = queryset.filter(user__specialty__icontains=specialty)
+            queryset = queryset.filter(specialty__icontains=specialty)
         
         # Filter by availability
         available = self.request.GET.get('available')
@@ -244,8 +244,8 @@ class DoctorListView(LoginRequiredMixin, ListView):
         
         # Get unique specialties for filter
         context['specialties'] = Doctor.objects.filter(
-            user__specialty__isnull=False
-        ).exclude(user__specialty='').values_list('user__specialty', flat=True).distinct()
+            specialty__isnull=False
+        ).exclude(specialty='').values_list('specialty', flat=True).distinct()
         
         return context
 
