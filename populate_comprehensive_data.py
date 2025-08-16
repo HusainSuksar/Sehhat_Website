@@ -310,10 +310,11 @@ class ComprehensiveDataPopulator:
             moze = Moze.objects.create(
                 name=f"Moze {chr(65 + i // 2)}{i % 2 + 1} - {city}",
                 address=f"Address {i+1}, {city}, {country}",
-                phone=f"+91{random.randint(6000000000, 9999999999)}",
-                email=f"moze{i+1}@example.com",
-                aamil=aamils[i] if i < len(aamils) else aamils[0],
-                moze_coordinator=coordinators[i] if i < len(coordinators) else coordinators[0],
+                location=f"{city}, {country}",
+                contact_phone=f"+91{random.randint(6000000000, 9999999999)}",
+                contact_email=f"moze{i+1}@example.com",
+                aamil=aamils[i]['user'] if i < len(aamils) else aamils[0]['user'],
+                moze_coordinator=coordinators[i]['user'] if i < len(coordinators) else coordinators[0]['user'],
                 capacity=random.randint(100, 500),
                 is_active=True
             )
@@ -333,11 +334,19 @@ class ComprehensiveDataPopulator:
             
             hospital = Hospital.objects.create(
                 name=f"{name} - {city}",
+                description=f"General hospital providing comprehensive healthcare services in {city}",
                 address=f"Hospital Address {i+1}, {city}, {country}",
                 phone=f"+91{random.randint(6000000000, 9999999999)}",
                 email=f"hospital{i+1}@example.com",
-                capacity=random.randint(100, 300),
-                is_active=True
+                hospital_type="General",
+                total_beds=random.randint(100, 300),
+                available_beds=random.randint(50, 200),
+                emergency_beds=random.randint(10, 50),
+                icu_beds=random.randint(5, 20),
+                is_active=True,
+                is_emergency_capable=True,
+                has_pharmacy=True,
+                has_laboratory=True
             )
             
             self.created_hospitals.append(hospital)
@@ -388,13 +397,20 @@ class ComprehensiveDataPopulator:
         for i, user_data in enumerate(doctor_users):
             doctor = Doctor.objects.create(
                 user=user_data['user'],
-                specialization=random.choice(self.specializations),
+                license_number=f"DR{random.randint(10000, 99999)}",
+                specialty=random.choice(self.specializations),
                 qualification=random.choice(self.qualifications),
                 experience_years=random.randint(5, 25),
-                phone=f"+91{random.randint(6000000000, 9999999999)}",
+                consultation_fee=Decimal(random.randint(200, 1000)),
+                bio=f"Experienced doctor with {random.randint(5, 25)} years of practice in {random.choice(self.specializations)}",
+                phone_number=f"+91{random.randint(6000000000, 9999999999)}",
                 email=user_data['user'].email,
                 address=f"Doctor Address {i+1}, {random.choice(self.cities)}",
-                is_available=True
+                hospital_affiliation=f"Hospital {random.randint(1, 6)}",
+                consultation_hours="9:00 AM - 5:00 PM",
+                is_active=True,
+                is_accepting_patients=True,
+                assigned_moze=random.choice(self.created_mozes)
             )
             
             self.created_doctors.append({
@@ -600,14 +616,16 @@ class ComprehensiveDataPopulator:
             petition = Petition.objects.create(
                 title=f"Petition {i+1}: {random.choice(['Improve', 'Request', 'Address', 'Support'])} {random.choice(['Healthcare', 'Education', 'Infrastructure', 'Services'])}",
                 description=f"This petition seeks to {random.choice(['improve', 'establish', 'enhance', 'support'])} {random.choice(['community services', 'healthcare facilities', 'educational programs', 'infrastructure development'])} in {moze.name}.",
-                petitioner=petitioner['user'],
+                created_by=petitioner['user'],
                 moze=moze,
                 category=category,
                 priority=random.choice(['low', 'medium', 'high', 'urgent']),
                 status=random.choice(['pending', 'under_review', 'approved', 'rejected', 'implemented']),
-                target_signatures=random.randint(50, 500),
-                current_signatures=random.randint(10, 200),
-                is_active=True
+                petitioner_name=petitioner['user'].get_full_name() or petitioner['user'].username,
+                petitioner_mobile=petitioner['user'].mobile_number or f"03{random.randint(10000000, 99999999)}",
+                petitioner_email=petitioner['user'].email or f"petitioner{i+1}@example.com",
+                its_id=petitioner['user'].its_id or f"{random.randint(10000000, 99999999)}",
+                is_anonymous=random.choice([True, False])
             )
             
             self.created_petitions.append(petition)
