@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ petition.title }} - Petition Details{% endblock %}
+{% block title %}{{ araz.title }} - araz Details{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -12,19 +12,19 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{% url 'araz:dashboard' %}">Araz</a></li>
-                            <li class="breadcrumb-item"><a href="{% url 'araz:petition_list' %}">Petitions</a></li>
-                            <li class="breadcrumb-item active">{{ petition.title|truncatechars:30 }}</li>
+                            <li class="breadcrumb-item"><a href="{% url 'araz:araz_list' %}">araiz</a></li>
+                            <li class="breadcrumb-item active">{{ araz.title|truncatechars:30 }}</li>
                         </ol>
                     </nav>
                     <h1 class="h3 mb-0 text-gray-800">📋 Araz Details</h1>
                 </div>
                 <div>
                     {% if can_edit %}
-                        <a href="{% url 'araz:petition_update' petition.pk %}" class="btn btn-warning btn-sm">
+                        <a href="{% url 'araz:araz_update' araz.pk %}" class="btn btn-warning btn-sm">
                             <i class="fas fa-edit"></i> Edit
                         </a>
                     {% endif %}
-                    <a href="{% url 'araz:petition_list' %}" class="btn btn-secondary btn-sm">
+                    <a href="{% url 'araz:araz_list' %}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-arrow-left"></i> Back to List
                     </a>
                 </div>
@@ -35,15 +35,15 @@
     <div class="row">
         <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Petition Details Card -->
+            <!-- araz Details Card -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">{{ petition.title }}</h6>
+                        <h6 class="m-0 font-weight-bold text-primary">{{ araz.title }}</h6>
                         <div>
-                            {% if petition.priority == 'high' %}
+                            {% if araz.priority == 'high' %}
                                 <span class="badge badge-danger badge-lg" style="background-color: red;">High Priority</span>
-                            {% elif petition.priority == 'medium' %}
+                            {% elif araz.priority == 'medium' %}
                                 <span class="badge badge-warning badge-lg" style="background-color: orange;">Medium Priority</span>
                             {% else %}
                                 <span class="badge badge-info badge-lg" style="background-color: blue;">Low Priority</span>
@@ -56,11 +56,11 @@
                     <div class="row mb-4">
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-info-circle"></i> Status</h6>
-                            {% if petition.status == 'pending' %}
+                            {% if araz.status == 'pending' %}
                                 <span class="badge badge-warning badge-lg" style="background-color: orange;"><i class="fas fa-clock"></i> Pending</span>
-                            {% elif petition.status == 'in_progress' %}
+                            {% elif araz.status == 'in_progress' %}
                                 <span class="badge badge-info badge-lg" style="background-color: blue;"><i class="fas fa-spinner"></i> In Progress</span>
-                            {% elif petition.status == 'resolved' %}
+                            {% elif araz.status == 'resolved' %}
                                 <span class="badge badge-success badge-lg" style="background-color: green;"><i class="fas fa-check-circle"></i> Resolved</span>
                             {% else %}
                                 <span class="badge badge-danger badge-lg" style="background-color: red;"><i class="fas fa-times-circle"></i> Rejected</span>
@@ -68,9 +68,9 @@
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-exclamation-triangle"></i> Priority</h6>
-                            {% if petition.priority == 'high' %}
+                            {% if araz.priority == 'high' %}
                                 <span class="badge badge-danger badge-lg" style="background-color: red;"><i class="fas fa-arrow-up"></i> High Priority</span>
-                            {% elif petition.priority == 'medium' %}
+                            {% elif araz.priority == 'medium' %}
                                 <span class="badge badge-warning badge-lg" style="background-color: orange;"><i class="fas fa-minus"></i> Medium Priority</span>
                             {% else %}
                                 <span class="badge badge-info badge-lg" style="background-color: blue;"><i class="fas fa-arrow-down"></i> Low Priority</span>
@@ -78,8 +78,8 @@
                         </div>
                         <div class="col-md-4">
                             <h6 class="text-primary"><i class="fas fa-tag"></i> Category</h6>
-                            {% if petition.category %}
-                                <span class="badge badge-secondary badge-lg" style="background-color: blue;"><i class="fas fa-folder"></i> {{ petition.category.name }}</span>
+                            {% if araz.category %}
+                                <span class="badge badge-secondary badge-lg" style="background-color: blue;"><i class="fas fa-folder"></i> {{ araz.category.name }}</span>
                             {% else %}
                                 <span class="text-muted">No category assigned</span>
                             {% endif %}
@@ -88,28 +88,28 @@
                     
                     <hr>
                     
-                    <!-- Petitioner Information -->
+                    <!-- applicant Information -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h6 class="text-success mb-3"><i class="fas fa-user"></i> Petitioner Information</h6>
+                            <h6 class="text-success mb-3"><i class="fas fa-user"></i> applicant Information</h6>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-2">
                                 <strong><i class="fas fa-user text-primary"></i> Name:</strong>
-                                {% if petition.is_anonymous %}
-                                    <span class="text-muted ml-2"><i class="fas fa-user-secret"></i> Anonymous Petition</span>
+                                {% if araz.is_anonymous %}
+                                    <span class="text-muted ml-2"><i class="fas fa-user-secret"></i> Anonymous araz</span>
                                 {% else %}
-                                    {% if petition.petitioner_name %}
-                                        <span class="ml-2">{{ petition.petitioner_name }}</span>
+                                    {% if araz.petitioner_name %}
+                                        <span class="ml-2">{{ araz.petitioner_name }}</span>
                                     {% else %}
-                                        <span class="ml-2">{{ petition.created_by.get_full_name }}</span>
+                                        <span class="ml-2">{{ araz.created_by.get_full_name }}</span>
                                     {% endif %}
                                 {% endif %}
                             </div>
                             <div class="mb-2">
                                 <strong><i class="fas fa-id-card text-info"></i> ITS ID:</strong>
-                                {% if petition.its_id %}
-                                    <span class="ml-2"><code>{{ petition.its_id }}</code></span>
+                                {% if araz.its_id %}
+                                    <span class="ml-2"><code>{{ araz.its_id }}</code></span>
                                 {% else %}
                                     <span class="text-muted ml-2">Not provided</span>
                                 {% endif %}
@@ -118,16 +118,16 @@
                         <div class="col-md-6">
                             <div class="mb-2">
                                 <strong><i class="fas fa-phone text-success"></i> Mobile:</strong>
-                                {% if petition.petitioner_mobile %}
-                                    <span class="ml-2">{{ petition.petitioner_mobile }}</span>
+                                {% if araz.petitioner_mobile %}
+                                    <span class="ml-2">{{ araz.petitioner_mobile }}</span>
                                 {% else %}
                                     <span class="text-muted ml-2">Not provided</span>
                                 {% endif %}
                             </div>
                             <div class="mb-2">
                                 <strong><i class="fas fa-envelope text-warning"></i> Email:</strong>
-                                {% if petition.petitioner_email %}
-                                    <span class="ml-2">{{ petition.petitioner_email }}</span>
+                                {% if araz.petitioner_email %}
+                                    <span class="ml-2">{{ araz.petitioner_email }}</span>
                                 {% else %}
                                     <span class="text-muted ml-2">Not provided</span>
                                 {% endif %}
@@ -145,23 +145,23 @@
                         <div class="col-md-6">
                             <div class="mb-2">
                                 <strong><i class="fas fa-calendar-plus text-primary"></i> Created:</strong>
-                                <span class="ml-2">{{ petition.created_at|date:"F d, Y \a\t g:i A" }}</span>
+                                <span class="ml-2">{{ araz.created_at|date:"F d, Y \a\t g:i A" }}</span>
                             </div>
                             <div class="mb-2">
                                 <strong><i class="fas fa-calendar-check text-info"></i> Last Updated:</strong>
-                                <span class="ml-2">{{ petition.updated_at|date:"F d, Y \a\t g:i A" }}</span>
+                                <span class="ml-2">{{ araz.updated_at|date:"F d, Y \a\t g:i A" }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            {% if petition.moze %}
+                            {% if araz.moze %}
                             <div class="mb-2">
                                 <strong><i class="fas fa-mosque text-success"></i> Assigned Moze:</strong>
-                                <span class="ml-2">{{ petition.moze.name }}</span>
+                                <span class="ml-2">{{ araz.moze.name }}</span>
                             </div>
                             {% endif %}
                             <div class="mb-2">
-                                <strong><i class="fas fa-hashtag text-secondary"></i> Petition ID:</strong>
-                                <span class="ml-2"><code>#{{ petition.pk }}</code></span>
+                                <strong><i class="fas fa-hashtag text-secondary"></i> araz ID:</strong>
+                                <span class="ml-2"><code>#{{ araz.pk }}</code></span>
                             </div>
                         </div>
                     </div>
@@ -171,7 +171,7 @@
                     <div class="mb-3">
                         <h6 class="font-weight-bold">Description:</h6>
                         <div class="border-left-primary pl-3">
-                            {{ petition.description|linebreaks }}
+                            {{ araz.description|linebreaks }}
                         </div>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                     <!-- Add Comment Form -->
                     {% if can_edit or can_manage %}
                     <hr>
-                    <form id="comment-form" method="post" action="{% url 'araz:add_comment' petition.pk %}">
+                    <form id="comment-form" method="post" action="{% url 'araz:add_comment' araz.pk %}">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="comment-content">Add a comment:</label>
@@ -272,12 +272,12 @@
                 </div>
                 <div class="card-body">
                     {% if can_manage %}
-                        {% if petition.status == 'pending' %}
+                        {% if araz.status == 'pending' %}
                             <button class="btn btn-info btn-block mb-2" onclick="updateStatus('in_progress')">
                                 <i class="fas fa-play"></i> Start Processing
                             </button>
                         {% endif %}
-                        {% if petition.status == 'in_progress' %}
+                        {% if araz.status == 'in_progress' %}
                             <button class="btn btn-success btn-block mb-2" onclick="updateStatus('resolved')">
                                 <i class="fas fa-check"></i> Mark as Resolved
                             </button>
@@ -289,7 +289,7 @@
                             <i class="fas fa-user"></i> Assign to User
                         </button>
                     {% endif %}
-                    <a href="{% url 'araz:petition_list' %}" class="btn btn-secondary btn-block">
+                    <a href="{% url 'araz:araz_list' %}" class="btn btn-secondary btn-block">
                         <i class="fas fa-arrow-left"></i> Back to List
                     </a>
                 </div>
@@ -346,12 +346,12 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="assignModalLabel">Assign Petition</h5>
+                <h5 class="modal-title" id="assignModalLabel">Assign araz</h5>
                 <button type="button" class="close" onclick="closeAssignModal()" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="assign-form" method="post" action="{% url 'araz:assign_petition' petition.pk %}">
+            <form id="assign-form" method="post" action="{% url 'araz:assign_petition' araz.pk %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="form-group">
@@ -402,7 +402,7 @@ document.getElementById('comment-form')?.addEventListener('submit', function(e) 
     
     const formData = new FormData(this);
     
-    fetch('{% url "araz:add_comment" petition.pk %}', {
+    fetch('{% url "araz:add_comment" araz.pk %}', {
         method: 'POST',
         body: formData,
         headers: {
@@ -453,7 +453,7 @@ function updateStatus(newStatus) {
         }
         
         // Make AJAX call to update status
-        fetch('{% url "araz:update_status" petition.pk %}', {
+        fetch('{% url "araz:update_status" araz.pk %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
             
-            fetch('{% url "araz:assign_petition" petition.pk %}', {
+            fetch('{% url "araz:assign_petition" araz.pk %}', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -624,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('danger', 'An error occurred while assigning the petition.');
+                showAlert('danger', 'An error occurred while assigning the araz.');
             })
             .finally(() => {
                 // Restore button state

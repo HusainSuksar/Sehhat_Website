@@ -256,22 +256,34 @@ class PetitionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     template_name = 'araz/petition_form.html'
     
     def test_func(self):
-        """Check if user has permission to create petitions"""
+        """Check if user has permission to create araiz"""
         user = self.request.user
+        
+        # Check if user is authenticated first
+        if not user.is_authenticated:
+            return False
+            
         # Allow admins, aamils, and students only
         # Block doctors and moze coordinators
         allowed_roles = ['badri_mahal_admin', 'aamil', 'student']
-        return user.role in allowed_roles or user.is_admin
+        return (hasattr(user, 'role') and user.role in allowed_roles) or user.is_admin
     
     def handle_no_permission(self):
         """Custom message for unauthorized users"""
         user = self.request.user
-        if user.role in ['doctor', 'moze_coordinator']:
+        
+        # Check if user is authenticated first
+        if not user.is_authenticated:
+            messages.error(self.request, 'You must be logged in to access the Araz system.')
+            return redirect('accounts:login')
+        
+        # Check role-based restrictions for authenticated users
+        if hasattr(user, 'role') and user.role in ['doctor', 'moze_coordinator']:
             messages.error(self.request, 
-                f'Petition system is not accessible for {user.role.replace("_", " ").title()} role. '
-                'Please contact your administrator if you need to submit a petition.')
+                f'Araz system is not accessible for {user.role.replace("_", " ").title()} role. '
+                'Please contact your administrator if you need to submit an Araz.')
         else:
-            messages.error(self.request, 'You do not have permission to access the petition system.')
+            messages.error(self.request, 'You do not have permission to access the Araz system.')
         return redirect('accounts:dashboard')
     
     def get_form_kwargs(self):

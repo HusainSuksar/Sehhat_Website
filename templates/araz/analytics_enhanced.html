@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="total-petitions">{{ stats.total }}</h4>
+                            <h4 id="total-araiz">{{ stats.total }}</h4>
                             <p>Total Araiz</p>
                         </div>
                         <div class="align-self-center">
@@ -32,7 +32,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="pending-petitions">{{ stats.pending }}</h4>
+                            <h4 id="pending-araiz">{{ stats.pending }}</h4>
                             <p>Pending</p>
                         </div>
                         <div class="align-self-center">
@@ -48,7 +48,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="in-progress-petitions">{{ stats.in_progress }}</h4>
+                            <h4 id="in-progress-araiz">{{ stats.in_progress }}</h4>
                             <p>In Progress</p>
                         </div>
                         <div class="align-self-center">
@@ -64,7 +64,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 id="resolved-petitions">{{ stats.resolved }}</h4>
+                            <h4 id="resolved-araiz">{{ stats.resolved }}</h4>
                             <p>Resolved</p>
                         </div>
                         <div class="align-self-center">
@@ -222,7 +222,7 @@ function initializeCharts() {
         data: {
             labels: {{ monthly_trend|safe }}.map(item => item.month),
             datasets: [{
-                label: 'Petitions',
+                label: 'araiz',
                 data: {{ monthly_trend|safe }}.map(item => item.count),
                 borderColor: 'rgb(75, 192, 192)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -274,7 +274,7 @@ function initializeCharts() {
         data: {
             labels: {{ category_stats|safe }}.map(item => item.category__name),
             datasets: [{
-                label: 'Petitions',
+                label: 'araiz',
                 data: {{ category_stats|safe }}.map(item => item.count),
                 backgroundColor: 'rgba(54, 162, 235, 0.6)'
             }]
@@ -364,10 +364,10 @@ function updateChartsWithData(data) {
 }
 
 function updateStatCards(stats) {
-    document.getElementById('total-petitions').textContent = stats.total;
-    document.getElementById('pending-petitions').textContent = stats.pending;
-    document.getElementById('in-progress-petitions').textContent = stats.in_progress;
-    document.getElementById('resolved-petitions').textContent = stats.resolved;
+    document.getElementById('total-araiz').textContent = stats.total;
+    document.getElementById('pending-araiz').textContent = stats.pending;
+    document.getElementById('in-progress-araiz').textContent = stats.in_progress;
+    document.getElementById('resolved-araiz').textContent = stats.resolved;
 }
 
 function loadActivityFeed() {

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Petitions Dashboard - Umoor Sehhat{% endblock %}
+{% block title %}araiz Dashboard - Umoor Sehhat{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -277,14 +277,14 @@
         font-weight: 600;
     }
 
-    /* Petition Grid */
-    .petition-grid {
+    /* araz Grid */
+    .araz-grid {
         display: grid;
         gap: 1rem;
         margin-top: 1.5rem;
     }
 
-    .petition-item {
+    .araz-item {
         background: #f9fafb;
         border-radius: 12px;
         padding: 1.5rem;
@@ -293,19 +293,19 @@
         border-left: 4px solid #ec4899;
     }
 
-    .petition-item:hover {
+    .araz-item:hover {
         background: white;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .petition-header {
+    .araz-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 1rem;
     }
 
-    .petition-title {
+    .araz-title {
         font-size: 1.125rem;
         font-weight: 600;
         color: #1f2937;
@@ -313,18 +313,18 @@
         text-decoration: none;
     }
 
-    .petition-title:hover {
+    .araz-title:hover {
         color: #ec4899;
         text-decoration: none;
     }
 
-    .petition-description {
+    .araz-description {
         color: #6b7280;
         font-size: 0.875rem;
         margin-bottom: 0.5rem;
     }
 
-    .petition-meta {
+    .araz-meta {
         display: flex;
         gap: 1rem;
         flex-wrap: wrap;
@@ -332,7 +332,7 @@
         color: #9ca3af;
     }
 
-    .petition-meta span {
+    .araz-meta span {
         display: flex;
         align-items: center;
         gap: 0.25rem;
@@ -509,7 +509,7 @@
             </div>
             <div class="welcome-text">
                 <h2>Araz Dashboard</h2>
-                <p>Comprehensive petition management system for academic requests and administrative processes.</p>
+                <p>Comprehensive araz management system for academic requests and administrative processes.</p>
                 <div class="welcome-meta">
                     <div class="meta-item">
                         <i class="fas fa-user"></i>
@@ -517,24 +517,24 @@
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-file-alt"></i>
-                        <span>{{ my_petitions|default:'0' }} My Petitions</span>
+                        <span>{{ my_petitions|default:'0' }} My araiz</span>
                     </div>
                     <div class="meta-item success">
                         <i class="fas fa-check-circle"></i>
-                        <span>Petition System Active</span>
+                        <span>araz System Active</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="welcome-actions">
-            <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+            <a href="{% url 'araz:araz_create' %}" class="btn btn-primary">
                 <i class="fas fa-plus"></i>
-                Submit Petition
+                Submit araz
             </a>
-            <a href="{% url 'araz:petition_list' %}" class="btn btn-outline">
+            <a href="{% url 'araz:araz_list' %}" class="btn btn-outline">
                 <i class="fas fa-list"></i>
-                Browse Petitions
+                Browse araiz
             </a>
         </div>
     </section>
@@ -553,7 +553,7 @@
             </div>
             <div class="stat-content">
                 <div class="stat-value">{{ total_petitions|default:'--' }}</div>
-                <div class="stat-label">Total Petitions</div>
+                <div class="stat-label">Total araiz</div>
                 <div class="stat-subtitle">All-time submissions</div>
             </div>
         </div>
@@ -604,7 +604,7 @@
             </div>
             <div class="stat-content">
                 <div class="stat-value">{{ my_petitions|default:'--' }}</div>
-                <div class="stat-label">My Petitions</div>
+                <div class="stat-label">My araiz</div>
                 <div class="stat-subtitle">Personal submissions</div>
             </div>
         </div>
@@ -614,71 +614,71 @@
     <div class="dashboard-grid">
         <!-- Main Content Area -->
         <div>
-            <!-- My Recent Petitions -->
+            <!-- My Recent araiz -->
             <div class="main-section">
                 <div class="section-header">
                     <div class="section-title">
                         <div class="section-icon">
                             <i class="fas fa-file-signature"></i>
                         </div>
-                        <h3>My Recent Petitions</h3>
+                        <h3>My Recent araiz</h3>
                     </div>
                     <div class="section-badge">{{ recent_my_petitions|length|default:'0' }} Recent</div>
                 </div>
 
                 {% if recent_my_petitions %}
-                    <div class="petition-grid">
-                        {% for petition in recent_my_petitions %}
-                            <div class="petition-item">
-                                <div class="petition-header">
+                    <div class="araz-grid">
+                        {% for araz in recent_my_petitions %}
+                            <div class="araz-item">
+                                <div class="araz-header">
                                     <div>
-                                        <a href="{% url 'araz:petition_detail' petition.pk %}" class="petition-title">
-                                            {{ petition.title }}
+                                        <a href="{% url 'araz:araz_detail' araz.pk %}" class="araz-title">
+                                            {{ araz.title }}
                                         </a>
-                                        <div class="petition-description">{{ petition.description|truncatewords:20|default:"No description available" }}</div>
-                                        <div class="petition-meta">
+                                        <div class="araz-description">{{ araz.description|truncatewords:20|default:"No description available" }}</div>
+                                        <div class="araz-meta">
                                             <span>
                                                 <i class="fas fa-calendar"></i>
-                                                Submitted {{ petition.created_at|date:"M d, Y" }}
+                                                Submitted {{ araz.created_at|date:"M d, Y" }}
                                             </span>
                                             <span>
                                                 <i class="fas fa-tag"></i>
-                                                {{ petition.category|default:"General" }}
+                                                {{ araz.category|default:"General" }}
                                             </span>
-                                            {% if petition.updated_at != petition.created_at %}
+                                            {% if araz.updated_at != araz.created_at %}
                                                 <span>
                                                     <i class="fas fa-sync"></i>
-                                                    Updated {{ petition.updated_at|date:"M d, Y" }}
+                                                    Updated {{ araz.updated_at|date:"M d, Y" }}
                                                 </span>
                                             {% endif %}
                                         </div>
                                     </div>
-                                    <div class="status-badge status-{{ petition.status|lower }}">
-                                        {{ petition.get_status_display|default:petition.status|title }}
+                                    <div class="status-badge status-{{ araz.status|lower }}">
+                                        {{ araz.get_status_display|default:araz.status|title }}
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
-                                     <a href="{% url 'araz:petition_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
-                     View All Petitions
+                                     <a href="{% url 'araz:araz_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1.5rem;">
+                     View All araiz
                  </a>
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">
                             <i class="fas fa-file-alt"></i>
                         </div>
-                        <div class="empty-state-title">No Petitions Submitted</div>
-                        <div class="empty-state-text">Submit your first petition to get started with academic requests.</div>
-                        <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                        <div class="empty-state-title">No araiz Submitted</div>
+                        <div class="empty-state-text">Submit your first araz to get started with academic requests.</div>
+                        <a href="{% url 'araz:araz_create' %}" class="btn btn-primary">
                             <i class="fas fa-plus"></i>
-                            Submit Petition
+                            Submit araz
                         </a>
                     </div>
                 {% endif %}
             </div>
 
-            <!-- Recent System Petitions (For Admins) -->
+            <!-- Recent System araiz (For Admins) -->
             {% if user.is_admin and recent_petitions %}
                 <div class="main-section">
                     <div class="section-header">
@@ -686,47 +686,47 @@
                             <div class="section-icon">
                                 <i class="fas fa-inbox"></i>
                             </div>
-                            <h3>Recent System Petitions</h3>
+                            <h3>Recent System araiz</h3>
                         </div>
                         <div class="section-badge">{{ recent_petitions|length }} New</div>
                     </div>
 
-                    <div class="petition-grid">
-                        {% for petition in recent_petitions %}
-                            <div class="petition-item">
-                                <div class="petition-header">
+                    <div class="araz-grid">
+                        {% for araz in recent_petitions %}
+                            <div class="araz-item">
+                                <div class="araz-header">
                                     <div>
-                                        <a href="{% url 'araz:petition_detail' petition.pk %}" class="petition-title">
-                                            {{ petition.title }}
+                                        <a href="{% url 'araz:araz_detail' araz.pk %}" class="araz-title">
+                                            {{ araz.title }}
                                         </a>
-                                        <div class="petition-description">
-                                            By {{ petition.submitted_by.get_full_name }} - {{ petition.description|truncatewords:15 }}
+                                        <div class="araz-description">
+                                            By {{ araz.submitted_by.get_full_name }} - {{ araz.description|truncatewords:15 }}
                                         </div>
-                                        <div class="petition-meta">
+                                        <div class="araz-meta">
                                             <span>
                                                 <i class="fas fa-calendar"></i>
-                                                {{ petition.created_at|date:"M d, Y" }}
+                                                {{ araz.created_at|date:"M d, Y" }}
                                             </span>
                                             <span>
                                                 <i class="fas fa-user"></i>
-                                                {{ petition.submitted_by.get_full_name }}
+                                                {{ araz.submitted_by.get_full_name }}
                                             </span>
                                             <span>
                                                 <i class="fas fa-tag"></i>
-                                                {{ petition.category|default:"General" }}
+                                                {{ araz.category|default:"General" }}
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="status-badge status-{{ petition.status|lower }}">
-                                        {{ petition.get_status_display|default:petition.status|title }}
+                                    <div class="status-badge status-{{ araz.status|lower }}">
+                                        {{ araz.get_status_display|default:araz.status|title }}
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                     
-                    <a href="{% url 'araz:petition_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
-                        View All Petitions
+                    <a href="{% url 'araz:araz_list' %}" class="btn btn-outline btn-sm" style="width: 100%; margin-top: 1rem;">
+                        View All araiz
                     </a>
                 </div>
             {% endif %}
@@ -743,16 +743,16 @@
                         </div>
                         <h3>Quick Actions</h3>
                     </div>
-                    <div class="section-badge">Petitions</div>
+                    <div class="section-badge">araiz</div>
                 </div>
 
                 <div class="actions-grid">
-                    <a href="{% url 'araz:petition_create' %}" class="action-btn">
+                    <a href="{% url 'araz:araz_create' %}" class="action-btn">
                         <div class="action-icon" style="--action-color: #10b981;">
                             <i class="fas fa-plus"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit Petition</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Submit araz</div>
                             <div style="font-size: 0.75rem; color: #6b7280;">New academic request</div>
                         </div>
                     </a>
@@ -767,12 +767,12 @@
                         </div>
                     </a>
 
-                    <a href="{% url 'araz:petition_list' %}" class="action-btn">
+                    <a href="{% url 'araz:araz_list' %}" class="action-btn">
                         <div class="action-icon" style="--action-color: #f59e0b;">
                             <i class="fas fa-search"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Browse Petitions</div>
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Browse araiz</div>
                             <div style="font-size: 0.75rem; color: #6b7280;">View all requests</div>
                         </div>
                     </a>
@@ -784,7 +784,7 @@
                             </div>
                             <div>
                                 <div style="font-weight: 600; margin-bottom: 0.25rem;">Analytics</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Petition analytics</div>
+                                <div style="font-size: 0.75rem; color: #6b7280;">araz analytics</div>
                             </div>
                         </a>
 
@@ -801,14 +801,14 @@
                 </div>
             </div>
 
-            <!-- Petition Statistics -->
+            <!-- araz Statistics -->
             <div class="sidebar-section">
                 <div class="section-header">
                     <div class="section-title">
                         <div class="section-icon">
                             <i class="fas fa-chart-pie"></i>
                         </div>
-                        <h3>Petition Stats</h3>
+                        <h3>araz Stats</h3>
                     </div>
                 </div>
 
@@ -818,7 +818,7 @@
                             <i class="fas fa-file-alt"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="activity-text">{{ total_petitions|default:'0' }} total petitions</div>
+                            <div class="activity-text">{{ total_petitions|default:'0' }} total araiz</div>
                             <div class="activity-time">All-time submissions</div>
                         </div>
                     </div>
@@ -848,7 +848,7 @@
                             <i class="fas fa-user-check"></i>
                         </div>
                         <div class="activity-content">
-                            <div class="activity-text">{{ my_petitions|default:'0' }} my petitions</div>
+                            <div class="activity-text">{{ my_petitions|default:'0' }} my araiz</div>
                             <div class="activity-time">Personal submissions</div>
                         </div>
                     </div>

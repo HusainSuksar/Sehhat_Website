@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% if object %}Edit Petition{% else %}Submit New Petition{% endif %}
+    {% if object %}Edit araz{% else %}Submit New araz{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -12,14 +12,14 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'araz:dashboard' %}">Araz</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'araz:petition_list' %}">Araz</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'araz:araz_list' %}">Araz</a></li>
                     <li class="breadcrumb-item active">
                         {% if object %}Edit araz{% else %}Submit New Araz{% endif %}
                     </li>
                 </ol>
             </nav>
             <h1 class="h3 mb-0 text-gray-800">
-                {% if object %}📝 Edit Petition{% else %}📋 Submit New Araz{% endif %}
+                {% if object %}📝 Edit araz{% else %}📋 Submit New Araz{% endif %}
             </h1>
         </div>
     </div>
@@ -50,12 +50,12 @@
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <!-- ITS ID and Petitioner Information Section -->
+                        <!-- ITS ID and applicant Information Section -->
                         <div class="card mb-4 shadow-sm" style="border-left: 4px solid #1cc88a; border-radius: 12px;">
                             <div class="card-header bg-light py-3" style="border-radius: 12px 12px 0 0;">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <h6 class="m-0 fw-bold text-success">
-                                        <i class="fas fa-id-card me-2"></i> Petitioner Information
+                                        <i class="fas fa-id-card me-2"></i> applicant Information
                                     </h6>
                                     {% if user.role == 'student' %}
                                         <div class="badge bg-info">
@@ -73,9 +73,9 @@
                                 </div>
                                 <small class="text-muted mt-1 d-block">
                                     {% if user.role == 'student' %}
-                                        <i class="fas fa-info-circle me-1"></i>This petition will be submitted using your profile information
+                                        <i class="fas fa-info-circle me-1"></i>This araz will be submitted using your profile information
                                     {% elif user.role == 'aamil' or user.is_admin %}
-                                        <i class="fas fa-search me-1"></i>Enter any ITS ID to fetch user data and create petition on their behalf
+                                        <i class="fas fa-search me-1"></i>Enter any ITS ID to fetch user data and create araz on their behalf
                                     {% else %}
                                         <i class="fas fa-lightbulb me-1"></i>Enter your ITS ID to automatically populate your details
                                     {% endif %}
@@ -118,7 +118,7 @@
                                         {{ form.its_id }}
                                     {% endif %}
                                     
-                                    <!-- Petitioner Details Section - Full width for students, 2/3 for admin/aamil -->
+                                    <!-- applicant Details Section - Full width for students, 2/3 for admin/aamil -->
                                     <div class="col-12 {% if user.role != 'student' %}col-lg-8{% endif %}">
                                         <div class="row">
                                             <!-- Full Name - Full width on mobile, half on tablet+ -->
@@ -313,7 +313,7 @@
 
                         <div class="d-flex justify-content-between">
                             <div>
-                                <a href="{% url 'araz:petition_list' %}" class="btn btn-secondary">
+                                <a href="{% url 'araz:araz_list' %}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Cancel
                                 </a>
                             </div>
@@ -446,11 +446,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Professional Alert System
     function showAlert(message, type = 'info', duration = 5000) {
         // Remove any existing alerts first
-        const existingAlerts = document.querySelectorAll('.petition-alert');
+        const existingAlerts = document.querySelectorAll('.araz-alert');
         existingAlerts.forEach(alert => alert.remove());
         
         const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show petition-alert`;
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show araz-alert`;
         alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
         
         const iconMap = {
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         // Check required fields
         const requiredFields = [
-            { field: nameField, label: 'Petitioner Name' },
+            { field: nameField, label: 'applicant Name' },
             { field: document.getElementById('id_title'), label: 'Title' },
             { field: document.getElementById('id_description'), label: 'Description' },
             { field: document.getElementById('id_priority'), label: 'Priority' }
@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         }
         
-        showAlert('Submitting your petition...', 'info', 2000);
+        showAlert('Submitting your araz...', 'info', 2000);
     });
 });
 
@@ -688,7 +688,7 @@ style.textContent = `
         100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
     }
     
-    .petition-alert {
+    .araz-alert {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }

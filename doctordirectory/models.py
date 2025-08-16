@@ -57,7 +57,7 @@ class Doctor(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['user__first_name', 'user__last_name']
+        ordering = ['name', 'created_at']  # Use name field instead of user fields
         verbose_name = 'Doctor'
         verbose_name_plural = 'Doctors'
         # Add database indexes for performance
@@ -67,13 +67,18 @@ class Doctor(models.Model):
             models.Index(fields=['assigned_moze']),
             models.Index(fields=['created_at']),
             models.Index(fields=['user', 'is_verified']),
+            models.Index(fields=['name']),  # Add index for name field
         ]
     
     def __str__(self):
-        return f"Dr. {self.user.get_full_name()}"
+        if self.user:
+            return f"Dr. {self.user.get_full_name()}"
+        return f"Dr. {self.name}"
     
     def get_full_name(self):
-        return f"Dr. {self.user.get_full_name()}"
+        if self.user:
+            return f"Dr. {self.user.get_full_name()}"
+        return f"Dr. {self.name}"
     
     @property
     def rating(self):

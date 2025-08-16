@@ -177,9 +177,22 @@ class DuaArazSerializer(serializers.ModelSerializer):
         return days_since > threshold and obj.status not in ['completed', 'cancelled', 'rejected']
     
     def validate_patient_its_id(self, value):
-        """Validate ITS ID format"""
-        if value and (len(value) != 8 or not value.isdigit()):
-            raise serializers.ValidationError("ITS ID must be exactly 8 digits")
+        """Validate ITS ID format and existence in ITS API"""
+        if value and value.strip():
+            value = value.strip()
+            
+            # Check format first
+            if len(value) != 8 or not value.isdigit():
+                raise serializers.ValidationError("ITS ID must be exactly 8 digits")
+            
+            # Validate against ITS API
+            from accounts.services import MockITSService
+            user_data = MockITSService.fetch_user_data(value)
+            if not user_data:
+                raise serializers.ValidationError(
+                    f"ITS ID '{value}' not found in ITS system. Please check the ID and try again."
+                )
+                
         return value
     
     def validate_preferred_time(self, value):

@@ -8,7 +8,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
-                <h1 class="h3 mb-0 text-gray-800">📋 My Petition Assignments</h1>
+                <h1 class="h3 mb-0 text-gray-800">📋 My araz Assignments</h1>
             </div>
         </div>
     </div>
@@ -16,7 +16,7 @@
     
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Assigned Petitions</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Assigned araiz</h6>
             </div>
             <div class="card-body">
                 {% if assignments %}
@@ -24,7 +24,7 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Petition</th>
+                                    <th>araz</th>
                                     <th>Priority</th>
                                     <th>Status</th>
                                     <th>Assigned Date</th>
@@ -34,11 +34,11 @@
                             <tbody>
                                 {% for assignment in assignments %}
                                 <tr>
-                                    <td><a href="{% url 'araz:petition_detail' assignment.petition.pk %}">{{ assignment.petition.title|truncatechars:50 }}</a></td>
-                                    <td><span class="badge badge-info">{{ assignment.petition.get_priority_display }}</span></td>
-                                    <td><span class="badge badge-warning">{{ assignment.petition.get_status_display }}</span></td>
+                                    <td><a href="{% url 'araz:araz_detail' assignment.araz.pk %}">{{ assignment.araz.title|truncatechars:50 }}</a></td>
+                                    <td><span class="badge badge-info">{{ assignment.araz.get_priority_display }}</span></td>
+                                    <td><span class="badge badge-warning">{{ assignment.araz.get_status_display }}</span></td>
                                     <td>{{ assignment.created_at|date:"M d, Y" }}</td>
-                                    <td><a href="{% url 'araz:petition_detail' assignment.petition.pk %}" class="btn btn-sm btn-primary">View</a></td>
+                                    <td><a href="{% url 'araz:araz_detail' assignment.araz.pk %}" class="btn btn-sm btn-primary">View</a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Petitions{% endblock %}
+{% block title %}Araiz{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h1 class="h3 mb-0 text-gray-800">📋 Araiz</h1>
-                <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                <a href="{% url 'araz:araz_create' %}" class="btn btn-primary">
                     <i class="fas fa-plus fa-sm"></i> Submit New Araz
                 </a>
             </div>
@@ -53,7 +53,7 @@
                 <div class="col-md-3 mb-3">
                     <label for="search">Search</label>
                     <div class="input-group">
-                        <input type="text" name="search" id="search" class="form-control" placeholder="Search petitions..." value="{{ current_filters.search }}">
+                        <input type="text" name="search" id="search" class="form-control" placeholder="Search araiz..." value="{{ current_filters.search }}">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i>
@@ -65,15 +65,15 @@
         </div>
     </div>
 
-    <!-- Petitions List -->
+    <!-- araiz List -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
-                Petitions ({{ petitions|length }} of {{ page_obj.paginator.count }})
+                araiz ({{ araiz|length }} of {{ page_obj.paginator.count }})
             </h6>
         </div>
         <div class="card-body">
-            {% if petitions %}
+            {% if araiz %}
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%" cellspacing="0">
                         <thead>
@@ -88,53 +88,53 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for petition in petitions %}
+                            {% for araz in araiz %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'araz:petition_detail' petition.pk %}" class="font-weight-bold">
-                                        {{ petition.title|truncatechars:50 }}
+                                    <a href="{% url 'araz:araz_detail' araz.pk %}" class="font-weight-bold">
+                                        {{ araz.title|truncatechars:50 }}
                                     </a>
-                                    {% if petition.description %}
-                                        <div class="small text-muted">{{ petition.description|truncatechars:80 }}</div>
+                                    {% if araz.description %}
+                                        <div class="small text-muted">{{ araz.description|truncatechars:80 }}</div>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if petition.category %}
-                                        <span class="badge badge-secondary" style="background-color: rgb(4, 145, 11);" >{{ petition.category.name }}</span>
+                                    {% if araz.category %}
+                                        <span class="badge badge-secondary" style="background-color: rgb(4, 145, 11);" >{{ araz.category.name }}</span>
                                     {% else %}
                                         <span class="text-muted">No category</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if petition.priority == 'high' %}
+                                    {% if araz.priority == 'high' %}
                                         <span class="badge badge-danger" style="background-color: rgb(235, 76, 2);">High</span>
-                                    {% elif petition.priority == 'medium' %}
+                                    {% elif araz.priority == 'medium' %}
                                         <span class="badge badge-warning" style="background-color: rgb(176, 165, 5);">Medium</span>
                                     {% else %}
                                         <span class="badge badge-info" style="background-color: rgb(98, 20, 223);">Low</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if petition.status == 'pending' %}
+                                    {% if araz.status == 'pending' %}
                                         <span class="badge badge-warning" style="background-color: rgb(192, 215, 19);">Pending</span>
-                                    {% elif petition.status == 'in_progress' %}
+                                    {% elif araz.status == 'in_progress' %}
                                         <span class="badge badge-info" style="background-color: orange;">In Progress</span>
-                                    {% elif petition.status == 'resolved' %}
+                                    {% elif araz.status == 'resolved' %}
                                         <span class="badge badge-success" style="background-color: rgb(40, 146, 5);">Resolved</span>
                                     {% else %}
                                         <span class="badge badge-danger" style="background-color: rgb(229, 9, 9);">Rejected</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if petition.is_anonymous %}
+                                    {% if araz.is_anonymous %}
                                         <span class="text-muted">Anonymous</span>
                                     {% else %}
-                                        {{ petition.created_by.get_full_name }}
+                                        {{ araz.created_by.get_full_name }}
                                     {% endif %}
                                 </td>
-                                <td>{{ petition.created_at|date:"M d, Y" }}</td>
+                                <td>{{ araz.created_at|date:"M d, Y" }}</td>
                                 <td>
-                                    <a href="{% url 'araz:petition_detail' petition.pk %}" class="btn btn-sm btn-primary">
+                                    <a href="{% url 'araz:araz_detail' araz.pk %}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
@@ -146,7 +146,7 @@
 
                 <!-- Pagination -->
                 {% if page_obj.has_other_pages %}
-                <nav aria-label="Petitions pagination">
+                <nav aria-label="araiz pagination">
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                             <li class="page-item">
@@ -183,15 +183,15 @@
             {% else %}
                 <div class="text-center py-5">
                     <i class="fas fa-clipboard-list fa-4x text-gray-300 mb-3"></i>
-                    <h4 class="text-gray-400">No petitions found</h4>
+                    <h4 class="text-gray-400">No araiz found</h4>
                     <p class="text-muted">
                         {% if current_filters.search or current_filters.status or current_filters.priority or current_filters.category %}
-                            Try adjusting your filters or <a href="{% url 'araz:petition_list' %}">clear all filters</a>.
+                            Try adjusting your filters or <a href="{% url 'araz:araz_list' %}">clear all filters</a>.
                         {% else %}
-                            Be the first to submit a petition.
+                            Be the first to submit a araz.
                         {% endif %}
                     </p>
-                    <a href="{% url 'araz:petition_create' %}" class="btn btn-primary">
+                    <a href="{% url 'araz:araz_create' %}" class="btn btn-primary">
                         <i class="fas fa-plus fa-sm"></i> Submit New Araz
                     </a>
                 </div>

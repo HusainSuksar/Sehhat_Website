@@ -150,12 +150,23 @@ class PetitionForm(forms.ModelForm):
         return name.strip()
     
     def clean_its_id(self):
-        """Validate ITS ID format if provided"""
+        """Validate ITS ID format and existence in ITS API"""
         its_id = self.cleaned_data.get('its_id')
         if its_id and its_id.strip():
             its_id = its_id.strip()
+            
+            # Check format first
             if len(its_id) != 8 or not its_id.isdigit():
                 raise forms.ValidationError("ITS ID must be exactly 8 digits.")
+            
+            # Validate against ITS API
+            from accounts.services import MockITSService
+            user_data = MockITSService.fetch_user_data(its_id)
+            if not user_data:
+                raise forms.ValidationError(
+                    f"ITS ID '{its_id}' not found in ITS system. Please check the ID and try again."
+                )
+                
         return its_id
     
     def clean(self):
@@ -275,6 +286,26 @@ class DuaArazForm(forms.ModelForm):
             self.fields['preferred_doctor'].empty_label = "No preference"
         except:
             pass
+
+    def clean_patient_its_id(self):
+        """Validate patient ITS ID against ITS API"""
+        its_id = self.cleaned_data.get('patient_its_id')
+        if its_id and its_id.strip():
+            its_id = its_id.strip()
+            
+            # Check format first
+            if len(its_id) != 8 or not its_id.isdigit():
+                raise forms.ValidationError("Patient ITS ID must be exactly 8 digits.")
+            
+            # Validate against ITS API
+            from accounts.services import MockITSService
+            user_data = MockITSService.fetch_user_data(its_id)
+            if not user_data:
+                raise forms.ValidationError(
+                    f"Patient ITS ID '{its_id}' not found in ITS system. Please check the ID and try again."
+                )
+                
+        return its_id
 
 
 class PetitionFilterForm(forms.Form):
