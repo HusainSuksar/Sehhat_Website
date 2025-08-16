@@ -613,7 +613,7 @@
                         </label>
                     </div>
                     
-                    <button type="submit" class="btn login-btn" onclick="showLoading()">
+                    <button type="submit" class="btn login-btn">
                         <i class="fas fa-sign-in-alt me-2"></i>Sign In
                     </button>
                     
@@ -728,7 +728,19 @@
                 if (firstInvalid) {
                     firstInvalid.focus();
                 }
+                return false;
             }
+            
+            // Ensure CSRF token is included
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            if (!csrfToken) {
+                e.preventDefault();
+                console.error('CSRF token not found');
+                return false;
+            }
+            
+            // Allow form submission to proceed
+            return true;
         });
         
         // Add hover effects to role items

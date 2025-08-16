@@ -163,8 +163,7 @@ CACHE_MIDDLEWARE_SECONDS = 300  # 5 minutes
 CACHE_MIDDLEWARE_KEY_PREFIX = 'umoor_sehhat'
 
 # Session configuration for performance
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_SAVE_EVERY_REQUEST = False
 
