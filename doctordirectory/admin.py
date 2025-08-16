@@ -8,27 +8,24 @@ from .models import (
 
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):
-    list_display = ['get_full_name', 'user', 'specialty', 'is_active', 'is_accepting_patients', 'assigned_moze', 'get_patient_count', 'get_appointment_count', 'created_at']
-    list_filter = ['is_active', 'is_accepting_patients', 'specialty', 'assigned_moze', 'created_at']
+    list_display = ['name', 'user', 'specialty', 'is_verified', 'is_available', 'assigned_moze', 'get_patient_count', 'get_appointment_count', 'created_at']
+    list_filter = ['is_verified', 'is_available', 'specialty', 'assigned_moze', 'created_at']
     search_fields = ['user__first_name', 'user__last_name', 'specialty', 'license_number']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['user__first_name', 'user__last_name']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('user', 'license_number', 'specialty', 'qualification', 'experience_years')
+            'fields': ('name', 'its_id', 'user', 'specialty', 'qualification', 'experience_years')
         }),
         ('Professional Details', {
-            'fields': ('consultation_fee', 'bio', 'hospital_affiliation', 'consultation_hours')
+            'fields': ('verified_certificate', 'is_verified', 'is_available', 'license_number', 'consultation_fee', 'bio')
         }),
         ('Contact Information', {
-            'fields': ('phone_number', 'email', 'address')
+            'fields': ('phone', 'email', 'address', 'languages_spoken')
         }),
-        ('Status & Assignment', {
-            'fields': ('is_active', 'is_accepting_patients', 'assigned_moze')
-        }),
-        ('Media', {
-            'fields': ('profile_photo',)
+        ('Assignment', {
+            'fields': ('assigned_moze',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -68,24 +65,21 @@ class DoctorAdmin(admin.ModelAdmin):
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'user_account', 'phone_number', 'date_of_birth', 'gender', 'get_age', 'get_appointment_count', 'created_at']
-    list_filter = ['gender', 'blood_type', 'created_at']
-    search_fields = ['full_name', 'phone_number', 'email', 'user_account__first_name', 'user_account__last_name']
+    list_display = ['get_full_name', 'user', 'date_of_birth', 'gender', 'get_age', 'get_appointment_count', 'created_at']
+    list_filter = ['gender', 'blood_group', 'created_at']
+    search_fields = ['user__first_name', 'user__last_name', 'user__email']
     readonly_fields = ['created_at', 'updated_at', 'get_age']
-    ordering = ['full_name']
+    ordering = ['user__first_name', 'user__last_name']
     
     fieldsets = (
         ('Personal Information', {
-            'fields': ('user_account', 'full_name', 'date_of_birth', 'gender')
-        }),
-        ('Contact Information', {
-            'fields': ('phone_number', 'email', 'address')
+            'fields': ('user', 'date_of_birth', 'gender')
         }),
         ('Medical Information', {
-            'fields': ('blood_type', 'allergies', 'medical_history', 'current_medications')
+            'fields': ('blood_group', 'allergies', 'medical_history', 'current_medications')
         }),
         ('Emergency Contact', {
-            'fields': ('emergency_contact', 'emergency_phone')
+            'fields': ('emergency_contact',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -95,9 +89,15 @@ class PatientAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         """Optimize queryset with appointment count"""
-        return super().get_queryset(request).select_related('user_account').annotate(
+        return super().get_queryset(request).select_related('user').annotate(
             appointment_count=Count('appointments')
         )
+    
+    def get_full_name(self, obj):
+        """Display patient full name"""
+        return obj.user.get_full_name() if obj.user else 'Unknown'
+    get_full_name.short_description = 'Full Name'
+    get_full_name.admin_order_field = 'user__first_name'
     
     def get_age(self, obj):
         """Display calculated age"""
@@ -118,7 +118,7 @@ class PatientAdmin(admin.ModelAdmin):
 class AppointmentAdmin(admin.ModelAdmin):
     list_display = ['get_patient_name', 'get_doctor_name', 'appointment_date', 'appointment_time', 'status', 'created_at']
     list_filter = ['status', 'appointment_date', 'created_at']
-    search_fields = ['patient__full_name', 'doctor__user__first_name', 'doctor__user__last_name', 'reason']
+    search_fields = ['patient__user__first_name', 'patient__user__last_name', 'doctor__user__first_name', 'doctor__user__last_name', 'reason_for_visit']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-appointment_date', '-appointment_time']
     date_hierarchy = 'appointment_date'
@@ -128,23 +128,23 @@ class AppointmentAdmin(admin.ModelAdmin):
             'fields': ('doctor', 'patient', 'appointment_date', 'appointment_time', 'status')
         }),
         ('Description', {
-            'fields': ('reason', 'notes')
+            'fields': ('service', 'reason_for_visit', 'notes')
         }),
         ('Metadata', {
-            'fields': ('created_by', 'created_at', 'updated_at'),
+            'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
     
     def get_queryset(self, request):
         """Optimize queryset with related objects"""
-        return super().get_queryset(request).select_related('patient', 'doctor__user', 'created_by')
+        return super().get_queryset(request).select_related('patient__user', 'doctor__user', 'service')
     
     def get_patient_name(self, obj):
         """Display patient name"""
-        return obj.patient.full_name
+        return obj.patient.user.get_full_name() if obj.patient.user else 'Unknown'
     get_patient_name.short_description = 'Patient'
-    get_patient_name.admin_order_field = 'patient__full_name'
+    get_patient_name.admin_order_field = 'patient__user__first_name'
     
     def get_doctor_name(self, obj):
         """Display doctor name"""
@@ -188,8 +188,8 @@ class DoctorScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(MedicalService)
 class MedicalServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'get_doctor_name', 'duration_minutes', 'price', 'is_active', 'created_at']
-    list_filter = ['is_active', 'duration_minutes', 'created_at']
+    list_display = ['name', 'get_doctor_name', 'duration_minutes', 'price', 'is_available', 'created_at']
+    list_filter = ['is_available', 'duration_minutes', 'created_at']
     search_fields = ['name', 'description', 'doctor__user__first_name', 'doctor__user__last_name']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['name']
@@ -199,7 +199,7 @@ class MedicalServiceAdmin(admin.ModelAdmin):
             'fields': ('doctor', 'name', 'description')
         }),
         ('Service Configuration', {
-            'fields': ('duration_minutes', 'price', 'is_active')
+            'fields': ('duration_minutes', 'price', 'is_available')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

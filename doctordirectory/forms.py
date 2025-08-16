@@ -16,14 +16,19 @@ class DoctorForm(forms.ModelForm):
     class Meta:
         model = Doctor
         fields = [
-            'license_number', 'specialty', 'qualification', 'experience_years', 
-            'consultation_fee', 'bio', 'hospital_affiliation', 'phone_number', 
-            'email', 'address', 'is_active', 'is_accepting_patients', 'assigned_moze'
+            'name', 'its_id', 'specialty', 'qualification', 'experience_years', 
+            'verified_certificate', 'is_verified', 'is_available', 'license_number', 
+            'consultation_fee', 'phone', 'email', 'address', 'languages_spoken', 
+            'bio', 'assigned_moze', 'user'
         ]
         widgets = {
-            'license_number': forms.TextInput(attrs={
+            'name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Medical license number'
+                'placeholder': 'Doctor name'
+            }),
+            'its_id': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ITS ID'
             }),
             'specialty': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -39,21 +44,26 @@ class DoctorForm(forms.ModelForm):
                 'min': '0',
                 'max': '50'
             }),
+            'verified_certificate': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Certificate verification status'
+            }),
+            'is_verified': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'is_available': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'license_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Medical license number'
+            }),
             'consultation_fee': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
                 'step': '0.01'
             }),
-            'bio': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 4,
-                'placeholder': 'Brief professional biography...'
-            }),
-            'hospital_affiliation': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Hospital affiliation'
-            }),
-            'phone_number': forms.TextInput(attrs={
+            'phone': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '+1234567890'
             }),
@@ -66,13 +76,17 @@ class DoctorForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Address'
             }),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+            'languages_spoken': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Languages spoken'
             }),
-            'is_accepting_patients': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Brief professional biography...'
             }),
             'assigned_moze': forms.Select(attrs={'class': 'form-control'}),
+            'user': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
@@ -128,7 +142,7 @@ class AppointmentForm(forms.ModelForm):
     
     class Meta:
         model = Appointment
-        fields = ['doctor', 'patient', 'appointment_date', 'appointment_time', 'reason', 'notes']
+        fields = ['doctor', 'patient', 'service', 'appointment_date', 'appointment_time', 'reason_for_visit', 'notes']
         widgets = {
             'doctor': forms.Select(attrs={'class': 'form-control'}),
             'patient': forms.Select(attrs={'class': 'form-control'}),
@@ -140,10 +154,10 @@ class AppointmentForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'time'
             }),
-            'reason': forms.Textarea(attrs={
+            'service': forms.Select(attrs={'class': 'form-control'}),
+            'reason_for_visit': forms.TextInput(attrs={
                 'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Reason for appointment...'
+                'placeholder': 'Reason for visit...'
             }),
             'notes': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -165,57 +179,36 @@ class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
         fields = [
-            'full_name', 'date_of_birth', 'gender', 'phone_number', 'email', 
-            'address', 'blood_type', 'allergies', 'medical_history', 'current_medications',
-            'emergency_contact', 'emergency_phone'
+            'date_of_birth', 'gender', 'blood_group', 'emergency_contact', 
+            'medical_history', 'allergies', 'current_medications', 'user'
         ]
         widgets = {
-            'full_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Full name'
-            }),
             'date_of_birth': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
             }),
             'gender': forms.Select(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={
+            'blood_group': forms.Select(attrs={'class': 'form-control'}),
+            'emergency_contact': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '+1234567890'
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'patient@example.com'
-            }),
-            'address': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Address'
-            }),
-            'blood_type': forms.Select(attrs={'class': 'form-control'}),
-            'allergies': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Known allergies...'
+                'placeholder': 'Emergency contact'
             }),
             'medical_history': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Medical history...'
             }),
+            'allergies': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Known allergies...'
+            }),
             'current_medications': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 2,
                 'placeholder': 'Current medications...'
             }),
-            'emergency_contact': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Emergency contact name'
-            }),
-            'emergency_phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Emergency contact phone'
-            }),
+            'user': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
@@ -224,7 +217,7 @@ class MedicalServiceForm(forms.ModelForm):
     
     class Meta:
         model = MedicalService
-        fields = ['doctor', 'name', 'description', 'duration_minutes', 'price', 'is_active']
+        fields = ['doctor', 'name', 'description', 'duration_minutes', 'price', 'is_available']
         widgets = {
             'doctor': forms.Select(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={
@@ -246,7 +239,7 @@ class MedicalServiceForm(forms.ModelForm):
                 'min': '0',
                 'step': '0.01'
             }),
-            'is_active': forms.CheckboxInput(attrs={
+            'is_available': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
         }

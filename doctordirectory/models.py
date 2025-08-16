@@ -9,63 +9,47 @@ User = get_user_model()
 
 
 class Doctor(models.Model):
-    """Doctor model for the doctor directory"""
+    """Doctor model for the doctor directory - Updated to match database schema"""
     
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE,
-        related_name='doctor_profile'
-    )
-    license_number = models.CharField(
-        max_length=50,
-        unique=True,
-        help_text='Medical license number'
-    )
+    # Basic Information
+    name = models.CharField(max_length=100)
+    its_id = models.CharField(max_length=8, blank=True, null=True)
     specialty = models.CharField(max_length=100, blank=True, null=True)
     qualification = models.TextField(blank=True, null=True)
     experience_years = models.PositiveIntegerField(default=0)
+    verified_certificate = models.CharField(max_length=100, blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
+    is_available = models.BooleanField(default=True)
+    
+    # Professional Information
+    license_number = models.CharField(max_length=50, blank=True, null=True)
     consultation_fee = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
         default=Decimal('0.00')
     )
-    bio = models.TextField(blank=True, null=True)
-    profile_photo = models.ImageField(
-        upload_to='doctors/photos/', 
-        blank=True, 
-        null=True
-    )
     
     # Contact Information
-    phone_number = models.CharField(
-        max_length=15,
-        validators=[RegexValidator(
-            regex=r'^\+?1?\d{9,15}$',
-            message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.'
-        )],
-        blank=True,
-        null=True
-    )
+    phone = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    languages_spoken = models.CharField(max_length=200, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
     
-    # Professional Information
-    hospital_affiliation = models.CharField(max_length=200, blank=True, null=True)
-    consultation_hours = models.TextField(
-        blank=True, 
-        null=True,
-        help_text='General consultation hours description'
-    )
-    
-    # System fields
-    is_active = models.BooleanField(default=True)
-    is_accepting_patients = models.BooleanField(default=True)
+    # Relationships
     assigned_moze = models.ForeignKey(
         'moze.Moze',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='assigned_doctors'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='doctor_profile',
+        null=True,
+        blank=True
     )
     
     # Metadata
@@ -78,11 +62,11 @@ class Doctor(models.Model):
         verbose_name_plural = 'Doctors'
         # Add database indexes for performance
         indexes = [
-            models.Index(fields=['is_active', 'is_accepting_patients']),
+            models.Index(fields=['is_verified', 'is_available']),
             models.Index(fields=['specialty']),
             models.Index(fields=['assigned_moze']),
             models.Index(fields=['created_at']),
-            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['user', 'is_verified']),
         ]
     
     def __str__(self):
@@ -99,7 +83,7 @@ class Doctor(models.Model):
     @property
     def total_patients(self):
         """Get total number of patients for this doctor"""
-        return self.patients.count()
+        return 0  # Placeholder - patients relationship not yet implemented
     
     @property
     def total_appointments(self):
@@ -108,16 +92,9 @@ class Doctor(models.Model):
 
 
 class Patient(models.Model):
-    """Patient model for the doctor directory"""
+    """Patient model for the doctor directory - Updated to match database schema"""
     
-    user_account = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name='patient_profile',
-        null=True,
-        blank=True
-    )
-    full_name = models.CharField(max_length=200)
+    # Basic Information
     date_of_birth = models.DateField()
     gender = models.CharField(
         max_length=10,
@@ -127,20 +104,9 @@ class Patient(models.Model):
             ('other', 'Other')
         ]
     )
-    phone_number = models.CharField(
-        max_length=15,
-        validators=[RegexValidator(
-            regex=r'^\+?1?\d{9,15}$',
-            message='Phone number must be entered in the format: "+999999999". Up to 15 digits allowed.'
-        )]
-    )
-    email = models.EmailField(blank=True, null=True)
-    address = models.TextField()
-    emergency_contact = models.CharField(max_length=200, blank=True, null=True)
-    emergency_phone = models.CharField(max_length=15, blank=True, null=True)
     
     # Medical Information
-    blood_type = models.CharField(
+    blood_group = models.CharField(
         max_length=5,
         choices=[
             ('A+', 'A+'), ('A-', 'A-'),
@@ -151,18 +117,18 @@ class Patient(models.Model):
         blank=True,
         null=True
     )
-    allergies = models.TextField(blank=True, null=True)
+    emergency_contact = models.CharField(max_length=15, blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
+    allergies = models.TextField(blank=True, null=True)
     current_medications = models.TextField(blank=True, null=True)
     
-    # System fields
-    is_active = models.BooleanField(default=True)
-    assigned_moze = models.ForeignKey(
-        'moze.Moze',
-        on_delete=models.SET_NULL,
+    # Relationships
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='patient_profile',
         null=True,
-        blank=True,
-        related_name='assigned_patients'
+        blank=True
     )
     
     # Metadata
@@ -170,14 +136,11 @@ class Patient(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['full_name']
+        ordering = ['user__first_name', 'user__last_name']
         verbose_name = 'Patient'
         verbose_name_plural = 'Patients'
         # Add database indexes for performance
         indexes = [
-            models.Index(fields=['is_active']),
-            models.Index(fields=['assigned_moze']),
-            models.Index(fields=['full_name']),
             models.Index(fields=['date_of_birth']),
             models.Index(fields=['created_at']),
         ]
@@ -200,7 +163,7 @@ class Patient(models.Model):
 
 
 class Appointment(models.Model):
-    """Appointment model for scheduling doctor visits"""
+    """Appointment model for scheduling doctor visits - Updated to match database schema"""
     
     STATUS_CHOICES = [
         ('scheduled', 'Scheduled'),
@@ -211,36 +174,39 @@ class Appointment(models.Model):
         ('no_show', 'No Show')
     ]
     
-    patient = models.ForeignKey(
-        Patient,
-        on_delete=models.CASCADE,
-        related_name='appointments'
-    )
-    doctor = models.ForeignKey(
-        Doctor,
-        on_delete=models.CASCADE,
-        related_name='appointments'
-    )
+    # Appointment Details
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
-    duration_minutes = models.PositiveIntegerField(default=30)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='scheduled'
     )
-    reason = models.TextField(blank=True, null=True)
+    reason_for_visit = models.CharField(max_length=200, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
-    # System fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(
-        User,
+    # Relationships
+    doctor = models.ForeignKey(
+        Doctor,
+        on_delete=models.CASCADE,
+        related_name='appointments'
+    )
+    service = models.ForeignKey(
+        'MedicalService',
         on_delete=models.SET_NULL,
         null=True,
-        related_name='created_appointments'
+        blank=True,
+        related_name='appointments'
     )
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.CASCADE,
+        related_name='appointments'
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-appointment_date', '-appointment_time']
@@ -389,7 +355,7 @@ class MedicalService(models.Model):
         decimal_places=2,
         default=Decimal('0.00')
     )
-    is_active = models.BooleanField(default=True)
+    is_available = models.BooleanField(default=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -400,7 +366,7 @@ class MedicalService(models.Model):
         verbose_name_plural = 'Medical Services'
         # Add database indexes for performance
         indexes = [
-            models.Index(fields=['doctor', 'is_active']),
+            models.Index(fields=['doctor', 'is_available']),
             models.Index(fields=['name']),
         ]
     

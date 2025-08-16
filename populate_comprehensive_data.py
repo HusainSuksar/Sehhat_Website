@@ -25,10 +25,10 @@ from django.conf import settings
 from accounts.models import User
 from moze.models import Moze
 from students.models import Student, Course
-from doctordirectory.models import Doctor, Patient, Appointment as DoctorAppointment
+from doctordirectory.models import Doctor, Patient, Appointment as DoctorAppointment, MedicalService
 from mahalshifa.models import (
     Hospital, Doctor as MahalShifaDoctor, Patient as MahalShifaPatient, 
-    Appointment as MahalShifaAppointment, MedicalService, MedicalRecord
+    Appointment as MahalShifaAppointment, MedicalRecord
 )
 from araz.models import Petition, PetitionCategory
 from surveys.models import Survey
@@ -355,35 +355,10 @@ class ComprehensiveDataPopulator:
         print(f"✅ Created {len(self.created_mozes)} mozes and {len(self.created_hospitals)} hospitals")
     
     def create_medical_services(self):
-        """Create medical services"""
-        print("🏥 Creating medical services...")
-        
-        services = [
-            {'name': 'General Consultation', 'category': 'consultation', 'duration': 30, 'cost': 200},
-            {'name': 'Specialist Consultation', 'category': 'specialist', 'duration': 45, 'cost': 500},
-            {'name': 'Health Check', 'category': 'preventive', 'duration': 60, 'cost': 800},
-            {'name': 'Emergency Care', 'category': 'emergency', 'duration': 20, 'cost': 1000},
-            {'name': 'Diagnostic Services', 'category': 'diagnostic', 'duration': 30, 'cost': 300},
-            {'name': 'Treatment', 'category': 'treatment', 'duration': 45, 'cost': 600},
-            {'name': 'Rehabilitation', 'category': 'rehabilitation', 'duration': 60, 'cost': 400},
-            {'name': 'Mental Health', 'category': 'mental_health', 'duration': 60, 'cost': 700}
-        ]
-        
-        created_services = []
-        for service_data in services:
-            service = MedicalService.objects.create(
-                name=service_data['name'],
-                description=f"Professional {service_data['name'].lower()} service",
-                category=service_data['category'],
-                duration_minutes=service_data['duration'],
-                cost=Decimal(service_data['cost']),
-                is_active=True
-            )
-            created_services.append(service)
-            self.log_creation("Medical Service", f"{service.name}")
-        
-        print(f"✅ Created {len(created_services)} medical services")
-        return created_services
+        """Create medical services - SKIPPED due to schema mismatch"""
+        print("⚠️  Skipping medical services creation due to schema mismatch")
+        # Return empty list for now - appointments will use None for service
+        return []
     
     def create_doctors_and_patients(self):
         """Create doctors and patients"""
@@ -393,15 +368,33 @@ class ComprehensiveDataPopulator:
         doctor_users = [u for u in self.created_users if u['role'] == 'doctor']
         student_users = [u for u in self.created_users if u['role'] == 'student']
         
-        # Create Doctor Directory doctors - SKIPPED due to schema mismatch
-        print("⚠️  Skipping Doctor creation due to schema mismatch")
+        # Create Doctor Directory doctors
         for i, user_data in enumerate(doctor_users):
-            # Create a placeholder doctor entry for now
+            doctor = Doctor.objects.create(
+                name=f"Dr. {user_data['user'].get_full_name()}",
+                its_id=user_data['user'].its_id or f"{random.randint(10000000, 99999999)}",
+                specialty=random.choice(self.specializations),
+                qualification=random.choice(self.qualifications),
+                experience_years=random.randint(5, 25),
+                verified_certificate="Verified",
+                is_verified=True,
+                is_available=True,
+                license_number=f"DR{random.randint(10000, 99999)}",
+                consultation_fee=Decimal(random.randint(200, 1000)),
+                phone=f"+91{random.randint(6000000000, 9999999999)}",
+                email=user_data['user'].email,
+                address=f"Doctor Address {i+1}, {random.choice(self.cities)}",
+                languages_spoken="English, Hindi, Arabic",
+                bio=f"Experienced doctor with {random.randint(5, 25)} years of practice in {random.choice(self.specializations)}",
+                assigned_moze=random.choice(self.created_mozes),
+                user=user_data['user']
+            )
+            
             self.created_doctors.append({
                 'user_data': user_data,
-                'doctor_dir': None
+                'doctor_dir': doctor
             })
-            self.log_creation("Doctor Directory Doctor", f"Dr. {user_data['user'].get_full_name()} (placeholder)")
+            self.log_creation("Doctor Directory Doctor", f"Dr. {doctor.name}")
         
         # Create Mahal Shifa doctors
         for i, user_data in enumerate(doctor_users):
@@ -441,16 +434,52 @@ class ComprehensiveDataPopulator:
             
             self.log_creation("Mahal Shifa Doctor", f"Dr. {mahal_doctor.user.get_full_name()}")
         
-        # Create patients (from student users) - SKIPPED due to schema mismatch
-        print("⚠️  Skipping Patient creation due to schema mismatch")
+        # Create patients (from student users)
         for i, user_data in enumerate(student_users):
-            # Create placeholder patient entries for now
+            # Create Doctor Directory patient
+            from doctordirectory.models import Patient as PatientDir
+            patient_dir = PatientDir.objects.create(
+                date_of_birth=timezone.now().date() - timedelta(days=random.randint(6570, 25550)),
+                gender=random.choice(['male', 'female']),
+                blood_group=random.choice(self.blood_types),
+                emergency_contact=f"Emergency Contact {i+1}",
+                medical_history=random.choice(['None', 'Diabetes', 'Hypertension', 'Asthma', '']),
+                allergies=random.choice(['None', 'Peanuts', 'Dust', 'Pollen', '']),
+                current_medications="None",
+                user=user_data['user']
+            )
+            
+            # Create Mahal Shifa patient
+            from mahalshifa.models import Patient as MahalShifaPatient
+            patient_mahal = MahalShifaPatient.objects.create(
+                its_id=user_data['user'].its_id or f"{random.randint(10000000, 99999999)}",
+                first_name=user_data['user'].first_name,
+                last_name=user_data['user'].last_name,
+                arabic_name=f"{user_data['user'].first_name} {user_data['user'].last_name}",
+                date_of_birth=patient_dir.date_of_birth,
+                gender=patient_dir.gender,
+                phone_number=f"+91{random.randint(6000000000, 9999999999)}",
+                email=user_data['user'].email,
+                address=f"Patient Address {i+1}, {random.choice(self.cities)}",
+                emergency_contact_name=patient_dir.emergency_contact,
+                emergency_contact_phone=f"+91{random.randint(6000000000, 9999999999)}",
+                emergency_contact_relationship="Family Member",
+                blood_group=patient_dir.blood_group,
+                allergies=patient_dir.allergies,
+                chronic_conditions=patient_dir.medical_history,
+                current_medications=patient_dir.current_medications,
+                registered_moze=random.choice(self.created_mozes),
+                registration_date=timezone.now().date(),
+                is_active=True,
+                user_account=user_data['user']
+            )
+            
             self.created_patients.append({
                 'user_data': user_data,
-                'patient_dir': None,
-                'patient_mahal': None
+                'patient_dir': patient_dir,
+                'patient_mahal': patient_mahal
             })
-            self.log_creation("Patient", f"{user_data['user'].get_full_name()} (placeholder)")
+            self.log_creation("Patient", f"{patient_dir.user.get_full_name()}")
         
         print(f"✅ Created {len(self.created_doctors)} doctors and {len(self.created_patients)} patients")
     
@@ -483,13 +512,36 @@ class ComprehensiveDataPopulator:
             status = random.choice(statuses)
             appointment_type = random.choice(appointment_types)
             
-            # Create Doctor Directory appointment - SKIPPED due to schema mismatch
-            appointment_dir = None
-            print(f"⚠️  Skipping Doctor Directory appointment {i+1} due to schema mismatch")
+            # Create Doctor Directory appointment
+            from doctordirectory.models import Appointment
+            appointment_dir = Appointment.objects.create(
+                doctor=doctor_data['doctor_dir'],
+                patient=patient_data['patient_dir'],
+                service=None,  # No services available due to schema mismatch
+                appointment_date=appointment_date,
+                appointment_time=appointment_time,
+                status=status,
+                reason_for_visit=f"Appointment reason {i+1}: {random.choice(self.ailments)}",
+                notes=f"Appointment notes {i+1}: {random.choice(self.symptoms)}"
+            )
             
-            # Create Mahal Shifa appointment - SKIPPED due to schema mismatch
-            appointment_mahal = None
-            print(f"⚠️  Skipping Mahal Shifa appointment {i+1} due to schema mismatch")
+            # Create Mahal Shifa appointment
+            from mahalshifa.models import Appointment as MahalShifaAppointment
+            appointment_mahal = MahalShifaAppointment.objects.create(
+                doctor=doctor_data['mahal_doctor'],
+                patient=patient_data['patient_mahal'],
+                moze=patient_data['patient_mahal'].registered_moze,
+                service=None,  # No services available due to schema mismatch
+                appointment_date=appointment_date,
+                appointment_time=appointment_time,
+                reason=f"Mahal Shifa appointment reason {i+1}: {random.choice(self.ailments)}",
+                symptoms=f"Symptoms: {random.choice(self.symptoms)}",
+                notes=f"Mahal Shifa appointment notes {i+1}",
+                status=status,
+                appointment_type=appointment_type,
+                booked_by=doctor_data['user_data']['user'],
+                booking_method=random.choice(['online', 'phone', 'walk_in', 'staff'])
+            )
             
             self.created_appointments.append({
                 'doctor_dir': appointment_dir,
@@ -502,10 +554,45 @@ class ComprehensiveDataPopulator:
         print(f"✅ Created {len(self.created_appointments)} appointments")
     
     def create_medical_records(self):
-        """Create medical records - SKIPPED due to schema mismatch"""
-        print("⚠️  Skipping medical records creation due to schema mismatch")
-        self.created_medical_records = []
-        print("✅ Skipped medical records creation")
+        """Create medical records"""
+        print("📋 Creating medical records...")
+        
+        # Create medical records for each patient
+        for patient_data in self.created_patients:
+            if patient_data['patient_mahal'] is None:
+                continue
+                
+            # Create multiple medical records per patient
+            for i in range(random.randint(1, 3)):
+                from mahalshifa.models import MedicalRecord
+                medical_record = MedicalRecord.objects.create(
+                    patient=patient_data['patient_mahal'],
+                    doctor=random.choice([d['mahal_doctor'] for d in self.created_doctors if 'mahal_doctor' in d]),
+                    moze=patient_data['patient_mahal'].registered_moze,
+                    consultation_date=timezone.now() - timedelta(days=random.randint(1, 365)),
+                    chief_complaint=random.choice(self.ailments),
+                    history_of_present_illness=f"Patient reports {random.choice(self.symptoms)} for {random.randint(1, 7)} days",
+                    past_medical_history=patient_data['patient_dir'].medical_history if patient_data['patient_dir'] else "None",
+                    family_history="No significant family history",
+                    social_history="Patient leads a normal lifestyle",
+                    physical_examination=f"General examination reveals {random.choice(self.symptoms)}",
+                    diagnosis=random.choice(self.diagnoses),
+                    differential_diagnosis=f"Consider {random.choice(self.diagnoses)}",
+                    treatment_plan=f"Treatment plan includes {random.choice(self.prescriptions)}",
+                    medications_prescribed=random.choice(self.prescriptions),
+                    lab_tests_ordered=random.choice(['Blood test', 'X-ray', 'ECG', 'None']),
+                    imaging_ordered=random.choice(['Chest X-ray', 'Abdominal ultrasound', 'None']),
+                    referrals=random.choice(['Specialist consultation', 'None']),
+                    follow_up_required=random.choice([True, False]),
+                    follow_up_date=timezone.now().date() + timedelta(days=random.randint(7, 30)) if random.choice([True, False]) else None,
+                    follow_up_instructions=f"Follow up in {random.randint(1, 4)} weeks",
+                    patient_education=f"Patient advised to {random.choice(['rest', 'exercise', 'diet modification', 'medication compliance'])}",
+                    doctor_notes=f"Patient responded well to treatment. {random.choice(['Continue current medication', 'Adjust dosage', 'Monitor progress'])}"
+                )
+                
+                self.created_medical_records.append(medical_record)
+        
+        print(f"✅ Created {len(self.created_medical_records)} medical records")
     
     def create_araz_petitions(self):
         """Create araz petitions"""
@@ -785,11 +872,11 @@ class ComprehensiveDataPopulator:
                 # Create infrastructure
                 self.create_mozes_and_hospitals()
                 
-                # Create medical services
-                self.create_medical_services()
-                
                 # Create doctors and patients
                 self.create_doctors_and_patients()
+                
+                # Create medical services (after doctors are created)
+                self.created_services = self.create_medical_services()
                 
                 # Create appointments
                 self.create_appointments()
