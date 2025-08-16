@@ -146,7 +146,7 @@ class Patient(models.Model):
         ]
     
     def __str__(self):
-        return self.full_name
+        return self.user.get_full_name() if self.user else 'Unknown Patient'
     
     @property
     def age(self):
@@ -228,7 +228,8 @@ class Appointment(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.patient.full_name} - {self.doctor.get_full_name()} on {self.appointment_date}"
+        patient_name = self.patient.user.get_full_name() if self.patient.user else 'Unknown Patient'
+        return f"{patient_name} - {self.doctor.get_full_name()} on {self.appointment_date}"
 
 
 class PatientLog(models.Model):

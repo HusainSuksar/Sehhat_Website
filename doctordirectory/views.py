@@ -423,7 +423,7 @@ def patient_detail(request, pk):
     else:
         # Patients can only see their own record
         try:
-            if patient.user_account != user:
+            if patient.user != user:
                 messages.error(request, "You don't have permission to view this patient.")
                 return redirect('doctordirectory:patient_list')
         except AttributeError:

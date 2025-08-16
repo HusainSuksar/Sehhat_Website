@@ -38,8 +38,8 @@ class IsPatientOwnerOrDoctorOrAdmin(permissions.BasePermission):
         if request.user.is_admin or request.user.is_doctor:
             return True
         # For patients - check if they own the record
-        if hasattr(obj, 'user_account'):
-            return obj.user_account == request.user
+        if hasattr(obj, 'user'):
+            return obj.user == request.user
         return False
 
 
@@ -93,15 +93,15 @@ class DoctorViewSet(viewsets.ModelViewSet):
 
 # Patient ViewSet
 class PatientViewSet(viewsets.ModelViewSet):
-    queryset = Patient.objects.select_related('user_account').prefetch_related('appointments')
+    queryset = Patient.objects.select_related('user').prefetch_related('appointments')
     serializer_class = PatientSerializer
     permission_classes = [permissions.IsAuthenticated, IsPatientOwnerOrDoctorOrAdmin]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['gender', 'blood_group']
-    search_fields = ['full_name', 'phone_number', 'email']
-    ordering_fields = ['full_name', 'created_at']
-    ordering = ['full_name']
+    search_fields = ['user__first_name', 'user__last_name', 'user__email']
+    ordering_fields = ['user__first_name', 'created_at']
+    ordering = ['user__first_name']
     
     def get_serializer_class(self):
         if self.action == 'create':
@@ -124,7 +124,7 @@ class PatientViewSet(viewsets.ModelViewSet):
                 return queryset.none()
         else:
             # Regular users can only see their own patient record
-            return queryset.filter(user_account=user)
+            return queryset.filter(user=user)
 
 
 # Appointment ViewSet
@@ -165,7 +165,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 return queryset.none()
         else:
             # Regular users can see appointments where they are the patient
-            return queryset.filter(patient__user_account=user)
+            return queryset.filter(patient__user=user)
 
 
 # DoctorSchedule ViewSet

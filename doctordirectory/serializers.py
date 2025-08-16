@@ -79,10 +79,9 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            'id', 'user', 'user_id', 'license_number', 'specialty', 'qualification',
-            'experience_years', 'consultation_fee', 'bio', 'profile_photo',
-            'phone_number', 'email', 'address', 'hospital_affiliation',
-            'consultation_hours', 'is_active', 'is_accepting_patients',
+            'id', 'user', 'user_id', 'name', 'its_id', 'license_number', 'specialty', 'qualification',
+            'experience_years', 'verified_certificate', 'is_verified', 'is_available', 'consultation_fee', 'bio',
+            'phone', 'email', 'address', 'languages_spoken',
             'assigned_moze', 'assigned_moze_id', 'medical_services',
             'total_patients', 'created_at', 'updated_at'
         ]
@@ -93,10 +92,9 @@ class DoctorCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = [
-            'license_number', 'specialty', 'qualification', 'experience_years',
-            'consultation_fee', 'bio', 'phone_number', 'email', 'address',
-            'hospital_affiliation', 'is_active', 'is_accepting_patients',
-            'assigned_moze'
+            'name', 'its_id', 'license_number', 'specialty', 'qualification', 'experience_years',
+            'verified_certificate', 'is_verified', 'is_available', 'consultation_fee', 'bio', 'phone', 'email', 'address',
+            'languages_spoken', 'assigned_moze', 'user'
         ]
 
 
