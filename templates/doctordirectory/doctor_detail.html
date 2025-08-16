@@ -1,23 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Dr. {{ doctor.user.get_full_name }}{% endblock %}
+{% block title %}Dr. {{ doctor.name|default:doctor.user.get_full_name }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">🧑‍⚕️ Dr. {{ doctor.user.get_full_name }}</h1>
+            <h1 class="h3 mb-0 text-gray-800">🧑‍⚕️ Dr. {{ doctor.name|default:doctor.user.get_full_name }}</h1>
         </div>
     </div>
     <div class="card shadow mb-4">
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-3 text-center">
-                    {% if doctor.user.profile_photo %}
-                        <img src="{{ doctor.user.profile_photo }}" alt="Profile Photo" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
-                    {% else %}
-                        <div class="rounded-circle bg-secondary mb-2 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                            <i class="fas fa-user-md fa-2x text-white"></i>
-                        </div>
-                    {% endif %}
+                    <div class="rounded-circle bg-secondary mb-2 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <i class="fas fa-user-md fa-2x text-white"></i>
+                    </div>
                     {% if can_book_appointment %}
                         <a href="{% url 'doctordirectory:create_appointment_for_doctor' doctor.pk %}" class="btn btn-success mt-2 w-100">
                             <i class="fas fa-calendar-plus me-1"></i>Book Appointment
@@ -30,8 +26,8 @@
                         <div class="col-md-6"><strong>Experience:</strong> {{ doctor.experience_years }} years</div>
                     </div>
                     <div class="row mb-2">
-                        <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number }}</div>
-                        <div class="col-md-6"><strong>Contact:</strong> {{ doctor.user.phone_number }}</div>
+                        <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number|default:'Not specified' }}</div>
+                        <div class="col-md-6"><strong>Contact:</strong> {{ doctor.phone|default:'Not specified' }}</div>
                     </div>
                     {% if doctor.bio %}
                     <div class="mb-2">
