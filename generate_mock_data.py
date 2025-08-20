@@ -272,15 +272,13 @@ class MockDataGenerator:
             
             if user:
                 # Create Student profile
-                moze = random.choice(self.moze_list) if self.moze_list else None
                 student = Student.objects.create(
                     user=user,
-                    its_id=its_id,
                     student_id=f"STD{i+1:06d}",
-                    moze=moze,
-                    current_year=random.randint(1, 4),
+                    academic_level=random.choice(['undergraduate', 'postgraduate']),
+                    enrollment_status='active',
                     enrollment_date=date.today() - timedelta(days=random.randint(30, 1460)),
-                    is_active=True
+                    expected_graduation=date.today() + timedelta(days=random.randint(365, 1460))
                 )
                 
                 # Enroll in courses
@@ -296,7 +294,7 @@ class MockDataGenerator:
                     enrollment.save()
                 
                 self.student_list.append(student)
-                print(f"  ✓ Created Student: {user.get_full_name()} - Year {student.current_year}")
+                print(f"  ✓ Created Student: {user.get_full_name()} - {student.academic_level}")
     
     def create_patients(self):
         """Create 550 Patients"""
