@@ -308,27 +308,19 @@ class MockDataGenerator:
             
             if user:
                 # Create Patient profile
-                moze = random.choice(self.moze_list) if self.moze_list else None
                 patient = Patient.objects.create(
                     user=user,
-                    patient_its_id=its_id,
-                    patient_name=user.get_full_name(),
                     date_of_birth=date.today() - timedelta(days=random.randint(6570, 29200)),  # 18-80 years
-                    gender=user.gender or random.choice(['M', 'F']),
+                    gender=random.choice(['male', 'female']),
                     blood_group=random.choice(blood_groups),
-                    phone_number=user.mobile_number or f"+1234567{i:04d}",
-                    email=user.email or f"patient{i+1}@example.com",
-                    address=user.address or f"Address {i+1}",
                     emergency_contact=f"+1234568{i:04d}",
-                    emergency_contact_name=f"Emergency Contact {i+1}",
                     medical_history=random.choice(self.medical_conditions) if random.random() > 0.5 else '',
                     allergies='None' if random.random() > 0.3 else random.choice(['Peanuts', 'Dust', 'Pollen']),
-                    registered_moze=moze,
-                    is_active=True
+                    current_medications=random.choice(['None', 'Aspirin', 'Metformin', 'Lisinopril']) if random.random() > 0.5 else ''
                 )
                 
                 self.patient_list.append(patient)
-                print(f"  ✓ Created Patient: {patient.patient_name} ({patient.blood_group})")
+                print(f"  ✓ Created Patient: {user.get_full_name()} ({patient.blood_group})")
     
     def create_hospitals_and_mahal_shifa(self):
         """Create 5 Hospitals and departments"""
@@ -382,12 +374,12 @@ class MockDataGenerator:
             # Create 1-5 medical records per patient
             for _ in range(random.randint(1, 5)):
                 doctor = random.choice(self.doctor_list) if self.doctor_list else None
-                moze = patient.registered_moze or (random.choice(self.moze_list) if self.moze_list else None)
+                moze = random.choice(self.moze_list) if self.moze_list else None
                 
                 if doctor and moze:
                     log = PatientLog.objects.create(
-                        patient_its_id=patient.patient_its_id,
-                        patient_name=patient.patient_name,
+                        patient_its_id=patient.user.its_id if patient.user else '12345678',
+                        patient_name=patient.user.get_full_name() if patient.user else 'Unknown Patient',
                         ailment=random.choice(self.medical_conditions),
                         symptoms=', '.join(random.sample(self.symptoms, random.randint(1, 3))),
                         diagnosis=f"Diagnosed with {random.choice(self.medical_conditions)}",
