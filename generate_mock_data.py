@@ -209,7 +209,6 @@ class MockDataGenerator:
                     consultation_fee=Decimal(random.randint(100, 500)),
                     is_available=True,
                     is_verified=True,
-                    verification_date=date.today() - timedelta(days=random.randint(30, 365)),
                     assigned_moze=random.choice(self.moze_list) if self.moze_list else None,
                     languages_spoken="English, Urdu, Gujarati"
                 )
