@@ -223,15 +223,18 @@ class MockDataGenerator:
                         duration_minutes=random.choice([15, 30, 45, 60])
                     )
                 
-                # Create schedule
-                for day in range(7):  # Week schedule
-                    if random.random() > 0.3:  # 70% chance of working
+                # Create schedule for next 30 days
+                for day_offset in range(30):
+                    schedule_date = date.today() + timedelta(days=day_offset)
+                    # Skip weekends (Saturday=5, Sunday=6)
+                    if schedule_date.weekday() < 5 and random.random() > 0.2:  # 80% chance of working on weekdays
                         DoctorSchedule.objects.create(
                             doctor=doctor,
-                            day_of_week=day,
+                            date=schedule_date,
                             start_time=datetime.strptime('09:00', '%H:%M').time(),
                             end_time=datetime.strptime('17:00', '%H:%M').time(),
-                            is_available=True
+                            is_available=True,
+                            max_patients=random.randint(10, 20)
                         )
                 
                 self.doctor_list.append(doctor)
