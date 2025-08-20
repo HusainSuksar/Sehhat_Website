@@ -80,7 +80,6 @@ INSTALLED_APPS = [
     'evaluation',
     'araz',
     'students',
-    'guardian',
     'services',
     'bulk_upload',
 ]
@@ -268,7 +267,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
-    'guardian.backends.ObjectPermissionBackend',
 ]
 
 ANONYMOUS_USER_NAME = 'anonymous'
