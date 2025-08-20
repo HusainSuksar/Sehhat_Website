@@ -334,11 +334,16 @@ class MockDataGenerator:
             hospital = Hospital.objects.create(
                 name=name,
                 address=f"Main Street {i+1}, {city}",
-                city=city,
-                contact_number=f"+1234569{i:04d}",
+                phone=f"+1234569{i:04d}",
                 email=f"hospital{i+1}@example.com",
+                hospital_type=random.choice(['general', 'specialty', 'clinic']),
+                total_beds=random.randint(50, 200),
+                available_beds=random.randint(20, 100),
+                emergency_beds=random.randint(5, 20),
+                icu_beds=random.randint(5, 15),
                 is_active=True,
-                established_date=date.today() - timedelta(days=random.randint(1825, 7300))
+                is_emergency_capable=random.choice([True, False]),
+                has_pharmacy=random.choice([True, False])
             )
             
             # Create departments
@@ -352,15 +357,19 @@ class MockDataGenerator:
                     is_active=True
                 )
             
-            # Assign some doctors
-            for doctor in random.sample(self.doctor_list, min(5, len(self.doctor_list))):
-                HospitalStaff.objects.create(
-                    hospital=hospital,
-                    doctor=doctor,
-                    department=hospital.departments.first(),
-                    joining_date=date.today() - timedelta(days=random.randint(30, 730)),
-                    is_active=True
-                )
+            # Assign some doctors as hospital staff
+            for j, doctor in enumerate(random.sample(self.doctor_list, min(5, len(self.doctor_list)))):
+                if doctor.user:
+                    HospitalStaff.objects.create(
+                        user=doctor.user,
+                        hospital=hospital,
+                        department=hospital.departments.first(),
+                        staff_type='other',  # Doctors are marked as 'other' staff type
+                        employee_id=f"EMP{hospital.id:03d}{j+1:03d}",
+                        shift=random.choice(['morning', 'evening', 'rotating']),
+                        is_active=True,
+                        hire_date=date.today() - timedelta(days=random.randint(30, 730))
+                    )
             
             self.hospital_list.append(hospital)
             print(f"  ✓ Created Hospital: {hospital.name} in {city}")
