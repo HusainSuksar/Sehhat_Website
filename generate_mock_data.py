@@ -260,7 +260,7 @@ class MockDataGenerator:
                 name=name,
                 code=f"CRS{len(courses)+1:03d}",
                 credits=3,
-                semester='2024-1',
+                level=random.choice(['beginner', 'intermediate', 'advanced']),
                 instructor=random.choice(self.aamil_list) if self.aamil_list else None
             )
             courses.append(course)
@@ -284,13 +284,16 @@ class MockDataGenerator:
                 )
                 
                 # Enroll in courses
-                for course in random.sample(courses, random.randint(2, 4)):
-                    Enrollment.objects.create(
+                for course in random.sample(courses, min(random.randint(2, 4), len(courses))):
+                    enrollment = Enrollment.objects.create(
                         student=student,
                         course=course,
-                        enrollment_date=student.enrollment_date,
-                        grade=random.choice(['A', 'B', 'C', 'D', None])
+                        status=random.choice(['enrolled', 'completed']),
+                        grade=random.choice(['A', 'B', 'C', 'D', '']) if random.random() > 0.3 else ''
                     )
+                    # Set enrolled_date to match student enrollment
+                    enrollment.enrolled_date = student.enrollment_date
+                    enrollment.save()
                 
                 self.student_list.append(student)
                 print(f"  ✓ Created Student: {user.get_full_name()} - Year {student.current_year}")
