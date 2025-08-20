@@ -34,7 +34,7 @@ from moze.models import Moze
 from doctordirectory.models import Doctor, Patient, MedicalService, PatientLog, DoctorSchedule
 from mahalshifa.models import Hospital, Department, HospitalStaff
 from araz.models import Petition, PetitionStatus
-from surveys.models import Survey, Question, Response, SurveySubmission
+from surveys.models import Survey, SurveyResponse
 from evaluation.models import StudentEvaluation
 from students.models import Student, Course, Enrollment
 from photos.models import PhotoAlbum, Photo
