@@ -7,6 +7,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.conf import settings
+from rest_framework import permissions
 
 # Role-based permission definitions
 ROLE_PERMISSIONS = {
@@ -399,3 +400,45 @@ def can_user_manage_moze(user, moze):
         return True
     
     return False
+
+
+# DRF Permission Classes
+class IsDoctor(permissions.BasePermission):
+    """
+    Custom permission to only allow doctors to access certain views.
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'is_doctor') and request.user.is_doctor
+
+
+class IsPatient(permissions.BasePermission):
+    """
+    Custom permission to only allow patients to access certain views.
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and hasattr(request.user, 'is_patient') and request.user.is_patient
+
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    Assumes the model instance has an 'owner' or 'user' attribute.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        # Write permissions are only allowed to the owner of the object.
+        # Check for 'owner' attribute first, then 'user'
+        if hasattr(obj, 'owner'):
+            return obj.owner == request.user
+        elif hasattr(obj, 'user'):
+            return obj.user == request.user
+        elif hasattr(obj, 'patient') and hasattr(obj.patient, 'user'):
+            return obj.patient.user == request.user
+        elif hasattr(obj, 'doctor') and hasattr(obj.doctor, 'user'):
+            return obj.doctor.user == request.user
+        
+        return False
