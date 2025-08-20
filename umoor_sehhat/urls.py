@@ -63,6 +63,7 @@ urlpatterns = [
     path('api/', include('accounts.api_urls')),
     path('api/araz/', include('araz.api_urls')),
     path('api/doctordirectory/', include('doctordirectory.api_urls')),
+    path('api/appointments/', include('appointments.urls')),
     path('api/mahalshifa/', include('mahalshifa.api_urls')),
     path('api/students/', include('students.api_urls')),
     path('api/moze/', include('moze.api_urls')),

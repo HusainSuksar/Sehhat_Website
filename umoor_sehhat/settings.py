@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'moze',
     'mahalshifa',
     'doctordirectory',
+    'appointments',
     'surveys',
     'photos',
     'evaluation',
