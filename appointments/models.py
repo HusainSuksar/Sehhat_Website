@@ -182,7 +182,7 @@ class Appointment(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='booked_appointments'
+        related_name='appointments_booked'
     )
     booking_method = models.CharField(
         max_length=20,
