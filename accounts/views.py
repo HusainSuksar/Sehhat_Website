@@ -74,6 +74,8 @@ class CustomLoginView(FormView):
             return reverse_lazy('doctordirectory:dashboard')
         elif user.is_student:
             return reverse_lazy('students:dashboard')
+        elif user.is_patient:
+            return reverse_lazy('accounts:profile')  # Patients go to profile
         else:
             return reverse_lazy('accounts:profile')
 

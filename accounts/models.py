@@ -15,6 +15,7 @@ class User(AbstractUser):
         ('moze_coordinator', 'Moze Coordinator'),
         ('doctor', 'Doctor'),
         ('student', 'Student'),
+        ('patient', 'Patient'),
         ('badri_mahal_admin', 'Badri Mahal Admin'),
     ]
     
@@ -155,6 +156,10 @@ class User(AbstractUser):
     @property
     def is_student(self):
         return self.role == 'student'
+    
+    @property
+    def is_patient(self):
+        return self.role == 'patient'
     
     @property
     def is_admin(self):

@@ -6,7 +6,7 @@ from django.core.validators import RegexValidator
 from django.utils.html import escape
 import re
 from .models import User, UserProfile
-from .services import MockITSService
+from .services import ITSService
 
 
 class CustomLoginForm(forms.Form):
@@ -94,39 +94,80 @@ class CustomLoginForm(forms.Form):
         
         if its_id and password:
             try:
-                # Fetch user data from ITS API
-                its_service = MockITSService()
-                user_data = its_service.fetch_user_data(its_id)
+                # Authenticate with ITS API
+                auth_result = ITSService.authenticate_user(its_id, password)
                 
-                if not user_data:
-                    raise ValidationError('Invalid ITS ID. Please check your credentials.')
+                if not auth_result or not auth_result.get('authenticated'):
+                    raise ValidationError('Invalid ITS ID or password. Please check your credentials.')
                 
-                # Simple password validation (for mock system, we'll accept any password)
-                if len(password.strip()) < 1:
-                    raise ValidationError('Password is required.')
+                # Get user data from authentication result
+                user_data = auth_result.get('user_data', {})
+                role = auth_result.get('role', 'patient')  # Default to patient
                 
-                # Get or create user (but don't save during form validation)
+                # Get or create user
                 try:
                     user = User.objects.get(its_id=its_id)
-                    # User exists, update their data
+                    # User exists, update their data from ITS
                     user.first_name = user_data.get('first_name', user.first_name)
                     user.last_name = user_data.get('last_name', user.last_name)
                     user.email = user_data.get('email', user.email)
-                    user.role = user_data.get('role', user.role)
-                    # Don't save here - will save after successful authentication
+                    user.arabic_full_name = user_data.get('arabic_full_name', '')
+                    user.prefix = user_data.get('prefix', '')
+                    user.age = user_data.get('age', user.age)
+                    user.gender = user_data.get('gender', user.gender)
+                    user.marital_status = user_data.get('marital_status', user.marital_status)
+                    user.misaq = user_data.get('misaq', '')
+                    user.occupation = user_data.get('occupation', '')
+                    user.qualification = user_data.get('qualification', '')
+                    user.idara = user_data.get('idara', '')
+                    user.category = user_data.get('category', '')
+                    user.organization = user_data.get('organization', '')
+                    user.mobile_number = user_data.get('mobile_number', '')
+                    user.whatsapp_number = user_data.get('whatsapp_number', '')
+                    user.address = user_data.get('address', '')
+                    user.jamaat = user_data.get('jamaat', '')
+                    user.jamiaat = user_data.get('jamiaat', '')
+                    user.nationality = user_data.get('nationality', '')
+                    user.vatan = user_data.get('vatan', '')
+                    user.city = user_data.get('city', '')
+                    user.country = user_data.get('country', '')
+                    user.hifz_sanad = user_data.get('hifz_sanad', '')
+                    user.profile_photo = user_data.get('photograph', '')
+                    user.role = role  # Update role based on ITS data
                     
                 except User.DoesNotExist:
-                    # Create new user
+                    # Create new user with ITS data
                     user = User(
                         its_id=its_id,
                         username=its_id,
                         first_name=user_data.get('first_name', ''),
                         last_name=user_data.get('last_name', ''),
                         email=user_data.get('email', ''),
-                        role=user_data.get('role', 'student'),
+                        arabic_full_name=user_data.get('arabic_full_name', ''),
+                        prefix=user_data.get('prefix', ''),
+                        age=user_data.get('age'),
+                        gender=user_data.get('gender'),
+                        marital_status=user_data.get('marital_status'),
+                        misaq=user_data.get('misaq', ''),
+                        occupation=user_data.get('occupation', ''),
+                        qualification=user_data.get('qualification', ''),
+                        idara=user_data.get('idara', ''),
+                        category=user_data.get('category', ''),
+                        organization=user_data.get('organization', ''),
+                        mobile_number=user_data.get('mobile_number', ''),
+                        whatsapp_number=user_data.get('whatsapp_number', ''),
+                        address=user_data.get('address', ''),
+                        jamaat=user_data.get('jamaat', ''),
+                        jamiaat=user_data.get('jamiaat', ''),
+                        nationality=user_data.get('nationality', ''),
+                        vatan=user_data.get('vatan', ''),
+                        city=user_data.get('city', ''),
+                        country=user_data.get('country', ''),
+                        hifz_sanad=user_data.get('hifz_sanad', ''),
+                        profile_photo=user_data.get('photograph', ''),
+                        role=role,
                         is_active=True
                     )
-                    # Don't save here - will save after successful authentication
                 
                 # Store user data for later use
                 self._user_data = user_data
