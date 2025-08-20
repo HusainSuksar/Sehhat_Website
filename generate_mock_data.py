@@ -30,7 +30,7 @@ from django.utils import timezone
 
 # Import all models
 from accounts.services import ITSService
-from moze.models import Moze, MozeCoordinator
+from moze.models import Moze
 from doctordirectory.models import Doctor, Patient, MedicalService, PatientLog, DoctorSchedule
 from mahalshifa.models import Hospital, Department, HospitalStaff
 from araz.models import Petition, Document, PetitionStatus
