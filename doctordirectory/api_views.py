@@ -57,7 +57,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['specialty', 'is_active', 'is_accepting_patients', 'assigned_moze']
+    filterset_fields = ['specialty', 'is_available', 'assigned_moze']
     search_fields = ['user__first_name', 'user__last_name', 'specialty', 'qualification', 'bio']
     ordering_fields = ['user__first_name', 'specialty', 'experience_years', 'created_at']
     ordering = ['user__first_name']
@@ -202,7 +202,7 @@ class MedicalServiceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['doctor', 'is_active']
+    filterset_fields = ['doctor', 'is_available']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'price', 'duration_minutes']
     ordering = ['name']
@@ -222,7 +222,7 @@ class MedicalServiceViewSet(viewsets.ModelViewSet):
                 return queryset.none()
         else:
             # Non-doctors can only see active services
-            return queryset.filter(is_active=True)
+            return queryset.filter(is_available=True)
 
 
 # Statistics API Views
@@ -236,7 +236,7 @@ def system_stats(request):
     today = timezone.now().date()
     
     # Basic counts
-    total_doctors = Doctor.objects.filter(is_active=True).count()
+    total_doctors = Doctor.objects.filter(is_available=True).count()
     total_patients = Patient.objects.count()
     total_appointments = Appointment.objects.count()
     appointments_today = Appointment.objects.filter(appointment_date=today).count()
@@ -310,7 +310,7 @@ def system_stats(request):
 @permission_classes([permissions.IsAuthenticated])
 def search_doctors(request):
     """Search doctors with filters"""
-    queryset = Doctor.objects.filter(is_active=True).select_related('user', 'assigned_moze')
+    queryset = Doctor.objects.filter(is_available=True).select_related('assigned_moze')
     
     # Search parameters
     search = request.GET.get('search', '').strip()

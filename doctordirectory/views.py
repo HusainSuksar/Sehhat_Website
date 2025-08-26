@@ -303,7 +303,7 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
         # Get doctor's services with optimized query
         services = MedicalService.objects.filter(
             doctor=doctor,
-            is_active=True
+            is_available=True
         ).order_by('name')[:10]  # Limit to 10 services
         context['services'] = services
         
@@ -528,10 +528,10 @@ def schedule_management(request):
         date__range=[month_start, month_end]
     ).order_by('date')
     
-    availabilities = DoctorAvailability.objects.filter(
+    availabilities = DoctorSchedule.objects.filter(
         doctor=doctor,
-        is_active=True
-    ).order_by('day_of_week', 'start_time')
+        is_available=True
+    ).order_by('date', 'start_time')
     
     context = {
         'doctor': doctor,
