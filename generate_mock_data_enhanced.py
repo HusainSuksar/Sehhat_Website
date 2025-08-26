@@ -950,10 +950,12 @@ class EnhancedMockDataGenerator:
             creator = random.choice(self.users['aamil'] + self.users['moze_coordinator']) if (self.users['aamil'] or self.users['moze_coordinator']) else None
             
             album = PhotoAlbum(
-                title=f"{theme} {fake.date_between(start_date='-2y', end_date='today').year}",
+                name=f"{theme} {fake.date_between(start_date='-2y', end_date='today').year}",
                 description=fake.text(max_nb_chars=200),
                 created_by=creator,
                 is_public=fake.boolean(chance_of_getting_true=70),
+                allow_uploads=fake.boolean(chance_of_getting_true=80),
+                event_date=fake.date_between(start_date='-2y', end_date='today'),
                 moze=random.choice(self.moze_list) if self.moze_list else None
             )
             albums.append(album)
@@ -971,18 +973,23 @@ class EnhancedMockDataGenerator:
                     if self.config.create_sample_files:
                         # Generate sample image
                         image_file = self._generate_sample_image(
-                            text=f"{album.title} {j+1}"
+                            text=f"{album.name} {j+1}"
                         )
                     else:
                         image_file = None
                     
                     photo = Photo(
-                        album=album,
                         title=f"Photo {j+1}",
                         description=fake.sentence(),
+                        subject_tag=fake.random_element(['medical', 'event', 'team', 'infrastructure']),
                         image=image_file,
+                        moze=album.moze,
                         uploaded_by=album.created_by,
-                        is_featured=fake.boolean(chance_of_getting_true=20)
+                        category=fake.random_element(['medical', 'event', 'team', 'infrastructure', 'other']),
+                        is_public=fake.boolean(chance_of_getting_true=60),
+                        is_featured=fake.boolean(chance_of_getting_true=20),
+                        event_date=album.event_date,
+                        location=fake.city() if fake.boolean(chance_of_getting_true=50) else None
                     )
                     photos.append(photo)
                 
