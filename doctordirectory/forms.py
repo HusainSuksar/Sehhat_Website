@@ -140,6 +140,23 @@ class DoctorScheduleForm(forms.ModelForm):
 class AppointmentForm(forms.ModelForm):
     """Form for creating and editing appointments"""
     
+    def __init__(self, *args, **kwargs):
+        # Extract the doctor parameter if provided
+        doctor = kwargs.pop('doctor', None)
+        super().__init__(*args, **kwargs)
+        
+        # If a doctor is provided, set it as the initial value and make it readonly
+        if doctor:
+            self.fields['doctor'].initial = doctor
+            self.fields['doctor'].widget.attrs['readonly'] = True
+            # Filter services to only show services for this doctor
+            if hasattr(self.fields['service'], 'queryset'):
+                from .models import MedicalService
+                self.fields['service'].queryset = MedicalService.objects.filter(
+                    doctor=doctor, 
+                    is_available=True
+                )
+    
     class Meta:
         model = Appointment
         fields = ['doctor', 'patient', 'service', 'appointment_date', 'appointment_time', 'reason_for_visit', 'notes']
