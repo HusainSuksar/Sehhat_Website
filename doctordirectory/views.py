@@ -43,7 +43,8 @@ def dashboard(request):
     
     # Get patient profile if user is also a patient
     try:
-        patient_profile = user.patient_profile
+        # patient_profile is a RelatedManager, need to get the actual Patient instance
+        patient_profile = user.patient_profile.first() if hasattr(user, 'patient_profile') else None
     except AttributeError:
         patient_profile = None
     except Exception as e:
@@ -468,7 +469,16 @@ def create_appointment(request, doctor_id=None):
             
             # Set patient based on current user if they are a patient
             if hasattr(request.user, 'patient_profile'):
-                appointment.patient = request.user.patient_profile
+                try:
+                    # Get the patient instance (patient_profile is a RelatedManager)
+                    appointment.patient = request.user.patient_profile.get()
+                except Patient.DoesNotExist:
+                    # If no patient profile exists, we need to handle this case
+                    messages.error(request, 'Patient profile not found. Please contact support.')
+                    return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
+                except Patient.MultipleObjectsReturned:
+                    # If multiple patient profiles exist, get the first one
+                    appointment.patient = request.user.patient_profile.first()
             
             appointment.save()
             
