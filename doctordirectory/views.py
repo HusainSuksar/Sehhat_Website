@@ -463,22 +463,29 @@ def create_appointment(request, doctor_id=None):
         doctor = None
     
     if request.method == 'POST':
-        form = AppointmentForm(request.POST, doctor=doctor)
+        form = AppointmentForm(request.POST, doctor=doctor, user=request.user)
         if form.is_valid():
             appointment = form.save(commit=False)
             
-            # Set patient based on current user if they are a patient
-            if hasattr(request.user, 'patient_profile'):
+            # If no patient was selected in the form and current user is a patient, 
+            # automatically assign them as the patient
+            if not appointment.patient and hasattr(request.user, 'patient_profile'):
                 try:
                     # Get the patient instance (patient_profile is a RelatedManager)
                     appointment.patient = request.user.patient_profile.get()
                 except Patient.DoesNotExist:
-                    # If no patient profile exists, we need to handle this case
-                    messages.error(request, 'Patient profile not found. Please contact support.')
-                    return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
+                    # If current user has no patient profile, they must select a patient
+                    if not appointment.patient:
+                        messages.error(request, 'Please select a patient for this appointment.')
+                        return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
                 except Patient.MultipleObjectsReturned:
                     # If multiple patient profiles exist, get the first one
                     appointment.patient = request.user.patient_profile.first()
+            
+            # Ensure a patient is assigned
+            if not appointment.patient:
+                messages.error(request, 'Please select a patient for this appointment.')
+                return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
             
             appointment.save()
             
@@ -499,7 +506,7 @@ def create_appointment(request, doctor_id=None):
             messages.success(request, 'Appointment created successfully!')
             return redirect('doctordirectory:appointment_detail', pk=appointment.pk)
     else:
-        form = AppointmentForm(doctor=doctor)
+        form = AppointmentForm(doctor=doctor, user=request.user)
     
     context = {
         'form': form,

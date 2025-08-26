@@ -141,8 +141,9 @@ class AppointmentForm(forms.ModelForm):
     """Form for creating and editing appointments"""
     
     def __init__(self, *args, **kwargs):
-        # Extract the doctor parameter if provided
+        # Extract custom parameters if provided
         doctor = kwargs.pop('doctor', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
         # If a doctor is provided, set it as the initial value and make it readonly
@@ -156,6 +157,34 @@ class AppointmentForm(forms.ModelForm):
                     doctor=doctor, 
                     is_available=True
                 )
+        
+        # Handle patient field based on user role
+        if user:
+            if hasattr(user, 'patient_profile'):
+                # If user is a patient, try to pre-select themselves
+                try:
+                    patient_instance = user.patient_profile.first()
+                    if patient_instance:
+                        self.fields['patient'].initial = patient_instance
+                        # For regular patients, make the field readonly
+                        if user.role == 'patient':
+                            self.fields['patient'].widget.attrs['readonly'] = True
+                except:
+                    pass
+            
+            # For admins and doctors, show all patients
+            if user.is_admin or user.role in ['doctor', 'aamil', 'moze_coordinator']:
+                # They can select any patient - no restrictions
+                pass
+            elif user.role == 'patient':
+                # Regular patients can only book for themselves
+                if hasattr(user, 'patient_profile'):
+                    try:
+                        patient_instance = user.patient_profile.first()
+                        if patient_instance:
+                            self.fields['patient'].queryset = Patient.objects.filter(id=patient_instance.id)
+                    except:
+                        pass
     
     class Meta:
         model = Appointment
