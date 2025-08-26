@@ -166,6 +166,54 @@ class EnhancedMockDataGenerator:
         
         # Setup logging
         self._setup_logging()
+    
+    def clear_existing_data(self):
+        """Clear existing data from the database"""
+        console.print("\n[bold red]⚠️  Clearing existing data...[/bold red]")
+        
+        # Import all models
+        from django.contrib.auth import get_user_model
+        from moze.models import Moze
+        from doctordirectory.models import Doctor, Patient
+        from students.models import Student, Course
+        from mahalshifa.models import Hospital
+        from photos.models import Photo, PhotoAlbum
+        from appointments.models import Appointment
+        from surveys.models import Survey, SurveyResponse
+        from evaluation.models import Evaluation
+        from araz.models import Petition
+        
+        User = get_user_model()
+        
+        # Count existing data
+        user_count = User.objects.count()
+        moze_count = Moze.objects.count()
+        
+        if user_count > 0 or moze_count > 0:
+            console.print(f"Found {user_count} users and {moze_count} moze objects")
+            
+            # Clear in reverse dependency order
+            try:
+                Petition.objects.all().delete()
+                Evaluation.objects.all().delete()
+                SurveyResponse.objects.all().delete()
+                Survey.objects.all().delete()
+                Appointment.objects.all().delete()
+                Photo.objects.all().delete()
+                PhotoAlbum.objects.all().delete()
+                Hospital.objects.all().delete()
+                Patient.objects.all().delete()
+                Doctor.objects.all().delete()
+                Student.objects.all().delete()
+                Course.objects.all().delete()  # Clear courses
+                Moze.objects.all().delete()
+                User.objects.filter(is_superuser=False).delete()  # Keep superusers
+                
+                console.print("✅ Existing data cleared")
+            except Exception as e:
+                console.print(f"⚠️  Warning during cleanup: {e}")
+        else:
+            console.print("✅ Database is already clean")
         
         # Data pools for realistic generation
         self._initialize_data_pools()
@@ -1255,6 +1303,9 @@ class EnhancedMockDataGenerator:
     def generate_all_data(self):
         """Generate all mock data with progress tracking"""
         self.stats.start_time = datetime.now()
+        
+        # Clear existing data first
+        self.clear_existing_data()
         
         # Calculate total tasks for progress tracking
         total_tasks = (
