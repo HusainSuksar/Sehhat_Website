@@ -635,8 +635,9 @@ class EnhancedMockDataGenerator:
                 department = Department(
                     hospital=None,  # Will be set after hospital is saved
                     name=dept_name,
-                    head_of_department=fake.name(),
-                    contact_number=fake.phone_number()[:15],
+                    description=f"{dept_name} department providing specialized medical services",
+                    floor_number=str(fake.random_int(min=1, max=5)),
+                    phone_extension=str(fake.random_int(min=100, max=999)),
                     is_active=True
                 )
                 departments.append((department, len(hospitals) - 1))
@@ -657,33 +658,37 @@ class EnhancedMockDataGenerator:
             
             Department.objects.bulk_create(departments_to_create, batch_size=self.config.bulk_create_batch_size)
             
-            # Assign some doctors as hospital staff
+            # Assign some doctors as hospital staff (ensuring no duplicates due to OneToOneField)
             all_departments = list(Department.objects.all())
             staff_to_create = []
+            assigned_users = set()  # Track assigned users to avoid duplicates
             
             for hospital in self.hospital_list:
                 hospital_departments = [d for d in all_departments if d.hospital == hospital]
                 if hospital_departments and self.doctor_objects:
-                    selected_doctors = random.sample(
-                        self.doctor_objects, 
-                        min(fake.random_int(min=3, max=10), len(self.doctor_objects))
-                    )
+                    # Get available doctors (not already assigned)
+                    available_doctors = [d for d in self.doctor_objects if d.user and d.user.id not in assigned_users]
                     
-                    for j, doctor in enumerate(selected_doctors):
-                        if doctor.user:
+                    if available_doctors:
+                        num_to_assign = min(fake.random_int(min=2, max=5), len(available_doctors))
+                        selected_doctors = random.sample(available_doctors, num_to_assign)
+                        
+                        for j, doctor in enumerate(selected_doctors):
                             staff = HospitalStaff(
                                 user=doctor.user,
                                 hospital=hospital,
                                 department=random.choice(hospital_departments),
-                                staff_type='doctor',
+                                staff_type='other',  # Using 'other' since 'doctor' is not in choices
                                 employee_id=f"EMP{hospital.id:03d}{j+1:03d}",
                                 shift=fake.random_element(['morning', 'evening', 'night', 'rotating']),
                                 is_active=True,
                                 hire_date=fake.date_between(start_date='-5y', end_date='today')
                             )
                             staff_to_create.append(staff)
+                            assigned_users.add(doctor.user.id)  # Mark user as assigned
             
-            HospitalStaff.objects.bulk_create(staff_to_create, batch_size=self.config.bulk_create_batch_size)
+            if staff_to_create:
+                HospitalStaff.objects.bulk_create(staff_to_create, batch_size=self.config.bulk_create_batch_size)
     
     def create_appointments(self, progress: Progress, task: TaskID):
         """Create comprehensive appointment system data"""
@@ -751,7 +756,7 @@ class EnhancedMockDataGenerator:
                     appointment=None,  # Will be set after appointment is saved
                     action=fake.random_element(['created', 'confirmed', 'completed', 'cancelled']),
                     notes=fake.text(max_nb_chars=200),
-                    created_by=slot.doctor.user if slot.doctor and slot.doctor.user else patient.user
+                    performed_by=slot.doctor.user if slot.doctor and slot.doctor.user else patient.user
                 )
                 appointment_logs.append((log, len(appointments) - 1))
             
@@ -760,9 +765,9 @@ class EnhancedMockDataGenerator:
                 reminder = AppointmentReminder(
                     appointment=None,  # Will be set after appointment is saved
                     reminder_type=fake.random_element(['sms', 'email', 'whatsapp']),
-                    scheduled_time=fake.date_time_between(start_date='-30d', end_date='+30d', tzinfo=timezone.get_current_timezone()),
+                    scheduled_for=fake.date_time_between(start_date='-30d', end_date='+30d', tzinfo=timezone.get_current_timezone()),
                     is_sent=fake.boolean(chance_of_getting_true=60),
-                    message=f"Reminder: You have an appointment on {slot.date} at {slot.start_time}"
+                    status='sent' if fake.boolean(chance_of_getting_true=60) else 'pending'
                 )
                 appointment_reminders.append((reminder, len(appointments) - 1))
             
@@ -823,16 +828,13 @@ class EnhancedMockDataGenerator:
                         patient_name=patient.user.get_full_name(),
                         ailment=condition,
                         symptoms=', '.join([primary_symptom] + related_symptoms),
-                        diagnosis=f"Diagnosed with {condition}. {fake.sentence()}",
+                        diagnosis=f"Diagnosed with {condition}. {fake.sentence()} Vital signs: {self._generate_vital_signs()}",
                         prescription=self._generate_prescription(),
                         follow_up_required=fake.boolean(chance_of_getting_true=40),
                         follow_up_date=fake.date_between(start_date='today', end_date='+90d') if fake.boolean(chance_of_getting_true=40) else None,
                         visit_type=fake.random_element(['consultation', 'follow_up', 'emergency', 'screening']),
                         moze=moze,
-                        seen_by=doctor,
-                        timestamp=fake.date_time_between(start_date='-2y', end_date='now', tzinfo=timezone.get_current_timezone()),
-                        vital_signs=self._generate_vital_signs(),
-                        treatment_plan=fake.text(max_nb_chars=200)
+                        seen_by=doctor
                     )
                     medical_logs.append(log)
                     record_count += 1
@@ -876,7 +878,7 @@ class EnhancedMockDataGenerator:
         bp_systolic = fake.random_int(min=90, max=180)
         bp_diastolic = fake.random_int(min=60, max=120)
         pulse = fake.random_int(min=60, max=120)
-        temp = round(fake.random.uniform(96.5, 102.0), 1)
+        temp = round(random.uniform(96.5, 102.0), 1)
         
         return f"BP: {bp_systolic}/{bp_diastolic} mmHg, Pulse: {pulse} bpm, Temp: {temp}°F"
     
