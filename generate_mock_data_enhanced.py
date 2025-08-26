@@ -1010,8 +1010,8 @@ class EnhancedMockDataGenerator:
                 description=template['description'],
                 questions=template['questions'],
                 created_by=creator,
-                start_date=fake.date_between(start_date='-6m', end_date='today'),
-                end_date=fake.date_between(start_date='today', end_date='+6m'),
+                start_date=timezone.make_aware(datetime.combine(fake.date_between(start_date='-6m', end_date='today'), datetime.min.time())),
+                end_date=timezone.make_aware(datetime.combine(fake.date_between(start_date='today', end_date='+6m'), datetime.min.time())),
                 is_active=fake.boolean(chance_of_getting_true=80),
                 is_anonymous=fake.boolean(chance_of_getting_true=60)
             )
@@ -1043,8 +1043,9 @@ class EnhancedMockDataGenerator:
                 survey_response = SurveyResponse(
                     survey=survey,
                     respondent=respondent,
-                    responses=response_data,
-                    submitted_at=fake.date_time_between(start_date=survey.start_date, end_date='now', tzinfo=timezone.get_current_timezone())
+                    answers=response_data,
+                    is_complete=fake.boolean(chance_of_getting_true=80),
+                    completion_time=fake.random_int(min=60, max=1800)  # 1-30 minutes
                 )
                 survey_responses.append(survey_response)
             
@@ -1060,18 +1061,27 @@ class EnhancedMockDataGenerator:
         for student in students_sample:
             if evaluators:
                 evaluation = Evaluation(
-                    evaluatee=student,
+                    moze=random.choice(self.moze_list),
                     evaluator=random.choice(evaluators),
-                    evaluation_type=fake.random_element(['student_performance', 'course_completion', 'behavioral_assessment']),
-                    title=f"Academic Evaluation - {student.get_full_name()}",
-                    description=f"Comprehensive evaluation for the academic period",
-                    period_start=fake.date_between(start_date='-4m', end_date='-2m'),
-                    period_end=fake.date_between(start_date='-2m', end_date='today'),
-                    overall_rating=fake.random_int(min=3, max=5),
+                    evaluation_period=fake.random_element(['monthly', 'quarterly', 'biannual', 'annual']),
+                    overall_grade=fake.random_element(['A+', 'A', 'B', 'C', 'D', 'E']),
                     overall_score=fake.random_int(min=60, max=100),
-                    status=fake.random_element(['completed', 'in_progress', 'pending']),
-                    completed_date=fake.date_between(start_date='-1m', end_date='today') if fake.boolean(chance_of_getting_true=80) else None,
-                    evaluator_comments=fake.text(max_nb_chars=300)
+                    infrastructure_score=fake.random_int(min=50, max=100),
+                    medical_quality_score=fake.random_int(min=60, max=100),
+                    staff_performance_score=fake.random_int(min=55, max=100),
+                    patient_satisfaction_score=fake.random_int(min=65, max=100),
+                    administration_score=fake.random_int(min=50, max=100),
+                    safety_score=fake.random_int(min=70, max=100),
+                    equipment_score=fake.random_int(min=60, max=100),
+                    accessibility_score=fake.random_int(min=55, max=100),
+                    strengths=fake.text(max_nb_chars=200),
+                    weaknesses=fake.text(max_nb_chars=200),
+                    recommendations=fake.text(max_nb_chars=300),
+                    evaluation_date=fake.date_between(start_date='-90d', end_date='today'),
+                    follow_up_required=fake.boolean(chance_of_getting_true=30),
+                    certification_status=fake.random_element(['certified', 'provisional', 'warning']),
+                    is_draft=fake.boolean(chance_of_getting_true=20),
+                    is_published=fake.boolean(chance_of_getting_true=70)
                 )
                 evaluations.append(evaluation)
         
@@ -1122,17 +1132,16 @@ class EnhancedMockDataGenerator:
             
             petition = Petition(
                 moze=moze,
-                petition_type=petition_type,
+                title=f"{petition_type} Request - {fake.sentence(nb_words=4)}",
                 description=self._generate_petition_description(petition_type),
-                submitted_by=petitioner,
+                created_by=petitioner,
                 petitioner_name=petitioner.get_full_name(),
-                petitioner_its_id=petitioner.its_id,
-                amount_requested=requested_amount,
-                amount_approved=Decimal(fake.random_int(min=int(requested_amount * 0.3), max=int(requested_amount * 0.9))) if status in ['approved', 'partially_approved'] else None,
-                status=status,
-                priority=fake.random_element(['low', 'medium', 'high', 'urgent']),
-                submission_date=fake.date_between(start_date='-1y', end_date='today'),
-                expected_completion_date=fake.date_between(start_date='today', end_date='+3m') if status != 'rejected' else None
+                petitioner_email=petitioner.email if petitioner.email else fake.email(),
+                petitioner_mobile=fake.phone_number()[:20],
+                its_id=petitioner.its_id,
+                status=fake.random_element(['pending', 'in_progress', 'resolved', 'rejected']),
+                priority=fake.random_element(['low', 'medium', 'high']),
+                is_anonymous=fake.boolean(chance_of_getting_true=10)
             )
             petitions.append(petition)
             
@@ -1150,7 +1159,7 @@ class EnhancedMockDataGenerator:
                     status=petition.status,
                     updated_by=petition.moze.aamil,
                     comments=self._generate_status_comment(petition.status),
-                    updated_at=fake.date_time_between(start_date=petition.submission_date, end_date='now', tzinfo=timezone.get_current_timezone())
+                    updated_at=fake.date_time_between(start_date='-1y', end_date='now', tzinfo=timezone.get_current_timezone())
                 )
                 petition_statuses.append(status_update)
         
