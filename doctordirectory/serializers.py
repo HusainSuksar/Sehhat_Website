@@ -133,7 +133,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     patient_id = serializers.PrimaryKeyRelatedField(
         queryset=Patient.objects.all(), write_only=True, source='patient'
     )
-    created_by = UserBasicSerializer(read_only=True)
+
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:

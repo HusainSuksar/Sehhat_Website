@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        {{ title }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Appointment Information</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>Date:</strong></td>
+                                    <td>{{ appointment.appointment_date|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Time:</strong></td>
+                                    <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if appointment.status == 'scheduled' %}badge-primary
+                                            {% elif appointment.status == 'confirmed' %}badge-success
+                                            {% elif appointment.status == 'completed' %}badge-info
+                                            {% elif appointment.status == 'cancelled' %}badge-danger
+                                            {% else %}badge-secondary{% endif %}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% if appointment.duration_minutes %}
+                                <tr>
+                                    <td><strong>Duration:</strong></td>
+                                    <td>{{ appointment.duration_minutes }} minutes</td>
+                                </tr>
+                                {% endif %}
+                                {% if appointment.consultation_fee %}
+                                <tr>
+                                    <td><strong>Consultation Fee:</strong></td>
+                                    <td>${{ appointment.consultation_fee }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Doctor Information</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>Doctor:</strong></td>
+                                    <td>{{ appointment.doctor.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Specialty:</strong></td>
+                                    <td>{{ appointment.doctor.specialty|default:"General Practice" }}</td>
+                                </tr>
+                                {% if appointment.doctor.phone %}
+                                <tr>
+                                    <td><strong>Contact:</strong></td>
+                                    <td>{{ appointment.doctor.phone }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if appointment.service %}
+                                <tr>
+                                    <td><strong>Service:</strong></td>
+                                    <td>{{ appointment.service.name }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5>Patient Information</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td><strong>Patient:</strong></td>
+                                    <td>{{ appointment.patient.user.get_full_name|default:appointment.patient }}</td>
+                                </tr>
+                                {% if appointment.patient.user.email %}
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>{{ appointment.patient.user.email }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if appointment.patient.emergency_contact %}
+                                <tr>
+                                    <td><strong>Emergency Contact:</strong></td>
+                                    <td>{{ appointment.patient.emergency_contact }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if appointment.reason_for_visit %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5>Reason for Visit</h5>
+                            <p class="border p-3 bg-light">{{ appointment.reason_for_visit }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if appointment.notes %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5>Notes</h5>
+                            <p class="border p-3 bg-light">{{ appointment.notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if appointment.cancellation_reason %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h5>Cancellation Reason</h5>
+                            <p class="border p-3 bg-light text-danger">{{ appointment.cancellation_reason }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                Created: {{ appointment.created_at|date:"F d, Y g:i A" }} | 
+                                Last Updated: {{ appointment.updated_at|date:"F d, Y g:i A" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i>
+                        Back to Dashboard
+                    </a>
+                    {% if appointment.status == 'scheduled' and user.is_admin %}
+                    <a href="#" class="btn btn-warning ml-2" onclick="confirmAppointment({{ appointment.pk }})">
+                        <i class="fas fa-check mr-1"></i>
+                        Confirm Appointment
+                    </a>
+                    <a href="#" class="btn btn-danger ml-2" onclick="cancelAppointment({{ appointment.pk }})">
+                        <i class="fas fa-times mr-1"></i>
+                        Cancel Appointment
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmAppointment(appointmentId) {
+    if (confirm('Are you sure you want to confirm this appointment?')) {
+        // Add AJAX call to confirm appointment
+        console.log('Confirming appointment:', appointmentId);
+    }
+}
+
+function cancelAppointment(appointmentId) {
+    const reason = prompt('Please provide a reason for cancellation:');
+    if (reason) {
+        // Add AJAX call to cancel appointment
+        console.log('Cancelling appointment:', appointmentId, 'Reason:', reason);
+    }
+}
+</script>
+{% endblock %}

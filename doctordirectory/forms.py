@@ -214,9 +214,35 @@ class AppointmentForm(forms.ModelForm):
     
     def clean_appointment_date(self):
         appointment_date = self.cleaned_data.get('appointment_date')
-        if appointment_date and appointment_date < timezone.now().date():
-            raise forms.ValidationError('Appointment date cannot be in the past.')
+        if appointment_date:
+            if appointment_date < timezone.now().date():
+                raise forms.ValidationError('Appointment date cannot be in the past.')
+            # Don't allow appointments too far in the future (e.g., more than 6 months)
+            max_future_date = timezone.now().date() + timedelta(days=180)
+            if appointment_date > max_future_date:
+                raise forms.ValidationError('Appointment date cannot be more than 6 months in the future.')
         return appointment_date
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        appointment_date = cleaned_data.get('appointment_date')
+        appointment_time = cleaned_data.get('appointment_time')
+        doctor = cleaned_data.get('doctor')
+        
+        # Check for double booking if all required fields are present
+        if appointment_date and appointment_time and doctor:
+            existing_appointment = Appointment.objects.filter(
+                doctor=doctor,
+                appointment_date=appointment_date,
+                appointment_time=appointment_time
+            ).exclude(pk=self.instance.pk if self.instance else None)
+            
+            if existing_appointment.exists():
+                raise forms.ValidationError(
+                    'This time slot is already booked for this doctor. Please choose a different time.'
+                )
+        
+        return cleaned_data
 
 
 class PatientForm(forms.ModelForm):

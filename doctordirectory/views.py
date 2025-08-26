@@ -458,7 +458,15 @@ def patient_detail(request, pk):
 def create_appointment(request, doctor_id=None):
     """Create a new appointment"""
     if doctor_id:
-        doctor = get_object_or_404(Doctor, pk=doctor_id)
+        try:
+            doctor = get_object_or_404(Doctor, pk=doctor_id)
+            # Ensure doctor is available for appointments
+            if not doctor.is_available:
+                messages.warning(request, 'This doctor is currently not available for appointments.')
+                return redirect('doctordirectory:dashboard')
+        except Exception as e:
+            messages.error(request, 'Doctor not found.')
+            return redirect('doctordirectory:dashboard')
     else:
         doctor = None
     
@@ -515,6 +523,26 @@ def create_appointment(request, doctor_id=None):
     }
     
     return render(request, 'doctordirectory/appointment_form.html', context)
+
+
+@login_required
+def appointment_detail(request, pk):
+    """Display appointment details"""
+    appointment = get_object_or_404(Appointment, pk=pk)
+    
+    # Check permissions - users can only view their own appointments or if they're admin/doctor
+    if not (request.user.is_admin or 
+            (hasattr(request.user, 'doctor_profile') and appointment.doctor.user == request.user) or
+            (hasattr(request.user, 'patient_profile') and appointment.patient.user == request.user)):
+        messages.error(request, 'You do not have permission to view this appointment.')
+        return redirect('doctordirectory:dashboard')
+    
+    context = {
+        'appointment': appointment,
+        'title': 'Appointment Details'
+    }
+    
+    return render(request, 'doctordirectory/appointment_detail.html', context)
 
 
 @login_required

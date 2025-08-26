@@ -76,9 +76,10 @@ class Doctor(models.Model):
         return f"Dr. {self.name}"
     
     def get_full_name(self):
+        """Get doctor's full name for consistent access"""
         if self.user:
-            return f"Dr. {self.user.get_full_name()}"
-        return f"Dr. {self.name}"
+            return self.user.get_full_name()
+        return self.name
     
     @property
     def rating(self):
@@ -189,6 +190,25 @@ class Appointment(models.Model):
     )
     reason_for_visit = models.CharField(max_length=200, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    duration_minutes = models.PositiveIntegerField(default=30)
+    consultation_fee = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=Decimal('0.00')
+    )
+    cancellation_reason = models.TextField(blank=True, null=True)
+    
+    # Payment and tracking fields
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending'),
+            ('paid', 'Paid'),
+            ('refunded', 'Refunded'),
+            ('cancelled', 'Cancelled')
+        ],
+        default='pending'
+    )
     
     # Relationships
     doctor = models.ForeignKey(
@@ -228,9 +248,9 @@ class Appointment(models.Model):
         ]
         
         # Prevent double booking
-        unique_together = [
-            ['doctor', 'appointment_date', 'appointment_time']
-        ]
+        unique_together = (
+            ('doctor', 'appointment_date', 'appointment_time'),
+        )
     
     def __str__(self):
         patient_name = self.patient.user.get_full_name() if self.patient.user else 'Unknown Patient'

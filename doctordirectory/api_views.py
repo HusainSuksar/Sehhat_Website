@@ -130,7 +130,7 @@ class PatientViewSet(viewsets.ModelViewSet):
 # Appointment ViewSet
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.select_related(
-        'doctor__user', 'patient', 'created_by'
+        'doctor', 'patient__user'
     ).prefetch_related('doctor__medical_services')
     serializer_class = AppointmentSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -148,7 +148,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         return AppointmentSerializer
     
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save()
     
     def get_queryset(self):
         queryset = super().get_queryset()
