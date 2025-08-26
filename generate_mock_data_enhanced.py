@@ -1100,7 +1100,6 @@ class EnhancedMockDataGenerator:
         ]
         
         petitions = []
-        petition_statuses = []
         
         all_petitioners = self.users['patient'] + self.users['student']
         
@@ -1149,21 +1148,8 @@ class EnhancedMockDataGenerator:
         
         # Bulk create petitions
         Petition.objects.bulk_create(petitions, batch_size=self.config.bulk_create_batch_size)
-        created_petitions = list(Petition.objects.all().order_by('id'))
-        
-        # Create status updates for processed petitions
-        for petition in created_petitions:
-            if petition.status != 'pending' and petition.moze and petition.moze.aamil:
-                status_update = PetitionStatus(
-                    petition=petition,
-                    status=petition.status,
-                    updated_by=petition.moze.aamil,
-                    comments=self._generate_status_comment(petition.status),
-                    updated_at=fake.date_time_between(start_date='-1y', end_date='now', tzinfo=timezone.get_current_timezone())
-                )
-                petition_statuses.append(status_update)
-        
-        PetitionStatus.objects.bulk_create(petition_statuses, batch_size=self.config.bulk_create_batch_size)
+        # Note: PetitionStatus is a lookup table, not for tracking changes
+        console.print(f"✓ Created {len(petitions)} petitions", style="green")
     
     def _generate_petition_description(self, petition_type: str) -> str:
         """Generate realistic petition descriptions"""
