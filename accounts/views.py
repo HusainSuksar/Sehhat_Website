@@ -111,6 +111,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             'user': user,
             'profile': profile,
             'role_display': user.get_role_display(),
+            'its_sync_available': True,  # ITS sync is always available
         })
         
         # Add role-specific context
