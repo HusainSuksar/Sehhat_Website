@@ -17,6 +17,7 @@ from decimal import Decimal
 
 from moze.models import Moze
 from accounts.permissions import can_user_access, get_patient_data_for_user, get_medical_records_for_user
+from araz.models import Petition
 
 from .models import (
     Hospital, Department, Doctor, MedicalService, Patient, Appointment, MedicalRecord,
@@ -219,18 +220,17 @@ def doctor_duty_schedule(request):
     ).select_related('doctor__user', 'patient', 'moze').order_by('appointment_date', 'appointment_time')
     
     # Group appointments by doctor and date
-    duty_schedule = {}
-    for appointment in appointments:
-        doctor_id = appointment.doctor.id
-        date_key = appointment.appointment_date
-        
-        if doctor_id not in duty_schedule:
-            duty_schedule[doctor_id] = {}
-        
-        if date_key not in duty_schedule[doctor_id]:
-            duty_schedule[doctor_id][date_key] = []
-        
-        duty_schedule[doctor_id][date_key].append(appointment)
+    duty_schedule = []
+    for doctor in doctors:
+        doctor_appointments = appointments.filter(doctor=doctor)
+        if doctor_appointments.exists():
+            doctor_schedule = {'doctor': doctor, 'dates': {}}
+            for appointment in doctor_appointments:
+                date_key = appointment.appointment_date
+                if date_key not in doctor_schedule['dates']:
+                    doctor_schedule['dates'][date_key] = []
+                doctor_schedule['dates'][date_key].append(appointment)
+            duty_schedule.append(doctor_schedule)
     
     # Get doctor statistics
     doctor_stats = []

@@ -470,6 +470,11 @@ class Hospital(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Hospital'
+        verbose_name_plural = 'Hospitals'
+    
     def __str__(self):
         return self.name
 
