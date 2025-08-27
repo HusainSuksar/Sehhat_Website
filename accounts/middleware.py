@@ -30,6 +30,7 @@ class RoleBasedAccessMiddleware(MiddlewareMixin):
             'moze_coordinator': ['/moze/', '/doctordirectory/', '/photos/', '/surveys/', '/'],
             'doctor': ['/mahalshifa/', '/doctordirectory/', '/'],
             'student': ['/students/', '/araz/', '/'],
+            'patient': ['/accounts/', '/doctordirectory/', '/'],  # Patients can access profile and book appointments
             'badri_mahal_admin': ['/'],  # Admin has access to everything
         }
         
