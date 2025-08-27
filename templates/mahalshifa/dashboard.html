@@ -544,7 +544,7 @@
     <!-- Stats Grid -->
     <div class="stats-grid">
         <!-- 1. Mahal Shifa Count (First) -->
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:hospital_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
                     <i class="fas fa-hospital" style="color: #0891b2;"></i>
@@ -559,10 +559,10 @@
                 <div class="stat-label">Mahal Shifa Centers</div>
                 <div class="stat-subtitle">Active medical centers</div>
             </div>
-        </div>
+        </a>
 
         <!-- 2. Available Doctors (Second) -->
-        <div class="stat-card">
+        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
                     <i class="fas fa-user-md" style="color: #10b981;"></i>
@@ -577,10 +577,10 @@
                 <div class="stat-label">Available Doctors</div>
                 <div class="stat-subtitle">On duty today</div>
             </div>
-        </div>
+        </a>
 
         <!-- 3. Pending Appointments (Third) -->
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:appointment_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
                     <i class="fas fa-clock" style="color: #f59e0b;"></i>
@@ -595,10 +595,10 @@
                 <div class="stat-label">Pending Appointments</div>
                 <div class="stat-subtitle">Awaiting confirmation</div>
             </div>
-        </div>
+        </a>
 
         <!-- 4. Today's Appointments (Fourth) -->
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:appointment_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
                     <i class="fas fa-calendar-day" style="color: #8b5cf6;"></i>
@@ -613,7 +613,7 @@
                 <div class="stat-label">Today's Appointments</div>
                 <div class="stat-subtitle">Scheduled for today</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Dashboard Grid -->

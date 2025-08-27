@@ -626,7 +626,7 @@
             </div>
         </a>
 
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:patient_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
                     <i class="fas fa-users" style="color: #3b82f6;"></i>
@@ -641,9 +641,9 @@
                 <div class="stat-label">Total Patients</div>
                 <div class="stat-subtitle">Registered patients</div>
             </div>
-        </div>
+        </a>
 
-                 <div class="stat-card">
+                 <a href="{% url 'doctordirectory:appointment_list' %}" class="stat-card">
              <div class="stat-header">
                  <div class="stat-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
                      <i class="fas fa-calendar-check" style="color: #10b981;"></i>
@@ -658,9 +658,9 @@
                  <div class="stat-label">Appointments</div>
                  <div class="stat-subtitle">Total scheduled</div>
              </div>
-         </div>
+         </a>
 
-        <div class="stat-card">
+        <a href="{% url 'mahalshifa:medical_record_list' %}" class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
                     <i class="fas fa-file-medical" style="color: #f59e0b;"></i>
@@ -675,7 +675,7 @@
                 <div class="stat-label">Medical Records</div>
                 <div class="stat-subtitle">Patient files</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Quick Performance Stats -->
