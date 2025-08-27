@@ -26,14 +26,18 @@ class DoctorAccessMixin(UserPassesTestMixin):
     """Mixin to check if user has access to doctor management"""
     def test_func(self):
         return (self.request.user.is_admin or 
-                self.request.user.is_doctor or 
-                self.request.user.is_moze_coordinator)
+                self.request.user.is_doctor)
 
 
 @login_required
 def dashboard(request):
     """Doctor directory dashboard with comprehensive statistics"""
     user = request.user
+    
+    # Security check: Only allow doctors and admins
+    if not (user.is_admin or user.is_doctor):
+        messages.error(request, 'You do not have permission to access the doctor dashboard.')
+        return redirect('accounts:profile')
     
     # Get doctor profile from mahalshifa
     try:
@@ -333,7 +337,7 @@ def patient_list(request):
     """List patients for doctors with optimized queries"""
     user = request.user
     
-    if not (user.is_doctor or user.is_admin or user.is_moze_coordinator):
+    if not (user.is_doctor or user.is_admin):
         messages.error(request, "You don't have permission to view patients.")
         return redirect('/')
     

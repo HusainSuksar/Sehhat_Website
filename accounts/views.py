@@ -539,6 +539,11 @@ def dashboard(request):
     """Enhanced dashboard with comprehensive statistics and optimized queries"""
     user = request.user
     
+    # Security check: Only allow admins
+    if not user.is_admin:
+        messages.error(request, 'You do not have permission to access the admin dashboard.')
+        return redirect('accounts:profile')
+    
     # Optimized queries with select_related and prefetch_related
     total_users = User.objects.select_related('profile').count()
     

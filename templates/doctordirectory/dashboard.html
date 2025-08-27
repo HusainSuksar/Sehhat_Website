@@ -720,7 +720,7 @@
                                             <div class="appointment-patient">{{ appointment.patient_name }}</div>
                                             <div class="appointment-time">
                                                 <i class="fas fa-clock"></i>
-                                                {{ appointment.appointment_date|date:"H:i" }} - {{ appointment.purpose|default:"General Consultation" }}
+                                                {{ appointment.appointment_time|time:"H:i" }} - {{ appointment.purpose|default:"General Consultation" }}
                                             </div>
                                         </div>
                                         <div class="status-badge status-{{ appointment.status|lower }}">
@@ -777,7 +777,7 @@
                                             <div class="appointment-patient">{{ appointment.patient_name }}</div>
                                             <div class="appointment-time">
                                                 <i class="fas fa-user-md"></i>
-                                                Dr. {{ appointment.doctor.user.get_full_name }} - {{ appointment.appointment_date|date:"M d, H:i" }}
+                                                Dr. {{ appointment.doctor.user.get_full_name }} - {{ appointment.appointment_date|date:"M d" }} {{ appointment.appointment_time|time:"H:i" }}
                                             </div>
                                         </div>
                                         <div class="status-badge status-{{ appointment.status|lower }}">
