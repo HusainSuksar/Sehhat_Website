@@ -312,18 +312,82 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
         ).order_by('name')[:10]  # Limit to 10 services
         context['services'] = services
         
-        # Add basic stats (cached for performance)
+        # Add comprehensive stats and analytics
+        appointments = Appointment.objects.filter(doctor=doctor)
+        completed_appointments = appointments.filter(status='completed')
+        
         context['stats'] = {
-            'total_appointments': Appointment.objects.filter(doctor=doctor).count(),
-            'completed_appointments': Appointment.objects.filter(
-                doctor=doctor, 
-                status='completed'
-            ).count(),
+            'total_appointments': appointments.count(),
+            'completed_appointments': completed_appointments.count(),
+            'pending_appointments': appointments.filter(status__in=['scheduled', 'confirmed']).count(),
+            'cancelled_appointments': appointments.filter(status='cancelled').count(),
             'available_today': DoctorSchedule.objects.filter(
                 doctor=doctor,
                 date=today,
                 is_available=True
-            ).exists()
+            ).exists(),
+            'total_patients': appointments.values('patient').distinct().count(),
+            'avg_rating': 4.5,  # Placeholder - can be calculated from reviews
+            'completion_rate': (completed_appointments.count() / appointments.count() * 100) if appointments.count() > 0 else 0
+        }
+        
+        # Enhanced schedule data
+        context['schedule_data'] = {
+            'this_week': DoctorSchedule.objects.filter(
+                doctor=doctor,
+                date__range=[today, today + timedelta(days=7)],
+                is_available=True
+            ).order_by('date', 'start_time'),
+            'next_week': DoctorSchedule.objects.filter(
+                doctor=doctor,
+                date__range=[today + timedelta(days=8), today + timedelta(days=14)],
+                is_available=True
+            ).order_by('date', 'start_time')[:5],
+        }
+        
+        # Enhanced patient data
+        context['patient_data'] = {
+            'recent_patients': recent_appointments,
+            'total_unique_patients': appointments.values('patient').distinct().count(),
+            'returning_patients': appointments.values('patient').annotate(
+                visit_count=Count('id')
+            ).filter(visit_count__gt=1).count(),
+            'new_patients_this_month': appointments.filter(
+                appointment_date__gte=today.replace(day=1)
+            ).values('patient').distinct().count()
+        }
+        
+        # Analytics data
+        
+        # Appointment trends (last 6 months)
+        six_months_ago = today - timedelta(days=180)
+        monthly_appointments = []
+        for i in range(6):
+            month_start = six_months_ago + timedelta(days=30*i)
+            month_end = month_start + timedelta(days=30)
+            count = appointments.filter(
+                appointment_date__range=[month_start, month_end]
+            ).count()
+            monthly_appointments.append({
+                'month': month_start.strftime('%b %Y'),
+                'count': count
+            })
+        
+        context['analytics_data'] = {
+            'monthly_trends': monthly_appointments,
+            'status_distribution': [
+                {'status': 'Completed', 'count': completed_appointments.count(), 'color': '#28a745'},
+                {'status': 'Scheduled', 'count': appointments.filter(status='scheduled').count(), 'color': '#007bff'},
+                {'status': 'Confirmed', 'count': appointments.filter(status='confirmed').count(), 'color': '#17a2b8'},
+                {'status': 'Cancelled', 'count': appointments.filter(status='cancelled').count(), 'color': '#dc3545'},
+            ],
+            'peak_hours': [
+                {'hour': 9, 'count': 15},
+                {'hour': 14, 'count': 12},
+                {'hour': 10, 'count': 10},
+                {'hour': 16, 'count': 8},
+                {'hour': 11, 'count': 7},
+            ]  # Simplified mock data
         }
         
         return context

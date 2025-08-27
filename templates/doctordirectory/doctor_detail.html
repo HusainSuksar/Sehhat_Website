@@ -1,102 +1,579 @@
 {% extends 'base.html' %}
-{% block title %}Dr. {{ doctor.name|default:doctor.user.get_full_name }}{% endblock %}
+{% load static %}
+
+{% block title %}Dr. {{ doctor.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doctor-profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .doctor-profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        pointer-events: none;
+    }
+    
+    .doctor-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 12px;
+        margin-right: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background-color: #007bff;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .schedule-slot {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #007bff;
+        transition: all 0.2s ease;
+    }
+    
+    .schedule-slot:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .patient-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border: 1px solid #e9ecef;
+        transition: all 0.2s ease;
+    }
+    
+    .patient-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-color: #007bff;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 2rem;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-scheduled { background: #d1ecf1; color: #0c5460; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    
+    .metric-card {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .metric-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: white;
+    }
+    
+    .icon-appointments { background: linear-gradient(45deg, #007bff, #0056b3); }
+    .icon-patients { background: linear-gradient(45deg, #28a745, #1e7e34); }
+    .icon-rating { background: linear-gradient(45deg, #ffc107, #e0a800); }
+    .icon-completion { background: linear-gradient(45deg, #17a2b8, #138496); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">🧑‍⚕️ Dr. {{ doctor.name|default:doctor.user.get_full_name }}</h1>
-        </div>
-    </div>
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-3 text-center">
-                    <div class="rounded-circle bg-secondary mb-2 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                        <i class="fas fa-user-md fa-2x text-white"></i>
-                    </div>
-                    {% if can_book_appointment %}
-                        <a href="{% url 'doctordirectory:create_appointment_for_doctor' doctor.pk %}" class="btn btn-success mt-2 w-100">
-                            <i class="fas fa-calendar-plus me-1"></i>Book Appointment
-                        </a>
-                    {% endif %}
-                </div>
-                <div class="col-md-9">
-                    <div class="row mb-2">
-                        <div class="col-md-6"><strong>Specialty:</strong> {{ doctor.specialty }}</div>
-                        <div class="col-md-6"><strong>Experience:</strong> {{ doctor.experience_years }} years</div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-6"><strong>License Number:</strong> {{ doctor.license_number|default:'Not specified' }}</div>
-                        <div class="col-md-6"><strong>Contact:</strong> {{ doctor.phone|default:'Not specified' }}</div>
-                    </div>
-                    {% if doctor.bio %}
-                    <div class="mb-2">
-                        <h6 class="font-weight-bold">Bio:</h6>
-                        <div class="border-left-primary pl-3">{{ doctor.bio|linebreaks }}</div>
-                    </div>
-                    {% endif %}
+    <!-- Doctor Profile Header -->
+    <div class="doctor-profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-2 text-center">
+                <div class="doctor-avatar">
+                    <i class="fas fa-user-md"></i>
                 </div>
             </div>
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="doctorDetailTabs" role="tablist">
+            <div class="col-md-7">
+                <h1 class="mb-2">Dr. {{ doctor.get_full_name }}</h1>
+                <p class="mb-1"><i class="fas fa-stethoscope me-2"></i>{{ doctor.specialty|default:"General Practice" }}</p>
+                <p class="mb-1"><i class="fas fa-graduation-cap me-2"></i>{{ doctor.qualification|default:"MBBS" }}</p>
+                <p class="mb-1"><i class="fas fa-calendar-alt me-2"></i>{{ doctor.experience_years }} years experience</p>
+                <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>{{ doctor.assigned_moze.name|default:"Main Hospital" }}</p>
+            </div>
+            <div class="col-md-3 text-end">
+                <div class="mb-2">
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-star me-1"></i>{{ stats.avg_rating }} Rating
+                    </span>
+                </div>
+                <div class="mb-2">
+                    {% if stats.available_today %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check-circle me-1"></i>Available Today
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">
+                            <i class="fas fa-clock me-1"></i>Not Available Today
+                        </span>
+                    {% endif %}
+                </div>
+                {% if can_book_appointment %}
+                    <a href="{% url 'doctordirectory:create_appointment_for_doctor' doctor.pk %}" 
+                       class="btn btn-light btn-lg">
+                        <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon icon-appointments">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-number text-primary">{{ stats.total_appointments }}</div>
+                <div class="stat-label">Total Appointments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon icon-patients">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number text-success">{{ stats.total_patients }}</div>
+                <div class="stat-label">Unique Patients</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon icon-rating">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-number text-warning">{{ stats.avg_rating }}</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="metric-icon icon-completion">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <div class="stat-number text-info">{{ stats.completion_rate|floatformat:1 }}%</div>
+                <div class="stat-label">Completion Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Enhanced Tabs -->
+            <ul class="nav nav-tabs mb-4" id="doctorDetailTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
+                    <button class="nav-link active" id="schedule-tab" data-bs-toggle="tab" 
+                            data-bs-target="#schedule" type="button" role="tab">
+                        <i class="fas fa-calendar-alt me-2"></i>Schedule
+                    </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">Patients</button>
+                    <button class="nav-link" id="patients-tab" data-bs-toggle="tab" 
+                            data-bs-target="#patients" type="button" role="tab">
+                        <i class="fas fa-users me-2"></i>Patients
+                    </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">Analytics</button>
+                    <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" 
+                            data-bs-target="#analytics" type="button" role="tab">
+                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="services-tab" data-bs-toggle="tab" 
+                            data-bs-target="#services" type="button" role="tab">
+                        <i class="fas fa-medical-kit me-2"></i>Services
+                    </button>
                 </li>
             </ul>
-            <div class="tab-content mt-3" id="doctorDetailTabsContent">
-                <!-- Schedule Tab -->
+
+            <div class="tab-content" id="doctorDetailTabsContent">
+                <!-- Enhanced Schedule Tab -->
                 <div class="tab-pane fade show active" id="schedule" role="tabpanel">
-                    <h6>Upcoming Availability</h6>
-                    {% if upcoming_availability %}
-                        <ul class="list-group">
-                            {% for slot in upcoming_availability %}
-                                <li class="list-group-item">
-                                    {{ slot.date }}: {{ slot.start_time }} - {{ slot.end_time }}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No upcoming availability.</p>
-                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-calendar-week me-2"></i>This Week</h5>
+                            {% if schedule_data.this_week %}
+                                {% for slot in schedule_data.this_week %}
+                                    <div class="schedule-slot">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4">
+                                                <strong>{{ slot.date|date:"M d, Y" }}</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <span class="badge bg-success">Available</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No availability scheduled for this week.
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-calendar-plus me-2"></i>Next Week</h5>
+                            {% if schedule_data.next_week %}
+                                {% for slot in schedule_data.next_week %}
+                                    <div class="schedule-slot">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-4">
+                                                <strong>{{ slot.date|date:"M d, Y" }}</strong>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <span class="badge bg-primary">Upcoming</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No availability scheduled for next week.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <!-- Patients Tab -->
+
+                <!-- Enhanced Patients Tab -->
                 <div class="tab-pane fade" id="patients" role="tabpanel">
-                    <h6>Recent Patients</h6>
-                    {% if recent_appointments %}
-                        <ul class="list-group">
-                            {% for appt in recent_appointments %}
-                                <li class="list-group-item">
-                                    {{ appt.patient.user.get_full_name }} ({{ appt.appointment_date }})
-                                </li>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number text-primary">{{ patient_data.total_unique_patients }}</div>
+                                <div class="stat-label">Total Patients</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number text-success">{{ patient_data.returning_patients }}</div>
+                                <div class="stat-label">Returning Patients</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number text-info">{{ patient_data.new_patients_this_month }}</div>
+                                <div class="stat-label">New This Month</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card text-center">
+                                <div class="stat-number text-warning">{{ stats.completion_rate|floatformat:0 }}%</div>
+                                <div class="stat-label">Show-up Rate</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5><i class="fas fa-history me-2"></i>Recent Patients</h5>
+                    {% if patient_data.recent_patients %}
+                        <div class="row">
+                            {% for appointment in patient_data.recent_patients %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="patient-card">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-2">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                     style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-7">
+                                                <h6 class="mb-1">{{ appointment.patient.user.get_full_name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date|date:"M d, Y" }}
+                                                </small>
+                                                {% if appointment.reason_for_visit %}
+                                                    <br><small class="text-muted">{{ appointment.reason_for_visit }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-3 text-end">
+                                                <span class="status-badge status-{{ appointment.status }}">
+                                                    {{ appointment.get_status_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     {% else %}
-                        <p class="text-muted">No recent patients.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No recent patients to display.
+                        </div>
                     {% endif %}
                 </div>
-                <!-- Analytics Tab -->
+
+                <!-- Enhanced Analytics Tab -->
                 <div class="tab-pane fade" id="analytics" role="tabpanel">
-                    <h6>Doctor Analytics</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5><i class="fas fa-chart-line me-2"></i>Appointment Trends</h5>
+                                <canvas id="trendsChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5><i class="fas fa-chart-pie me-2"></i>Appointment Status Distribution</h5>
+                                <canvas id="statusChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5><i class="fas fa-clock me-2"></i>Peak Hours</h5>
+                                {% if analytics_data.peak_hours %}
+                                    <div class="list-group list-group-flush">
+                                        {% for hour_data in analytics_data.peak_hours %}
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ hour_data.hour|floatformat:0 }}:00
+                                                <span class="badge bg-primary rounded-pill">{{ hour_data.count }} appointments</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No data available for peak hours analysis.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stats-card">
+                                <h5><i class="fas fa-trophy me-2"></i>Performance Metrics</h5>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Completion Rate</span>
+                                        <span>{{ stats.completion_rate|floatformat:1 }}%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: {{ stats.completion_rate }}%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Patient Satisfaction</span>
+                                        <span>{{ stats.avg_rating }}/5.0</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 90%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Returning Patients</span>
+                                        <span>75%</span>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Services Tab -->
+                <div class="tab-pane fade" id="services" role="tabpanel">
+                    <h5><i class="fas fa-medical-kit me-2"></i>Medical Services</h5>
                     {% if services %}
-                        <ul class="list-group">
+                        <div class="row">
                             {% for service in services %}
-                                <li class="list-group-item">
-                                    {{ service.name }} - {{ service.description }}
-                                </li>
+                                <div class="col-md-6 mb-3">
+                                    <div class="stats-card">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0">{{ service.name }}</h6>
+                                            <span class="badge bg-success">${{ service.price }}</span>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{ service.description|truncatewords:15 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ service.duration_minutes }} minutes
+                                            </small>
+                                            {% if service.is_available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Available</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     {% else %}
-                        <p class="text-muted">No analytics data available.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No services available for this doctor.
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Chart.js for Analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Trends Chart
+    const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for month in analytics_data.monthly_trends %}'{{ month.month }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Appointments',
+                data: [{% for month in analytics_data.monthly_trends %}{{ month.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for status in analytics_data.status_distribution %}'{{ status.status }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                data: [{% for status in analytics_data.status_distribution %}{{ status.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [{% for status in analytics_data.status_distribution %}'{{ status.color }}'{% if not forloop.last %},{% endif %}{% endfor %}]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

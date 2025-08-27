@@ -1042,7 +1042,7 @@ def sync_its_data(request):
                 'name': user.get_full_name(),
                 'email': user.email,
                 'role': user.get_role_display(),
-                'moze': profile.moze if profile else '',
+                'moze': getattr(profile, 'moze', '') if profile else '',
                 'sync_time': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
             }
         })
