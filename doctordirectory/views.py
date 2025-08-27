@@ -506,9 +506,17 @@ def patient_detail(request, pk):
         print(f"Error loading appointments for patient {patient.pk}: {e}")
         appointments = []
     
-    # Get patient's medical records
+    # Get patient's medical records from Mahal Shifa (if user has corresponding MS patient)
+    medical_records = []
     try:
-        medical_records = patient.medical_records.select_related('doctor__user').order_by('-created_at')
+        if patient.user:
+            from mahalshifa.models import Patient as MSPatient, MedicalRecord
+            try:
+                ms_patient = MSPatient.objects.get(user_account=patient.user)
+                medical_records = MedicalRecord.objects.filter(patient=ms_patient).select_related('doctor__user').order_by('-created_at')
+            except MSPatient.DoesNotExist:
+                # No corresponding Mahal Shifa patient, which is normal
+                pass
     except Exception as e:
         print(f"Error loading medical records for patient {patient.pk}: {e}")
         medical_records = []

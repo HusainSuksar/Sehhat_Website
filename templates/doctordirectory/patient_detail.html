@@ -1,29 +1,576 @@
 {% extends 'base.html' %}
-{% block title %}{{ patient.user.get_full_name }} - Patient{% endblock %}
+{% load static %}
+
+{% block title %}{{ patient.user.get_full_name }} - Patient Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Patient Profile Styling */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+    }
+
+    .patient-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .patient-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #a855f7, #ec4899);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 1rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .info-card h5 {
+        color: #2d3748;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-card .icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f7fafc;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        color: #2d3748;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-active { background: #c6f6d5; color: #22543d; }
+    .status-scheduled { background: #bee3f8; color: #2a4365; }
+    .status-completed { background: #d6f5d6; color: #22543d; }
+    .status-cancelled { background: #fed7d7; color: #742a2a; }
+
+    .appointment-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+    }
+
+    .appointment-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .medical-record-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid #48bb78;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-modern {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .btn-secondary-modern {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-secondary-modern:hover {
+        background: #cbd5e0;
+        transform: translateY(-1px);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #a0aec0;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #718096;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .tabs-container {
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs-modern {
+        border: none;
+        background: white;
+        border-radius: 12px;
+        padding: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-tabs-modern .nav-link {
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        color: #718096;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-right: 0.25rem;
+    }
+
+    .nav-tabs-modern .nav-link:hover {
+        background: #f7fafc;
+        color: #4a5568;
+    }
+
+    .nav-tabs-modern .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .tab-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">👤 {{ patient.user.get_full_name }}</h1>
+<div class="container-fluid py-4">
+    <!-- Patient Header -->
+    <div class="patient-header">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="patient-avatar mx-auto">
+                    {{ patient.user.first_name|first|upper }}{{ patient.user.last_name|first|upper }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h1 class="mb-2">{{ patient.user.get_full_name }}</h1>
+                <p class="mb-1"><i class="fas fa-id-card"></i> ITS ID: {{ patient.user.its_id|default:"Not Available" }}</p>
+                <p class="mb-1"><i class="fas fa-envelope"></i> {{ patient.user.email|default:"Not Available" }}</p>
+                <p class="mb-0"><i class="fas fa-phone"></i> {{ patient.user.phone_number|default:"Not Available" }}</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="mb-2">
+                    <span class="status-badge status-active">Active Patient</span>
+                </div>
+                <p class="mb-1"><small>Member Since</small></p>
+                <p class="mb-0"><strong>{{ patient.created_at|date:"M Y" }}</strong></p>
+            </div>
         </div>
     </div>
-    <div class="card shadow mb-4">
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6"><strong>Age:</strong> {{ patient.age }}</div>
-                <div class="col-md-6"><strong>Gender:</strong> {{ patient.get_gender_display }}</div>
+
+    <!-- Quick Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">{{ patient.age }}</div>
+            <div class="stat-label">Years Old</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ appointments|length }}</div>
+            <div class="stat-label">Appointments</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ medical_records|length }}</div>
+            <div class="stat-label">Medical Records</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ patient.total_appointments }}</div>
+            <div class="stat-label">Total Visits</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-container">
+        <ul class="nav nav-tabs nav-tabs-modern" id="patientTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                    <i class="fas fa-user"></i> Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="medical-tab" data-bs-toggle="tab" data-bs-target="#medical" type="button" role="tab">
+                    <i class="fas fa-file-medical"></i> Medical Records
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="patientTabContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h5>
+                            <span class="icon" style="background: #e6fffa; color: #319795;">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            Personal Information
+                        </h5>
+                        <div class="info-row">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value">{{ patient.user.get_full_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Date of Birth</span>
+                            <span class="info-value">{{ patient.date_of_birth|date:"F d, Y" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Age</span>
+                            <span class="info-value">{{ patient.age }} years old</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Gender</span>
+                            <span class="info-value">{{ patient.get_gender_display }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Blood Group</span>
+                            <span class="info-value">{{ patient.blood_group|default:"Not Specified" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-card">
+                        <h5>
+                            <span class="icon" style="background: #fef5e7; color: #d69e2e;">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            Contact Information
+                        </h5>
+                        <div class="info-row">
+                            <span class="info-label">Phone Number</span>
+                            <span class="info-value">{{ patient.user.phone_number|default:"Not Available" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ patient.user.email|default:"Not Available" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Emergency Contact</span>
+                            <span class="info-value">{{ patient.emergency_contact|default:"Not Specified" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">ITS ID</span>
+                            <span class="info-value">{{ patient.user.its_id|default:"Not Available" }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-md-6"><strong>Contact:</strong> {{ patient.user.phone_number }}</div>
-                <div class="col-md-6"><strong>Emergency Contact:</strong> {{ patient.emergency_contact }}</div>
+
+            {% if patient.medical_history or patient.allergies or patient.current_medications %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="info-card">
+                        <h5>
+                            <span class="icon" style="background: #fed7d7; color: #e53e3e;">
+                                <i class="fas fa-heartbeat"></i>
+                            </span>
+                            Medical Information
+                        </h5>
+                        {% if patient.medical_history %}
+                        <div class="mb-3">
+                            <strong class="info-label">Medical History:</strong>
+                            <div class="mt-2 p-3" style="background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
+                                {{ patient.medical_history|linebreaks }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if patient.allergies %}
+                        <div class="mb-3">
+                            <strong class="info-label">Allergies:</strong>
+                            <div class="mt-2 p-3" style="background: #fef5e7; border-radius: 8px; border-left: 4px solid #d69e2e;">
+                                {{ patient.allergies|linebreaks }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if patient.current_medications %}
+                        <div class="mb-3">
+                            <strong class="info-label">Current Medications:</strong>
+                            <div class="mt-2 p-3" style="background: #e6fffa; border-radius: 8px; border-left: 4px solid #319795;">
+                                {{ patient.current_medications|linebreaks }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% if patient.medical_history %}
-            <div class="mb-3">
-                <h6 class="font-weight-bold">Medical History:</h6>
-                <div class="border-left-primary pl-3">{{ patient.medical_history|linebreaks }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Appointments Tab -->
+        <div class="tab-pane fade" id="appointments" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5><i class="fas fa-calendar-check"></i> Appointment History</h5>
+                {% if user.is_admin or user.is_doctor %}
+                <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary-modern btn-modern">
+                    <i class="fas fa-plus"></i> Schedule New
+                </a>
+                {% endif %}
             </div>
+
+            {% if appointments %}
+                {% for appointment in appointments %}
+                <div class="appointment-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-3">
+                                    <i class="fas fa-user-md"></i> 
+                                    {{ appointment.doctor.get_full_name|default:"Dr. Unknown" }}
+                                </h6>
+                                <span class="status-badge status-{{ appointment.status }}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="mb-1">
+                                <i class="fas fa-calendar"></i> 
+                                {{ appointment.appointment_date|date:"F d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                            </p>
+                            {% if appointment.reason_for_visit %}
+                            <p class="mb-1">
+                                <i class="fas fa-stethoscope"></i> 
+                                {{ appointment.reason_for_visit }}
+                            </p>
+                            {% endif %}
+                            {% if appointment.notes %}
+                            <p class="mb-0 text-muted">
+                                <i class="fas fa-sticky-note"></i> 
+                                {{ appointment.notes }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ appointment.created_at|date:"M d, Y" }}</small>
+                            {% if user.is_admin or user.is_doctor %}
+                            <div class="mt-2">
+                                <a href="{% url 'doctordirectory:appointment_detail' appointment.pk %}" class="btn btn-sm btn-secondary-modern">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h5>No Appointments Found</h5>
+                    <p>This patient has no appointment history.</p>
+                    {% if user.is_admin or user.is_doctor %}
+                    <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary-modern btn-modern mt-3">
+                        <i class="fas fa-plus"></i> Schedule First Appointment
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Medical Records Tab -->
+        <div class="tab-pane fade" id="medical" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5><i class="fas fa-file-medical"></i> Medical Records</h5>
+            </div>
+
+            {% if medical_records %}
+                {% for record in medical_records %}
+                <div class="medical-record-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-3">
+                                    <i class="fas fa-user-md"></i> 
+                                    {{ record.doctor.user.get_full_name }}
+                                </h6>
+                                <small class="text-muted">{{ record.created_at|date:"F d, Y g:i A" }}</small>
+                            </div>
+                            {% if record.chief_complaint %}
+                            <p class="mb-2">
+                                <strong>Chief Complaint:</strong> {{ record.chief_complaint }}
+                            </p>
+                            {% endif %}
+                            {% if record.diagnosis %}
+                            <p class="mb-2">
+                                <strong>Diagnosis:</strong> {{ record.diagnosis }}
+                            </p>
+                            {% endif %}
+                            {% if record.treatment_plan %}
+                            <p class="mb-0">
+                                <strong>Treatment Plan:</strong> {{ record.treatment_plan }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-file-medical-alt"></i>
+                    <h5>No Medical Records Found</h5>
+                    <p>This patient has no medical records in the system.</p>
+                    <small class="text-muted">Medical records are created after completed consultations.</small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'doctordirectory:patient_list' %}" class="btn btn-secondary-modern btn-modern me-3">
+                <i class="fas fa-arrow-left"></i> Back to Patients
+            </a>
+            {% if user.is_admin %}
+            <a href="#" class="btn btn-primary-modern btn-modern me-3">
+                <i class="fas fa-edit"></i> Edit Patient
+            </a>
+            <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary-modern btn-modern">
+                <i class="fas fa-calendar-plus"></i> Schedule Appointment
+            </a>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+// Initialize Bootstrap tabs
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable Bootstrap tab functionality
+    var tabTriggerList = [].slice.call(document.querySelectorAll('#patientTabs button'))
+    tabTriggerList.forEach(function (tabTriggerEl) {
+        var tabTrigger = new bootstrap.Tab(tabTriggerEl)
+        
+        tabTriggerEl.addEventListener('click', function (event) {
+            event.preventDefault()
+            tabTrigger.show()
+        })
+    })
+});
+</script>
 {% endblock %}
