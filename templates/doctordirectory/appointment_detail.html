@@ -349,12 +349,54 @@
 </div>
 
 <script>
+// Notification system
+function showNotification(message, type = 'info') {
+    // Remove any existing notification
+    const existingNotification = document.getElementById('status-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = 'status-notification';
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} mr-2"></i>
+        ${message}
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (notification && notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
 function updateStatus(newStatus) {
     const appointmentId = {{ appointment.id }};
     const statusLabels = {
+        'scheduled': 'scheduled',
+        'confirmed': 'confirmed',
         'completed': 'completed',
         'in_progress': 'in progress',
-        'cancelled': 'cancelled'
+        'cancelled': 'cancelled',
+        'no_show': 'no show'
     };
     
     if (confirm(`Are you sure you want to mark this appointment as ${statusLabels[newStatus]}?`)) {
@@ -368,17 +410,36 @@ function updateStatus(newStatus) {
                 status: newStatus
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
+        .then(response => {
+            if (response.ok) {
+                return response.json();
             } else {
-                alert('Error updating appointment status: ' + data.error);
+                return response.json().then(data => Promise.reject(data));
             }
+        })
+        .then(data => {
+            // Success - API returns {message: "...", appointment: {...}}
+            console.log('Status update successful:', data);
+            
+            // Show success notification
+            showNotification('Status updated successfully!', 'success');
+            
+            // Reload page after a brief delay to show the notification
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while updating the appointment status.');
+            let errorMessage = 'An error occurred while updating the appointment status.';
+            
+            if (error && error.error) {
+                errorMessage = error.error;
+            } else if (error && error.message) {
+                errorMessage = error.message;
+            }
+            
+            showNotification(errorMessage, 'error');
         });
     }
 }
