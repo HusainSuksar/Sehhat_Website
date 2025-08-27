@@ -17,6 +17,7 @@ urlpatterns = [
     path('patients/<int:patient_id>/add-record/', views.add_medical_record, name='add_medical_record'),
     
     # Appointments (only existing views)
+    path('appointments/', views.appointment_list, name='appointment_list'),
     path('appointments/create/', views.create_appointment, name='create_appointment'),
     path('appointments/create/<int:doctor_id>/', views.create_appointment, name='create_appointment_for_doctor'),
     path('appointments/<int:pk>/', views.appointment_detail, name='appointment_detail'),

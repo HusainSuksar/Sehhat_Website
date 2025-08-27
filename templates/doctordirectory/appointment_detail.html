@@ -231,7 +231,7 @@
                         </a> <!-- Not implemented -->
                         {% endif %}
                         
-                        <a href="{% url 'doctordirectory:create_appointment' appointment.doctor.pk %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'doctordirectory:create_appointment_for_doctor' appointment.doctor.pk %}" class="btn btn-outline-secondary">
                             <i class="fas fa-calendar-plus"></i> Schedule Follow-up
                         </a>
                     </div>
@@ -295,6 +295,49 @@
                             <small class="text-muted">No previous appointments</small>
                         {% endif %}
                     {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Actions -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i>
+                        Back to Appointments
+                    </a>
+                    <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-outline-secondary ml-2">
+                        <i class="fas fa-home mr-1"></i>
+                        Dashboard
+                    </a>
+                </div>
+                <div>
+                    {% if appointment.status == 'scheduled' or appointment.status == 'confirmed' %}
+                        {% if user.is_admin or user.is_doctor %}
+                        <button class="btn btn-warning" onclick="updateStatus('confirmed')">
+                            <i class="fas fa-check mr-1"></i>
+                            Confirm
+                        </button>
+                        <button class="btn btn-success ml-2" onclick="updateStatus('completed')">
+                            <i class="fas fa-check-double mr-1"></i>
+                            Complete
+                        </button>
+                        {% endif %}
+                        <button class="btn btn-danger ml-2" onclick="updateStatus('cancelled')">
+                            <i class="fas fa-times mr-1"></i>
+                            Cancel
+                        </button>
+                    {% elif appointment.status == 'cancelled' %}
+                        {% if user.is_admin %}
+                        <button class="btn btn-primary" onclick="updateStatus('scheduled')">
+                            <i class="fas fa-undo mr-1"></i>
+                            Reschedule
+                        </button>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>

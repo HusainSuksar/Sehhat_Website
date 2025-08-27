@@ -535,11 +535,41 @@ def appointment_detail(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk)
     
     # Check permissions - users can only view their own appointments or if they're admin/doctor
-    if not (request.user.is_admin or 
-            (hasattr(request.user, 'doctor_profile') and appointment.doctor.user == request.user) or
-            (hasattr(request.user, 'patient_profile') and appointment.patient.user == request.user)):
+    user_can_view = False
+    
+    # Admin can view all appointments
+    if request.user.is_admin:
+        user_can_view = True
+    
+    # Doctor can view appointments where they are the doctor
+    elif hasattr(request.user, 'doctor_profile'):
+        try:
+            doctor_profile = request.user.doctor_profile.first()
+            if doctor_profile and appointment.doctor == doctor_profile:
+                user_can_view = True
+        except:
+            pass
+    
+    # Patient can view appointments where they are the patient
+    elif hasattr(request.user, 'patient_profile'):
+        try:
+            patient_profiles = request.user.patient_profile.all()
+            if any(appointment.patient == profile for profile in patient_profiles):
+                user_can_view = True
+        except:
+            pass
+    
+    # Check if doctor user matches appointment doctor
+    if not user_can_view and appointment.doctor.user == request.user:
+        user_can_view = True
+    
+    # Check if patient user matches appointment patient  
+    if not user_can_view and appointment.patient.user == request.user:
+        user_can_view = True
+    
+    if not user_can_view:
         messages.error(request, 'You do not have permission to view this appointment.')
-        return redirect('doctordirectory:dashboard')
+        return redirect('accounts:profile')
     
     context = {
         'appointment': appointment,
@@ -547,6 +577,43 @@ def appointment_detail(request, pk):
     }
     
     return render(request, 'doctordirectory/appointment_detail.html', context)
+
+
+@login_required
+def appointment_list(request):
+    """List appointments based on user role"""
+    user = request.user
+    
+    # Base queryset
+    if user.is_admin:
+        appointments = Appointment.objects.all()
+    elif user.is_doctor:
+        try:
+            doctor_profile = user.doctor_profile.first()
+            if doctor_profile:
+                appointments = Appointment.objects.filter(doctor=doctor_profile)
+            else:
+                appointments = Appointment.objects.none()
+        except:
+            appointments = Appointment.objects.none()
+    elif hasattr(user, 'patient_profile'):
+        try:
+            patient_profiles = user.patient_profile.all()
+            appointments = Appointment.objects.filter(patient__in=patient_profiles)
+        except:
+            appointments = Appointment.objects.none()
+    else:
+        appointments = Appointment.objects.none()
+    
+    # Order by most recent first
+    appointments = appointments.select_related('doctor', 'patient__user').order_by('-appointment_date', '-appointment_time')
+    
+    context = {
+        'appointments': appointments,
+        'title': 'My Appointments' if not user.is_admin else 'All Appointments'
+    }
+    
+    return render(request, 'doctordirectory/appointment_list.html', context)
 
 
 @login_required

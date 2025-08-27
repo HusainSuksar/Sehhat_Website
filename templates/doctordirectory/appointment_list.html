@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        {{ title }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus mr-1"></i>
+                            New Appointment
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Doctor</th>
+                                        <th>Patient</th>
+                                        <th>Reason</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ appointment.appointment_date|date:"M d, Y" }}</strong><br>
+                                            <small class="text-muted">{{ appointment.appointment_time|time:"g:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'doctordirectory:doctor_detail' appointment.doctor.pk %}">
+                                                {{ appointment.doctor.get_full_name }}
+                                            </a>
+                                            {% if appointment.doctor.specialty %}
+                                            <br><small class="text-muted">{{ appointment.doctor.specialty }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if appointment.patient.user %}
+                                                {{ appointment.patient.user.get_full_name }}
+                                            {% else %}
+                                                {{ appointment.patient }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ appointment.reason_for_visit|default:"General consultation" }}
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if appointment.status == 'scheduled' %}badge-primary
+                                                {% elif appointment.status == 'confirmed' %}badge-success
+                                                {% elif appointment.status == 'in_progress' %}badge-warning
+                                                {% elif appointment.status == 'completed' %}badge-info
+                                                {% elif appointment.status == 'cancelled' %}badge-danger
+                                                {% elif appointment.status == 'no_show' %}badge-secondary
+                                                {% else %}badge-light{% endif %}">
+                                                {{ appointment.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'doctordirectory:appointment_detail' appointment.pk %}" 
+                                                   class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                {% if appointment.status == 'scheduled' or appointment.status == 'confirmed' %}
+                                                    {% if user.is_admin or user.is_doctor %}
+                                                    <button class="btn btn-sm btn-outline-warning" 
+                                                            onclick="updateStatus({{ appointment.pk }}, 'in_progress')"
+                                                            title="Mark as In Progress">
+                                                        <i class="fas fa-play"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success" 
+                                                            onclick="updateStatus({{ appointment.pk }}, 'completed')"
+                                                            title="Mark as Completed">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    {% endif %}
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="cancelAppointment({{ appointment.pk }})"
+                                                            title="Cancel">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No appointments found</h5>
+                            <p class="text-muted">
+                                {% if user.is_patient %}
+                                    You haven't scheduled any appointments yet.
+                                {% elif user.is_doctor %}
+                                    No appointments scheduled with you yet.
+                                {% else %}
+                                    No appointments in the system yet.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary">
+                                <i class="fas fa-plus mr-1"></i>
+                                Schedule Your First Appointment
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(appointmentId, newStatus) {
+    if (confirm(`Are you sure you want to update this appointment status to ${newStatus}?`)) {
+        // This would typically make an AJAX call to update the status
+        // For now, we'll just show an alert
+        alert(`Feature not implemented: Update appointment ${appointmentId} to ${newStatus}`);
+        // TODO: Implement AJAX status update
+    }
+}
+
+function cancelAppointment(appointmentId) {
+    const reason = prompt('Please provide a reason for cancellation:');
+    if (reason) {
+        // This would typically make an AJAX call to cancel the appointment
+        // For now, we'll just show an alert
+        alert(`Feature not implemented: Cancel appointment ${appointmentId} with reason: ${reason}`);
+        // TODO: Implement AJAX cancellation
+    }
+}
+</script>
+{% endblock %}

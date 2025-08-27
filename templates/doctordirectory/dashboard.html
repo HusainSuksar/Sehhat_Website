@@ -564,7 +564,13 @@
         </div>
 
         <div class="welcome-actions">
-            {% if user.is_doctor %}
+            {% if user.is_doctor or user.is_admin or user.is_patient %}
+                <a href="{% url 'doctordirectory:appointment_list' %}" class="btn btn-outline">
+                    <i class="fas fa-calendar-alt"></i>
+                    My Appointments
+                </a>
+            {% endif %}
+            {% if user.is_doctor or user.is_admin %}
                 <a href="{% url 'doctordirectory:create_appointment' %}" class="btn btn-primary">
                     <i class="fas fa-calendar-plus"></i>
                     New Appointment
