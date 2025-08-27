@@ -460,7 +460,7 @@
             </div>
         </a>
 
-        <a href="{% url 'doctordirectory:doctor_list' %}" class="stat-card">
+        <a href="{% url 'doctordirectory:dashboard' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_doctors|default:"0" }}</div>
@@ -476,7 +476,7 @@
             </div>
         </a>
 
-        <a href="{% url 'students:student_list' %}" class="stat-card">
+        <a href="{% url 'students:dashboard' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_students|default:"0" }}</div>
@@ -508,7 +508,7 @@
             </div>
         </a>
 
-        <a href="{% url 'araz:araz_list' %}" class="stat-card">
+        <a href="{% url 'araz:dashboard' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_petitions|default:"0" }}</div>
@@ -524,7 +524,7 @@
             </div>
         </a>
 
-        <a href="{% url 'mahalshifa:hospital_list' %}" class="stat-card">
+        <a href="{% url 'mahalshifa:dashboard' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_hospitals|default:"0" }}</div>
@@ -556,7 +556,7 @@
             </div>
         </a>
 
-        <a href="{% url 'photos:album_list' %}" class="stat-card">
+        <a href="{% url 'photos:dashboard' %}" class="stat-card">
             <div class="stat-header">
                 <div>
                     <div class="stat-value">{{ total_albums|default:"0" }}</div>
