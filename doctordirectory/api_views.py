@@ -166,6 +166,60 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         else:
             # Regular users can see appointments where they are the patient
             return queryset.filter(patient__user=user)
+    
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        """Update appointment status"""
+        appointment = self.get_object()
+        new_status = request.data.get('status')
+        reason = request.data.get('reason', '')
+        
+        # Validate status
+        valid_statuses = ['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled', 'no_show']
+        if new_status not in valid_statuses:
+            return Response({
+                'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check permissions for status changes
+        user = request.user
+        if not (user.is_admin or user.is_doctor or 
+                (hasattr(user, 'patient_profile') and appointment.patient.user == user)):
+            return Response({
+                'error': 'You do not have permission to update this appointment.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Patients can only cancel their appointments
+        if (hasattr(user, 'patient_profile') and appointment.patient.user == user and 
+            new_status != 'cancelled'):
+            return Response({
+                'error': 'Patients can only cancel their appointments.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        # Update appointment status
+        old_status = appointment.status
+        appointment.status = new_status
+        
+        # Handle cancellation reason
+        if new_status == 'cancelled' and reason:
+            appointment.cancellation_reason = reason
+        
+        appointment.save()
+        
+        return Response({
+            'message': f'Appointment status updated from {old_status} to {new_status}',
+            'appointment': AppointmentSerializer(appointment).data
+        })
+    
+    @action(detail=True, methods=['get'], url_path='status')
+    def get_status(self, request, pk=None):
+        """Get current appointment status"""
+        appointment = self.get_object()
+        return Response({
+            'status': appointment.status,
+            'status_display': appointment.get_status_display(),
+            'last_updated': appointment.updated_at if hasattr(appointment, 'updated_at') else None
+        })
 
 
 # DoctorSchedule ViewSet
