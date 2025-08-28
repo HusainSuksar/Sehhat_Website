@@ -60,11 +60,16 @@ class ChartManager {
         Chart.defaults.backgroundColor = 'rgba(37, 99, 235, 0.1)';
         
         // Register plugins (check if registerables exists first)
-        if (Chart.registerables && Array.isArray(Chart.registerables)) {
-            Chart.register(...Chart.registerables);
-        } else {
-            // Fallback for older Chart.js versions
-            console.warn('Chart.registerables not found, using fallback registration');
+        try {
+            if (Chart.registerables && Array.isArray(Chart.registerables) && Chart.registerables.length > 0) {
+                Chart.register(...Chart.registerables);
+            } else if (Chart.defaults) {
+                // Chart.js is loaded but registerables not available - likely newer version
+                // Most components are auto-registered in newer versions
+                console.log('Chart.js components auto-registered');
+            }
+        } catch (error) {
+            console.warn('Chart.js registration failed:', error);
         }
     }
 

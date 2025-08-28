@@ -218,7 +218,7 @@
                     </h2>
                     
                     <div class="row">
-                        {% if not user.is_doctor and doctor %}
+                        {% if doctor %}
                             <!-- Show doctor info when booking for specific doctor -->
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -232,8 +232,13 @@
                                     </div>
                                 </div>
                             </div>
-                        {% elif not user.is_doctor %}
-                            <!-- Show doctor dropdown for admin users -->
+                            <!-- Hidden doctor field when doctor is pre-selected -->
+                            {{ form.doctor }}
+                        {% elif user.is_doctor %}
+                            <!-- Hidden doctor field when logged in as doctor -->
+                            {{ form.doctor }}
+                        {% else %}
+                            <!-- Show doctor dropdown for admin users when no specific doctor -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="{{ form.doctor.id_for_label }}" class="form-label">
@@ -246,11 +251,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-                        {% endif %}
-                        
-                        <!-- Hidden doctor field when logged in as doctor -->
-                        {% if user.is_doctor %}
-                            {{ form.doctor }}
                         {% endif %}
                         
                         <div class="col-md-6">
@@ -348,6 +348,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get form elements with error handling
     const itsIdField = document.getElementById('{{ form.patient_its_id.id_for_label }}');
     const patientNameField = document.getElementById('{{ form.patient_name_display.id_for_label }}');
     const patientInfoCard = document.getElementById('patientInfoCard');
@@ -359,6 +360,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorAlert = document.getElementById('fetchErrorAlert');
     const successMessage = document.getElementById('fetchSuccessMessage');
     const errorMessage = document.getElementById('fetchErrorMessage');
+    
+    // Check if required elements exist
+    if (!itsIdField || !fetchButton) {
+        console.error('Required form elements not found');
+        return;
+    }
     
     // Fetch button click handler
     fetchButton.addEventListener('click', function() {

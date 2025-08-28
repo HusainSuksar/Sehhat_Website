@@ -245,6 +245,14 @@ class AppointmentForm(forms.ModelForm):
             else:
                 # For doctors/admins: they can enter any ITS ID
                 self.fields['patient_its_id'].help_text = 'Enter the patient\'s 8-digit ITS ID to fetch their details automatically'
+                # Ensure the field is not readonly for admin/doctor users
+                if 'readonly' in self.fields['patient_its_id'].widget.attrs:
+                    del self.fields['patient_its_id'].widget.attrs['readonly']
+                if 'style' in self.fields['patient_its_id'].widget.attrs:
+                    # Remove any background color styling that might indicate readonly
+                    style = self.fields['patient_its_id'].widget.attrs['style']
+                    if 'background-color: #f8f9fa' in style:
+                        self.fields['patient_its_id'].widget.attrs['style'] = style.replace('background-color: #f8f9fa;', '').strip()
     
     def clean(self):
         cleaned_data = super().clean()
