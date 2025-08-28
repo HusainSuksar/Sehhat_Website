@@ -538,6 +538,11 @@ def patient_detail(request, pk):
 @login_required
 def create_appointment(request, doctor_id=None):
     """Create a new appointment"""
+    # Check if user has permission to create appointments
+    if not (request.user.is_admin or request.user.is_doctor or request.user.is_patient):
+        messages.error(request, 'You do not have permission to book appointments.')
+        return redirect('doctordirectory:dashboard')
+    
     if doctor_id:
         try:
             doctor = get_object_or_404(Doctor, pk=doctor_id)

@@ -177,7 +177,7 @@ class AppointmentForm(forms.ModelForm):
         # If a doctor is provided, set it as the initial value and make it readonly
         if doctor:
             self.fields['doctor'].initial = doctor
-            self.fields['doctor'].widget.attrs['readonly'] = True
+            self.fields['doctor'].widget = forms.HiddenInput()  # Hide doctor field completely
             # Filter services to only show services for this doctor
             if hasattr(self.fields['service'], 'queryset'):
                 from .models import MedicalService
@@ -185,6 +185,27 @@ class AppointmentForm(forms.ModelForm):
                     doctor=doctor, 
                     is_available=True
                 )
+        elif user and user.is_doctor:
+            # If logged in as doctor, auto-select the doctor and hide the field
+            try:
+                from .models import Doctor
+                doctor_instance = Doctor.objects.get(user=user)
+                self.fields['doctor'].initial = doctor_instance
+                self.fields['doctor'].widget = forms.HiddenInput()  # Hide doctor field
+                # Filter services to only show services for this doctor
+                if hasattr(self.fields['service'], 'queryset'):
+                    from .models import MedicalService
+                    self.fields['service'].queryset = MedicalService.objects.filter(
+                        doctor=doctor_instance, 
+                        is_available=True
+                    )
+            except Doctor.DoesNotExist:
+                # If doctor profile doesn't exist, show error
+                pass
+        else:
+            # For admin users, show all available doctors
+            from .models import Doctor
+            self.fields['doctor'].queryset = Doctor.objects.filter(is_available=True)
         
         # Hide the original patient field and use ITS ID lookup instead
         self.fields['patient'].widget = forms.HiddenInput()

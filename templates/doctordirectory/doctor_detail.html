@@ -370,41 +370,48 @@
                     </div>
 
                     <h5><i class="fas fa-history me-2"></i>Recent Patients</h5>
-                    {% if patient_data.recent_patients %}
-                        <div class="row">
-                            {% for appointment in patient_data.recent_patients %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="patient-card">
-                                        <div class="row align-items-center">
-                                            <div class="col-md-2">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
-                                                     style="width: 50px; height: 50px;">
-                                                    <i class="fas fa-user"></i>
+                    {% if user.is_admin or user.is_doctor and doctor.user == user %}
+                        {% if patient_data.recent_patients %}
+                            <div class="row">
+                                {% for appointment in patient_data.recent_patients %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="patient-card">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-2">
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                         style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-7">
-                                                <h6 class="mb-1">{{ appointment.patient.user.get_full_name }}</h6>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date|date:"M d, Y" }}
-                                                </small>
-                                                {% if appointment.reason_for_visit %}
-                                                    <br><small class="text-muted">{{ appointment.reason_for_visit }}</small>
-                                                {% endif %}
-                                            </div>
-                                            <div class="col-md-3 text-end">
-                                                <span class="status-badge status-{{ appointment.status }}">
-                                                    {{ appointment.get_status_display }}
-                                                </span>
+                                                <div class="col-md-7">
+                                                    <h6 class="mb-1">{{ appointment.patient.user.get_full_name }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-calendar me-1"></i>{{ appointment.appointment_date|date:"M d, Y" }}
+                                                    </small>
+                                                    {% if appointment.reason_for_visit %}
+                                                        <br><small class="text-muted">{{ appointment.reason_for_visit }}</small>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <span class="status-badge status-{{ appointment.status }}">
+                                                        {{ appointment.get_status_display }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% endfor %}
-                        </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No recent patients to display.
+                            </div>
+                        {% endif %}
                     {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            No recent patients to display.
+                        <div class="alert alert-warning">
+                            <i class="fas fa-lock me-2"></i>
+                            Patient information is only visible to the treating doctor and administrators.
                         </div>
                     {% endif %}
                 </div>

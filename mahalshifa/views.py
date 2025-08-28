@@ -769,7 +769,7 @@ def patient_detail(request, pk):
 @login_required
 def create_appointment(request):
     """Create a new appointment"""
-    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator):
+    if not (request.user.is_admin or request.user.is_aamil or request.user.is_moze_coordinator or request.user.is_doctor):
         messages.error(request, 'You do not have permission to create appointments.')
         return redirect('mahalshifa:appointment_list')
     

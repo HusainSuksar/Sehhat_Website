@@ -102,6 +102,15 @@ class ITSService:
         # Convert to int for seed generation
         its_id_int = int(its_id)
         
+        # More strict validation - only allow specific ranges for mock data
+        # This prevents completely random ITS IDs from working
+        if not (
+            (10000000 <= its_id_int <= 99999999) and  # Valid 8-digit range
+            (its_id_int % 7 == 0 or its_id_int % 11 == 0 or its_id_int % 13 == 0)  # Additional validation
+        ):
+            # Only allow some specific patterns to simulate real ITS validation
+            return None
+        
         # Use ITS ID as seed for consistent data generation
         random.seed(its_id_int)
         
