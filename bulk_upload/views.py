@@ -172,7 +172,7 @@ def bulk_upload_create(request):
 @require_http_methods(["POST"])
 def bulk_upload_process(request, pk):
     """Start processing a bulk upload session"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     session = get_object_or_404(BulkUploadSession, pk=pk)
@@ -203,7 +203,7 @@ def bulk_upload_process(request, pk):
 @login_required
 def bulk_upload_preview(request, pk):
     """Preview file contents before processing"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     session = get_object_or_404(BulkUploadSession, pk=pk)
@@ -246,7 +246,7 @@ def bulk_upload_preview(request, pk):
 @login_required
 def download_template(request, upload_type):
     """Download Excel template for specific upload type"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     try:
@@ -286,7 +286,7 @@ def download_template(request, upload_type):
 @login_required
 def bulk_upload_delete(request, pk):
     """Delete a bulk upload session"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         messages.error(request, "Permission denied.")
         return redirect('bulk_upload:list')
     
@@ -319,7 +319,7 @@ def get_upload_context():
 @login_required
 def bulk_upload_api_status(request, pk):
     """Get real-time status of upload processing"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     session = get_object_or_404(BulkUploadSession, pk=pk)

@@ -160,31 +160,67 @@ class AppointmentForm(forms.ModelForm):
         
         # Handle patient field based on user role
         if user:
-            if hasattr(user, 'patient_profile'):
-                # If user is a patient, try to pre-select themselves
+            if user.role == 'patient':
+                # For patients: auto-populate themselves and hide dropdown
                 try:
                     patient_instance = user.patient_profile.first()
                     if patient_instance:
                         self.fields['patient'].initial = patient_instance
-                        # For regular patients, make the field readonly
-                        if user.role == 'patient':
-                            self.fields['patient'].widget.attrs['readonly'] = True
-                except:
+                        self.fields['patient'].queryset = Patient.objects.filter(id=patient_instance.id)
+                        # Replace dropdown with hidden field and display text
+                        self.fields['patient'].widget = forms.HiddenInput()
+                        # Add a display field for the patient name
+                        self.fields['patient_display'] = forms.CharField(
+                            initial=f"{user.get_full_name()} (You)",
+                            widget=forms.TextInput(attrs={
+                                'class': 'form-control',
+                                'readonly': True,
+                                'style': 'background-color: #f8f9fa;'
+                            }),
+                            label='Patient',
+                            required=False
+                        )
+                    else:
+                        # If no patient profile exists, create one or show error
+                        self.fields['patient'].widget = forms.TextInput(attrs={
+                            'class': 'form-control',
+                            'readonly': True,
+                            'value': 'Please complete your patient profile first',
+                            'style': 'background-color: #fee2e2; color: #dc2626;'
+                        })
+                except Exception:
                     pass
-            
-            # For admins and doctors, show all patients
-            if user.is_admin or user.role in ['doctor', 'aamil', 'moze_coordinator']:
-                # They can select any patient - no restrictions
-                pass
-            elif user.role == 'patient':
-                # Regular patients can only book for themselves
-                if hasattr(user, 'patient_profile'):
-                    try:
-                        patient_instance = user.patient_profile.first()
-                        if patient_instance:
-                            self.fields['patient'].queryset = Patient.objects.filter(id=patient_instance.id)
-                    except:
-                        pass
+                    
+            elif user.role == 'doctor':
+                # For doctors: show only their patients (patients who have appointments with them)
+                try:
+                    doctor_profile = user.doctor_profile.first()
+                    if doctor_profile:
+                        # Get patients who have had appointments with this doctor
+                        patient_ids = Appointment.objects.filter(
+                            doctor=doctor_profile
+                        ).values_list('patient_id', flat=True).distinct()
+                        
+                        if patient_ids:
+                            self.fields['patient'].queryset = Patient.objects.filter(
+                                id__in=patient_ids
+                            ).select_related('user')
+                        else:
+                            # If no previous patients, show all patients (for first appointments)
+                            self.fields['patient'].queryset = Patient.objects.all().select_related('user')
+                    else:
+                        # If no doctor profile, show all patients
+                        self.fields['patient'].queryset = Patient.objects.all().select_related('user')
+                except Exception:
+                    # Fallback to all patients
+                    self.fields['patient'].queryset = Patient.objects.all().select_related('user')
+                    
+            elif user.role in ['badri_mahal_admin', 'aamil', 'moze_coordinator'] or user.is_superuser:
+                # For admins: show all patients
+                self.fields['patient'].queryset = Patient.objects.all().select_related('user')
+            else:
+                # Default: show all patients
+                self.fields['patient'].queryset = Patient.objects.all().select_related('user')
     
     class Meta:
         model = Appointment
