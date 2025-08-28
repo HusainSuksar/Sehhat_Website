@@ -24,7 +24,6 @@ class AdminRequiredMixin(UserPassesTestMixin):
     
     def test_func(self):
         return self.request.user.is_authenticated and (
-            self.request.user.is_admin or 
             self.request.user.is_superuser or
             self.request.user.role == 'badri_mahal_admin'
         )
@@ -114,7 +113,7 @@ class BulkUploadDetailView(AdminRequiredMixin, DetailView):
 @login_required
 def bulk_upload_create(request):
     """Create a new bulk upload"""
-    if not (request.user.is_admin or request.user.role == 'badri_mahal_admin'):
+    if not (request.user.is_superuser or request.user.role == 'badri_mahal_admin'):
         messages.error(request, "You don't have permission to create bulk uploads.")
         return redirect('accounts:dashboard')
     
