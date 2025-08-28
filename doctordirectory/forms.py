@@ -143,7 +143,7 @@ class AppointmentForm(forms.ModelForm):
     # Add ITS ID field for patient lookup
     patient_its_id = forms.CharField(
         max_length=8,
-        required=False,
+        required=False,  # Not required for patient users (they use their own profile)
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter 8-digit ITS ID',
@@ -264,7 +264,10 @@ class AppointmentForm(forms.ModelForm):
             return cleaned_data
         
         # Validate and fetch patient by ITS ID
-        if patient_its_id:
+        if patient_its_id and patient_its_id.strip():
+            # Clean the ITS ID
+            patient_its_id = patient_its_id.strip()
+            
             # Validate ITS ID format
             if len(patient_its_id) != 8 or not patient_its_id.isdigit():
                 raise forms.ValidationError('ITS ID must be exactly 8 digits.')
@@ -332,11 +335,20 @@ class AppointmentForm(forms.ModelForm):
         else:
             # If no patient_its_id provided and no patient selected, require it
             if not patient:
-                # For admin users, provide more helpful error message
-                if hasattr(self, 'user') and self.user and self.user.is_admin:
-                    raise forms.ValidationError('Please enter a valid 8-digit ITS ID in the Patient ITS ID field and click "Fetch" to load patient information before submitting.')
+                # Check if current user is a patient and can use their own profile
+                if hasattr(self, 'user') and self.user and self.user.role == 'patient':
+                    # For patient users, try to get their patient profile
+                    patient_profile = self.user.patient_profile.first()
+                    if patient_profile:
+                        cleaned_data['patient'] = patient_profile
+                    else:
+                        raise forms.ValidationError('Patient profile not found. Please contact support.')
                 else:
-                    raise forms.ValidationError('Please enter a patient ITS ID and click "Fetch" to load patient information.')
+                    # For admin/doctor users, require ITS ID
+                    if hasattr(self, 'user') and self.user and self.user.is_admin:
+                        raise forms.ValidationError('Please enter a valid 8-digit ITS ID in the Patient ITS ID field and click "Fetch" to load patient information before submitting.')
+                    else:
+                        raise forms.ValidationError('Please enter a patient ITS ID and click "Fetch" to load patient information.')
         
         return cleaned_data
     

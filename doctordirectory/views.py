@@ -559,42 +559,25 @@ def create_appointment(request, doctor_id=None):
     if request.method == 'POST':
         form = AppointmentForm(request.POST, doctor=doctor, user=request.user)
         
-        # Debug: Check form data
-        print(f"POST data: {dict(request.POST)}")
-        print(f"Form is_valid: {form.is_valid()}")
-        if not form.is_valid():
-            print(f"Form errors: {form.errors}")
-            print(f"Non-field errors: {form.non_field_errors()}")
+
         
         if form.is_valid():
-            # Get patient from form's cleaned_data (the clean method should have set it)
+            # Get patient from form's cleaned_data (the form's clean method should have set it)
             patient = form.cleaned_data.get('patient')
-            
-            # If no patient from form, try to assign current user if they're a patient
-            if not patient and request.user.role == 'patient':
-                try:
-                    patient = request.user.patient_profile.first()
-                    if not patient:
-                        # Create patient profile for current user if it doesn't exist
-                        patient = Patient.objects.create(
-                            user=request.user,
-                            date_of_birth=date(1990, 1, 1),  # Default, can be updated
-                            gender='other'  # Default, can be updated
-                        )
-                except Exception as e:
-                    messages.error(request, f'Error creating patient profile: {str(e)}')
-                    return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
             
             # Final validation - must have a patient
             if not patient:
-                messages.error(request, 'Please enter a valid ITS ID and click "Fetch" to identify the patient.')
+                messages.error(request, 'Patient information is required. Please enter a valid ITS ID and click "Fetch" to identify the patient.')
                 return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
             
-            # Create the appointment with explicit patient assignment
-            appointment = form.save(commit=False)
-            appointment.patient = patient
-            
-            appointment.save()
+            try:
+                # Create the appointment with explicit patient assignment
+                appointment = form.save(commit=False)
+                appointment.patient = patient
+                appointment.save()
+            except Exception as e:
+                messages.error(request, f'Error creating appointment: {str(e)}')
+                return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
             
             # Send confirmation email
             if appointment.patient.user.email:
@@ -612,6 +595,18 @@ def create_appointment(request, doctor_id=None):
             
             messages.success(request, 'Appointment created successfully!')
             return redirect('doctordirectory:appointment_detail', pk=appointment.pk)
+        else:
+            # Form validation failed - show specific error messages
+            if form.errors:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        if field == '__all__':
+                            messages.error(request, error)
+                        else:
+                            field_name = form.fields[field].label or field.replace('_', ' ').title()
+                            messages.error(request, f'{field_name}: {error}')
+            else:
+                messages.error(request, 'Please correct the errors in the form.')
     else:
         form = AppointmentForm(doctor=doctor, user=request.user)
     
