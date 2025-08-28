@@ -156,11 +156,13 @@ def dashboard(request):
     # Get recent medical records
     if doctor_profile:
         try:
-            doctordirectory_doctor = Doctor.objects.get(user=user)
+            # Try to get MahalShifa doctor profile for medical records
+            from mahalshifa.models import Doctor as MahalShifaDoctor
+            mahalshifa_doctor = MahalShifaDoctor.objects.get(user=user)
             recent_medical_records = MedicalRecord.objects.filter(
-                doctor=doctordirectory_doctor
+                doctor=mahalshifa_doctor
             ).select_related('patient').order_by('-created_at')[:5]
-        except Doctor.DoesNotExist:
+        except (MahalShifaDoctor.DoesNotExist, NameError):
             recent_medical_records = []
     else:
         recent_medical_records = MedicalRecord.objects.all().select_related('patient', 'doctor').order_by('-created_at')[:5]

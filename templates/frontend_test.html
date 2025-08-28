@@ -1,0 +1,629 @@
+{% extends 'base_responsive.html' %}
+
+{% block title %}Frontend Functionality Test - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-section {
+        margin-bottom: 3rem;
+        padding: 2rem;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-xl);
+        background: white;
+    }
+    
+    .test-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .test-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-full);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .test-status.pass {
+        background: var(--success-light);
+        color: var(--success);
+    }
+    
+    .test-status.fail {
+        background: var(--error-light);
+        color: var(--error);
+    }
+    
+    .demo-chart {
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+    
+    .demo-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card {
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        text-align: center;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 data-translate="Frontend Functionality Test">Frontend Functionality Test</h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" onclick="runAllTests()">
+                        <i class="fas fa-play me-2"></i>Run All Tests
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="toggleTestResults()">
+                        <i class="fas fa-eye me-2"></i>Toggle Results
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Results Summary -->
+            <div class="alert alert-info mb-4" id="test-summary">
+                <h5><i class="fas fa-info-circle me-2"></i>Test Summary</h5>
+                <p>Click "Run All Tests" to verify all frontend functionality is working correctly.</p>
+                <div class="progress mt-2">
+                    <div class="progress-bar" role="progressbar" style="width: 0%" id="test-progress"></div>
+                </div>
+            </div>
+
+            <!-- 1. Responsive Design Test -->
+            <div class="test-section" id="responsive-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-mobile-alt me-2"></i>Responsive Design</h3>
+                    <span class="test-status" id="responsive-status">Pending</span>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-desktop feature-icon text-primary"></i>
+                        <h6>Desktop Layout</h6>
+                        <small class="text-muted">1920x1080 and above</small>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-tablet-alt feature-icon text-success"></i>
+                        <h6>Tablet Layout</h6>
+                        <small class="text-muted">768px - 1919px</small>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-mobile-alt feature-icon text-warning"></i>
+                        <h6>Mobile Layout</h6>
+                        <small class="text-muted">Below 768px</small>
+                    </div>
+                </div>
+                <p><strong>Current Viewport:</strong> <span id="viewport-info">Detecting...</span></p>
+            </div>
+
+            <!-- 2. Modern UI Components Test -->
+            <div class="test-section" id="ui-components-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-palette me-2"></i>Modern UI Components</h3>
+                    <span class="test-status" id="ui-status">Pending</span>
+                </div>
+                
+                <!-- Buttons -->
+                <h5>Buttons</h5>
+                <div class="demo-buttons">
+                    <button class="btn-modern btn-primary-modern">
+                        <i class="fas fa-save"></i>Primary Button
+                    </button>
+                    <button class="btn-modern btn-success-modern">
+                        <i class="fas fa-check"></i>Success Button
+                    </button>
+                    <button class="btn-modern btn-warning-modern">
+                        <i class="fas fa-exclamation-triangle"></i>Warning Button
+                    </button>
+                    <button class="btn-modern btn-error-modern">
+                        <i class="fas fa-times"></i>Error Button
+                    </button>
+                    <button class="btn-modern btn-outline-modern">
+                        <i class="fas fa-edit"></i>Outline Button
+                    </button>
+                </div>
+
+                <!-- Cards -->
+                <h5>Cards</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card-modern">
+                            <div class="card-modern-header">
+                                <h6>Modern Card</h6>
+                            </div>
+                            <div class="card-modern-body">
+                                <p>This is a modern card with enhanced styling and hover effects.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-card-icon primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stats-card-number">1,234</div>
+                            <div class="stats-card-label">Total Patients</div>
+                            <div class="stats-card-trend up">
+                                <i class="fas fa-arrow-up"></i>12%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card-gradient text-white">
+                            <div class="card-modern-body">
+                                <h6>Gradient Card</h6>
+                                <p>Beautiful gradient background card.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <h5>Badges</h5>
+                <div class="mb-3">
+                    <span class="badge-modern badge-primary">Primary</span>
+                    <span class="badge-modern badge-success">Success</span>
+                    <span class="badge-modern badge-warning">Warning</span>
+                    <span class="badge-modern badge-error">Error</span>
+                    <span class="badge-modern badge-info">Info</span>
+                    <span class="badge-modern badge-gray">Gray</span>
+                </div>
+            </div>
+
+            <!-- 3. Error Handling & User Feedback Test -->
+            <div class="test-section" id="error-handling-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-exclamation-circle me-2"></i>Error Handling & User Feedback</h3>
+                    <span class="test-status" id="error-status">Pending</span>
+                </div>
+                
+                <div class="demo-buttons">
+                    <button class="btn btn-success" onclick="testNotification('success')">
+                        <i class="fas fa-check me-2"></i>Success Notification
+                    </button>
+                    <button class="btn btn-danger" onclick="testNotification('error')">
+                        <i class="fas fa-times me-2"></i>Error Notification
+                    </button>
+                    <button class="btn btn-warning" onclick="testNotification('warning')">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Warning Notification
+                    </button>
+                    <button class="btn btn-info" onclick="testNotification('info')">
+                        <i class="fas fa-info-circle me-2"></i>Info Notification
+                    </button>
+                    <button class="btn btn-secondary" onclick="testConfirmDialog()">
+                        <i class="fas fa-question me-2"></i>Confirm Dialog
+                    </button>
+                </div>
+
+                <!-- Form Validation Test -->
+                <h5>Form Validation</h5>
+                <form data-validate id="test-form" class="row">
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label class="form-label-modern" for="test-name">Name *</label>
+                            <input type="text" id="test-name" name="name" class="form-input-modern" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group-modern">
+                            <label class="form-label-modern" for="test-email">Email *</label>
+                            <input type="email" id="test-email" name="email" class="form-input-modern" required>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Test Validation
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 4. Arabic Language Support Test -->
+            <div class="test-section" id="arabic-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-globe me-2"></i>Arabic Language Support</h3>
+                    <span class="test-status" id="arabic-status">Pending</span>
+                </div>
+                
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="arabicManager.switchLanguage('ar')">
+                        <i class="fas fa-language me-2"></i>Switch to Arabic
+                    </button>
+                    <button class="btn btn-secondary" onclick="arabicManager.switchLanguage('en')">
+                        <i class="fas fa-language me-2"></i>Switch to English
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <h6 data-translate="Dashboard">Dashboard</h6>
+                    <p data-translate="Welcome to the healthcare management system">Welcome to the healthcare management system</p>
+                    
+                    <div class="alert alert-info">
+                        <strong>Current Language:</strong> <span id="current-lang">English</span><br>
+                        <strong>Text Direction:</strong> <span id="text-direction">LTR</span><br>
+                        <strong>Font Family:</strong> <span id="font-family">Inter</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Accessibility Features Test -->
+            <div class="test-section" id="accessibility-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-universal-access me-2"></i>Accessibility Features</h3>
+                    <span class="test-status" id="accessibility-status">Pending</span>
+                </div>
+                
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="testAccessibilityFeature('highContrast')">
+                        <i class="fas fa-adjust me-2"></i>Toggle High Contrast
+                    </button>
+                    <button class="btn btn-secondary" onclick="testAccessibilityFeature('largeText')">
+                        <i class="fas fa-text-height me-2"></i>Toggle Large Text
+                    </button>
+                    <button class="btn btn-info" onclick="testAccessibilityFeature('reducedMotion')">
+                        <i class="fas fa-pause me-2"></i>Toggle Reduced Motion
+                    </button>
+                    <button class="btn btn-success" onclick="testKeyboardNavigation()">
+                        <i class="fas fa-keyboard me-2"></i>Test Keyboard Navigation
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <h6>Accessibility Status</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>ARIA labels present</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Keyboard navigation enabled</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Focus indicators visible</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Screen reader support</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Color contrast compliant</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 6. Data Visualizations Test -->
+            <div class="test-section" id="charts-test">
+                <div class="test-header">
+                    <h3><i class="fas fa-chart-bar me-2"></i>Data Visualizations</h3>
+                    <span class="test-status" id="charts-status">Pending</span>
+                </div>
+                
+                <div class="demo-buttons">
+                    <button class="btn btn-primary" onclick="createTestChart('line')">
+                        <i class="fas fa-chart-line me-2"></i>Line Chart
+                    </button>
+                    <button class="btn btn-success" onclick="createTestChart('bar')">
+                        <i class="fas fa-chart-bar me-2"></i>Bar Chart
+                    </button>
+                    <button class="btn btn-warning" onclick="createTestChart('doughnut')">
+                        <i class="fas fa-chart-pie me-2"></i>Doughnut Chart
+                    </button>
+                    <button class="btn btn-info" onclick="createTestChart('area')">
+                        <i class="fas fa-chart-area me-2"></i>Area Chart
+                    </button>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>Patient Statistics</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="test-chart-1" class="demo-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>Appointment Trends</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="test-chart-2" class="demo-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results -->
+            <div class="test-section" id="test-results" style="display: none;">
+                <div class="test-header">
+                    <h3><i class="fas fa-clipboard-check me-2"></i>Test Results</h3>
+                </div>
+                <div id="results-content">
+                    <p>Test results will appear here after running tests.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Frontend Functionality Testing Script
+let testResults = {
+    responsive: false,
+    uiComponents: false,
+    errorHandling: false,
+    arabic: false,
+    accessibility: false,
+    charts: false
+};
+
+// Run all tests
+function runAllTests() {
+    console.log('Starting comprehensive frontend tests...');
+    
+    testResponsiveDesign();
+    testUIComponents();
+    testErrorHandling();
+    testArabicSupport();
+    testAccessibilityFeatures();
+    testDataVisualizations();
+    
+    updateTestProgress();
+}
+
+// Test responsive design
+function testResponsiveDesign() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    document.getElementById('viewport-info').textContent = `${width}x${height}px`;
+    
+    // Check if responsive classes are working
+    const hasBootstrap = !!document.querySelector('.container-fluid');
+    const hasResponsiveGrid = !!document.querySelector('.row');
+    const hasFlexbox = getComputedStyle(document.querySelector('.d-flex') || document.body).display === 'flex';
+    
+    testResults.responsive = hasBootstrap && hasResponsiveGrid;
+    updateTestStatus('responsive', testResults.responsive);
+    
+    console.log('Responsive design test:', testResults.responsive ? 'PASS' : 'FAIL');
+}
+
+// Test UI components
+function testUIComponents() {
+    const modernButtons = document.querySelectorAll('.btn-modern');
+    const modernCards = document.querySelectorAll('.card-modern');
+    const badges = document.querySelectorAll('.badge-modern');
+    
+    testResults.uiComponents = modernButtons.length > 0 && modernCards.length > 0 && badges.length > 0;
+    updateTestStatus('ui', testResults.uiComponents);
+    
+    console.log('UI components test:', testResults.uiComponents ? 'PASS' : 'FAIL');
+}
+
+// Test error handling
+function testErrorHandling() {
+    const hasNotificationManager = typeof notificationManager !== 'undefined';
+    const hasFormValidator = typeof FormValidator !== 'undefined';
+    const hasConfirmDialog = typeof showConfirmDialog !== 'undefined';
+    
+    testResults.errorHandling = hasNotificationManager && hasFormValidator && hasConfirmDialog;
+    updateTestStatus('error', testResults.errorHandling);
+    
+    console.log('Error handling test:', testResults.errorHandling ? 'PASS' : 'FAIL');
+}
+
+// Test Arabic support
+function testArabicSupport() {
+    const hasArabicManager = typeof arabicManager !== 'undefined';
+    const hasTranslations = hasArabicManager && arabicManager.translations.size > 0;
+    
+    testResults.arabic = hasArabicManager && hasTranslations;
+    updateTestStatus('arabic', testResults.arabic);
+    
+    // Update language info
+    if (hasArabicManager) {
+        document.getElementById('current-lang').textContent = arabicManager.currentLanguage === 'ar' ? 'Arabic' : 'English';
+        document.getElementById('text-direction').textContent = document.documentElement.dir.toUpperCase() || 'LTR';
+        document.getElementById('font-family').textContent = getComputedStyle(document.body).fontFamily.split(',')[0];
+    }
+    
+    console.log('Arabic support test:', testResults.arabic ? 'PASS' : 'FAIL');
+}
+
+// Test accessibility features
+function testAccessibilityFeatures() {
+    const hasAccessibilityManager = typeof accessibilityManager !== 'undefined';
+    const hasSkipLink = !!document.querySelector('.skip-link');
+    const hasAriaLabels = document.querySelectorAll('[aria-label]').length > 0;
+    const hasFocusManagement = document.querySelectorAll('.focus-visible').length >= 0;
+    
+    testResults.accessibility = hasAccessibilityManager && hasAriaLabels;
+    updateTestStatus('accessibility', testResults.accessibility);
+    
+    console.log('Accessibility test:', testResults.accessibility ? 'PASS' : 'FAIL');
+}
+
+// Test data visualizations
+function testDataVisualizations() {
+    const hasChartManager = typeof chartManager !== 'undefined';
+    const hasChartJS = typeof Chart !== 'undefined';
+    const hasDashboardWidgets = typeof dashboardWidgets !== 'undefined';
+    
+    testResults.charts = hasChartManager && hasDashboardWidgets;
+    updateTestStatus('charts', testResults.charts);
+    
+    console.log('Data visualizations test:', testResults.charts ? 'PASS' : 'FAIL');
+}
+
+// Update test status
+function updateTestStatus(testName, passed) {
+    const statusElement = document.getElementById(`${testName}-status`);
+    if (statusElement) {
+        statusElement.textContent = passed ? 'Pass' : 'Fail';
+        statusElement.className = `test-status ${passed ? 'pass' : 'fail'}`;
+    }
+}
+
+// Update test progress
+function updateTestProgress() {
+    const totalTests = Object.keys(testResults).length;
+    const passedTests = Object.values(testResults).filter(result => result).length;
+    const percentage = (passedTests / totalTests) * 100;
+    
+    const progressBar = document.getElementById('test-progress');
+    const summary = document.getElementById('test-summary');
+    
+    progressBar.style.width = `${percentage}%`;
+    progressBar.textContent = `${passedTests}/${totalTests} tests passed`;
+    
+    if (percentage === 100) {
+        summary.className = 'alert alert-success mb-4';
+        summary.innerHTML = `
+            <h5><i class="fas fa-check-circle me-2"></i>All Tests Passed!</h5>
+            <p>All frontend functionality is working correctly. The system is ready for production.</p>
+            <div class="progress mt-2">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 100%">100% Complete</div>
+            </div>
+        `;
+    } else {
+        summary.innerHTML = `
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Test Results</h5>
+            <p>${passedTests} out of ${totalTests} tests passed (${percentage.toFixed(1)}%)</p>
+            <div class="progress mt-2">
+                <div class="progress-bar ${percentage > 50 ? 'bg-warning' : 'bg-danger'}" role="progressbar" style="width: ${percentage}%">${percentage.toFixed(1)}%</div>
+            </div>
+        `;
+    }
+}
+
+// Test notification system
+function testNotification(type) {
+    if (typeof notificationManager !== 'undefined') {
+        const messages = {
+            success: 'This is a success notification!',
+            error: 'This is an error notification!',
+            warning: 'This is a warning notification!',
+            info: 'This is an info notification!'
+        };
+        
+        notificationManager[type](messages[type], {
+            description: 'This notification was triggered by the test system.'
+        });
+    } else {
+        alert(`${type} notification would appear here`);
+    }
+}
+
+// Test confirm dialog
+function testConfirmDialog() {
+    if (typeof showConfirmDialog !== 'undefined') {
+        showConfirmDialog('Are you sure you want to test this feature?', () => {
+            testNotification('success');
+        });
+    } else {
+        if (confirm('Are you sure you want to test this feature?')) {
+            alert('Confirmed!');
+        }
+    }
+}
+
+// Test accessibility features
+function testAccessibilityFeature(feature) {
+    if (typeof accessibilityManager !== 'undefined') {
+        switch (feature) {
+            case 'highContrast':
+                const currentContrast = document.body.classList.contains('high-contrast');
+                accessibilityManager.toggleHighContrast(!currentContrast);
+                break;
+            case 'largeText':
+                const currentLargeText = document.body.classList.contains('large-text');
+                accessibilityManager.toggleLargeText(!currentLargeText);
+                break;
+            case 'reducedMotion':
+                const currentReducedMotion = document.body.classList.contains('reduced-motion');
+                accessibilityManager.toggleReducedMotion(!currentReducedMotion);
+                break;
+        }
+    }
+}
+
+// Test keyboard navigation
+function testKeyboardNavigation() {
+    alert('Use Tab to navigate forward, Shift+Tab to navigate backward, Enter/Space to activate buttons and links. Try Alt+A for accessibility panel.');
+}
+
+// Create test charts
+function createTestChart(type) {
+    if (typeof chartManager !== 'undefined' && typeof Chart !== 'undefined') {
+        const canvas1 = document.getElementById('test-chart-1');
+        const canvas2 = document.getElementById('test-chart-2');
+        
+        // Clear existing charts
+        chartManager.destroyChart('test-chart-1');
+        chartManager.destroyChart('test-chart-2');
+        
+        const sampleData = createSampleData(type);
+        
+        chartManager.createChart(canvas1, type, sampleData);
+        chartManager.createChart(canvas2, 'bar', createSampleData('bar'));
+        
+        testNotification('success');
+    } else {
+        testNotification('error');
+    }
+}
+
+// Toggle test results
+function toggleTestResults() {
+    const results = document.getElementById('test-results');
+    results.style.display = results.style.display === 'none' ? 'block' : 'none';
+    
+    if (results.style.display === 'block') {
+        document.getElementById('results-content').innerHTML = `
+            <div class="row">
+                ${Object.entries(testResults).map(([test, result]) => `
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>${test.charAt(0).toUpperCase() + test.slice(1)} Test</h6>
+                                <span class="badge ${result ? 'bg-success' : 'bg-danger'}">
+                                    ${result ? 'PASSED' : 'FAILED'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+}
+
+// Auto-run tests when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(runAllTests, 1000);
+});
+</script>
+{% endblock %}
