@@ -14,11 +14,12 @@ from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
-from .services import MockITSService
+from .services import MockITSService, ITSService
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_http_methods
 
 from .models import User, UserProfile, AuditLog
 from .serializers import (
@@ -762,3 +763,92 @@ def _get_redirect_url_for_role(role):
     
     # Default redirect for any other roles
     return role_redirects.get(role, '/accounts/profile/')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def lookup_its_id(request):
+    """
+    API endpoint to lookup patient information by ITS ID
+    """
+    try:
+        data = json.loads(request.body)
+        its_id = data.get('its_id', '').strip()
+        
+        if not its_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ITS ID is required'
+            })
+        
+        # Validate ITS ID format
+        if len(its_id) != 8 or not its_id.isdigit():
+            return JsonResponse({
+                'success': False,
+                'message': 'ITS ID must be exactly 8 digits'
+            })
+        
+        # First, check if user already exists in database
+        existing_user = User.objects.filter(its_id=its_id).first()
+        
+        if existing_user:
+            # Get patient profile if exists
+            patient_profile = existing_user.patient_profile.first()
+            
+            user_data = {
+                'its_id': existing_user.its_id,
+                'first_name': existing_user.first_name,
+                'last_name': existing_user.last_name,
+                'username': existing_user.username,
+                'email': existing_user.email,
+                'phone_number': existing_user.phone_number,
+                'gender': existing_user.gender,
+                'age': existing_user.age,
+                'patient_id': patient_profile.id if patient_profile else None,
+                'is_existing_user': True
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Patient found in system',
+                'user_data': user_data
+            })
+        
+        # If not found locally, fetch from ITS API
+        its_data = ITSService.fetch_user_data(its_id)
+        
+        if its_data:
+            user_data = {
+                'its_id': its_id,
+                'first_name': its_data.get('first_name', ''),
+                'last_name': its_data.get('last_name', ''),
+                'username': its_id,  # Use ITS ID as username for new users
+                'email': its_data.get('email', ''),
+                'phone_number': its_data.get('mobile_number', ''),
+                'gender': its_data.get('gender', ''),
+                'age': its_data.get('age', ''),
+                'patient_id': None,  # Will be created when appointment is submitted
+                'is_existing_user': False
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Patient information retrieved from ITS',
+                'user_data': user_data
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': f'No patient found with ITS ID: {its_id}'
+            })
+            
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid JSON data'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error processing request: {str(e)}'
+        })

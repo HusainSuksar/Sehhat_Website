@@ -26,6 +26,7 @@ urlpatterns = [
     # ITS synchronization endpoints
     path('its/sync/', api_views.ITSSyncAPIView.as_view(), name='its_sync'),
     path('its/bulk-sync/', api_views.bulk_its_sync_api, name='bulk_its_sync'),
+    path('lookup-its/', api_views.lookup_its_id, name='lookup_its_id'),
     
     # Statistics and audit endpoints
     path('stats/', api_views.user_stats_api, name='user_stats'),

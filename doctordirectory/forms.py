@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 
 from .models import (
     Doctor, DoctorSchedule, MedicalService, Patient, Appointment
@@ -140,6 +140,34 @@ class DoctorScheduleForm(forms.ModelForm):
 class AppointmentForm(forms.ModelForm):
     """Form for creating and editing appointments"""
     
+    # Add ITS ID field for patient lookup
+    patient_its_id = forms.CharField(
+        max_length=8,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 8-digit ITS ID',
+            'pattern': '[0-9]{8}',
+            'title': 'Please enter exactly 8 digits',
+            'id': 'patient_its_id'
+        }),
+        label='Patient ITS ID',
+        help_text='Enter the 8-digit ITS ID to automatically fetch patient details'
+    )
+    
+    # Display field for patient name (read-only)
+    patient_name_display = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'readonly': True,
+            'style': 'background-color: #f8f9fa;',
+            'id': 'patient_name_display'
+        }),
+        label='Patient Name',
+        help_text='Patient name will be fetched automatically from ITS'
+    )
+    
     def __init__(self, *args, **kwargs):
         # Extract custom parameters if provided
         doctor = kwargs.pop('doctor', None)
@@ -158,69 +186,123 @@ class AppointmentForm(forms.ModelForm):
                     is_available=True
                 )
         
+        # Hide the original patient field and use ITS ID lookup instead
+        self.fields['patient'].widget = forms.HiddenInput()
+        self.fields['patient'].required = False
+        
         # Handle patient field based on user role
         if user:
             if user.role == 'patient':
-                # For patients: auto-populate themselves and hide dropdown
+                # For patients: auto-populate their own ITS ID and name
                 try:
                     patient_instance = user.patient_profile.first()
-                    if patient_instance:
+                    if patient_instance and user.its_id:
                         self.fields['patient'].initial = patient_instance
-                        self.fields['patient'].queryset = Patient.objects.filter(id=patient_instance.id)
-                        # Replace dropdown with hidden field and display text
-                        self.fields['patient'].widget = forms.HiddenInput()
-                        # Add a display field for the patient name
-                        self.fields['patient_display'] = forms.CharField(
-                            initial=f"{user.get_full_name()} (You)",
-                            widget=forms.TextInput(attrs={
-                                'class': 'form-control',
-                                'readonly': True,
-                                'style': 'background-color: #f8f9fa;'
-                            }),
-                            label='Patient',
-                            required=False
-                        )
-                    else:
-                        # If no patient profile exists, create one or show error
-                        self.fields['patient'].widget = forms.TextInput(attrs={
-                            'class': 'form-control',
+                        self.fields['patient_its_id'].initial = user.its_id
+                        self.fields['patient_its_id'].widget.attrs.update({
                             'readonly': True,
-                            'value': 'Please complete your patient profile first',
+                            'style': 'background-color: #f8f9fa;'
+                        })
+                        self.fields['patient_name_display'].initial = f"{user.get_full_name()} (You)"
+                    elif user.its_id:
+                        self.fields['patient_its_id'].initial = user.its_id
+                        self.fields['patient_its_id'].widget.attrs.update({
+                            'readonly': True,
+                            'style': 'background-color: #f8f9fa;'
+                        })
+                        self.fields['patient_name_display'].initial = f"{user.get_full_name()} (You)"
+                    else:
+                        self.fields['patient_name_display'].initial = "Please complete your profile with ITS ID"
+                        self.fields['patient_name_display'].widget.attrs.update({
                             'style': 'background-color: #fee2e2; color: #dc2626;'
                         })
                 except Exception:
                     pass
-                    
-            elif user.role == 'doctor':
-                # For doctors: show only their patients (patients who have appointments with them)
-                try:
-                    doctor_profile = user.doctor_profile.first()
-                    if doctor_profile:
-                        # Get patients who have had appointments with this doctor
-                        patient_ids = Appointment.objects.filter(
-                            doctor=doctor_profile
-                        ).values_list('patient_id', flat=True).distinct()
-                        
-                        if patient_ids:
-                            self.fields['patient'].queryset = Patient.objects.filter(
-                                id__in=patient_ids
-                            ).select_related('user')
-                        else:
-                            # If no previous patients, show all patients (for first appointments)
-                            self.fields['patient'].queryset = Patient.objects.all().select_related('user')
-                    else:
-                        # If no doctor profile, show all patients
-                        self.fields['patient'].queryset = Patient.objects.all().select_related('user')
-                except Exception:
-                    # Fallback to all patients
-                    self.fields['patient'].queryset = Patient.objects.all().select_related('user')
-                    
-            elif user.role in ['badri_mahal_admin', 'aamil', 'moze_coordinator'] or user.is_superuser:
-                # For admins: show all patients
-                self.fields['patient'].queryset = Patient.objects.all().select_related('user')
             else:
-                # Default: show all patients
-                self.fields['patient'].queryset = Patient.objects.all().select_related('user')
+                # For doctors/admins: they can enter any ITS ID
+                self.fields['patient_its_id'].help_text = 'Enter the patient\'s 8-digit ITS ID to fetch their details automatically'
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        patient_its_id = cleaned_data.get('patient_its_id')
+        patient = cleaned_data.get('patient')
+        
+        # If patient is already set (for patient users), skip ITS ID validation
+        if patient:
+            return cleaned_data
+        
+        # Validate and fetch patient by ITS ID
+        if patient_its_id:
+            # Validate ITS ID format
+            if len(patient_its_id) != 8 or not patient_its_id.isdigit():
+                raise forms.ValidationError('ITS ID must be exactly 8 digits.')
+            
+            try:
+                # First, try to find existing user with this ITS ID
+                from accounts.models import User
+                user = User.objects.filter(its_id=patient_its_id).first()
+                
+                if user:
+                    # Check if user has a patient profile
+                    patient_profile = user.patient_profile.first()
+                    if patient_profile:
+                        cleaned_data['patient'] = patient_profile
+                    else:
+                        # Create patient profile for existing user
+                        from .models import Patient
+                        from datetime import date
+                        patient_profile = Patient.objects.create(
+                            user=user,
+                            date_of_birth=date(1990, 1, 1),  # Default DOB, can be updated later
+                            gender='other'  # Default gender, can be updated later
+                        )
+                        cleaned_data['patient'] = patient_profile
+                else:
+                    # Fetch user data from ITS API
+                    from accounts.services import ITSService
+                    its_data = ITSService.fetch_user_data(patient_its_id)
+                    
+                    if its_data:
+                        # Create new user from ITS data
+                        user = User.objects.create_user(
+                            username=patient_its_id,
+                            its_id=patient_its_id,
+                            first_name=its_data.get('first_name', ''),
+                            last_name=its_data.get('last_name', ''),
+                            email=its_data.get('email', f'{patient_its_id}@its.temp'),
+                            phone_number=its_data.get('mobile_number', ''),
+                            role='patient'  # Default to patient role
+                        )
+                        
+                        # Create patient profile
+                        from .models import Patient
+                        from datetime import date
+                        
+                        # Parse date of birth if available
+                        dob = date(1990, 1, 1)  # Default
+                        if its_data.get('date_of_birth'):
+                            try:
+                                dob = datetime.strptime(its_data['date_of_birth'], '%Y-%m-%d').date()
+                            except:
+                                pass
+                        
+                        patient_profile = Patient.objects.create(
+                            user=user,
+                            date_of_birth=dob,
+                            gender=its_data.get('gender', 'other').lower()
+                        )
+                        cleaned_data['patient'] = patient_profile
+                    else:
+                        raise forms.ValidationError(f'Could not fetch patient data for ITS ID: {patient_its_id}. Please verify the ITS ID.')
+                        
+            except Exception as e:
+                raise forms.ValidationError(f'Error processing ITS ID: {str(e)}')
+        else:
+            # If no patient_its_id provided and no patient selected, require it
+            if not patient:
+                raise forms.ValidationError('Please enter a patient ITS ID.')
+        
+        return cleaned_data
     
     class Meta:
         model = Appointment
