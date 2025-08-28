@@ -174,6 +174,9 @@ class AppointmentForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
+        # Store user for validation
+        self.user = user
+        
         # If a doctor is provided, set it as the initial value and make it readonly
         if doctor:
             self.fields['doctor'].initial = doctor
@@ -321,7 +324,11 @@ class AppointmentForm(forms.ModelForm):
         else:
             # If no patient_its_id provided and no patient selected, require it
             if not patient:
-                raise forms.ValidationError('Please enter a patient ITS ID and click "Fetch" to load patient information.')
+                # For admin users, provide more helpful error message
+                if hasattr(self, 'user') and self.user and self.user.is_admin:
+                    raise forms.ValidationError('Please enter a valid 8-digit ITS ID in the Patient ITS ID field and click "Fetch" to load patient information before submitting.')
+                else:
+                    raise forms.ValidationError('Please enter a patient ITS ID and click "Fetch" to load patient information.')
         
         return cleaned_data
     

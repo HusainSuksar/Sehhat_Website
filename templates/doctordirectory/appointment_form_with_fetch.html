@@ -99,6 +99,12 @@
                 <div>
                     <h1 class="h3 mb-0">{{ title|default:"Book Appointment" }}</h1>
                     <p class="text-muted mb-0">Schedule an appointment with a doctor</p>
+                    {% if user.is_admin %}
+                        <div class="alert alert-info mt-2 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Admin Instructions:</strong> Enter a valid 8-digit ITS ID and click "Fetch" to load patient information before booking the appointment.
+                        </div>
+                    {% endif %}
                 </div>
                 <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
@@ -107,6 +113,28 @@
 
             <form method="post" id="appointmentForm">
                 {% csrf_token %}
+                
+                <!-- Display form errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Form Errors:</h6>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Display individual field errors -->
+                {% if form.errors %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-circle me-2"></i>Please fix the following errors:</h6>
+                        {% for field, errors in form.errors.items %}
+                            {% if field != '__all__' %}
+                                <div><strong>{{ field|title }}:</strong> {{ errors|join:", " }}</div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 
                 <!-- Patient Information Section -->
                 <div class="form-section">
@@ -477,15 +505,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const itsId = itsIdField.value.trim();
         const patientName = patientNameField.value.trim();
         
+        // Check if ITS ID is provided but patient data not fetched
         if (itsId && !patientName) {
             e.preventDefault();
-            showError('Please click "Fetch" to load patient information before submitting');
+            showError('Please click "Fetch" to load patient information before submitting the appointment');
+            itsIdField.focus();
             return false;
         }
         
+        // Check if no patient information at all
         if (!itsId && !patientHiddenField.value) {
             e.preventDefault();
-            showError('Please enter and fetch patient information');
+            showError('Please enter a valid 8-digit ITS ID and click "Fetch" to load patient information');
+            itsIdField.focus();
+            return false;
+        }
+        
+        // Additional validation for admin users
+        if (itsId && itsId.length !== 8) {
+            e.preventDefault();
+            showError('ITS ID must be exactly 8 digits');
+            itsIdField.focus();
+            return false;
+        }
+        
+        // Check if appointment date and time are provided
+        const appointmentDate = document.querySelector('input[name="appointment_date"]');
+        const appointmentTime = document.querySelector('input[name="appointment_time"]');
+        
+        if (!appointmentDate.value) {
+            e.preventDefault();
+            showError('Please select an appointment date');
+            appointmentDate.focus();
+            return false;
+        }
+        
+        if (!appointmentTime.value) {
+            e.preventDefault();
+            showError('Please select an appointment time');
+            appointmentTime.focus();
             return false;
         }
     });
