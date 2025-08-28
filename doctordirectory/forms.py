@@ -300,7 +300,7 @@ class AppointmentForm(forms.ModelForm):
         else:
             # If no patient_its_id provided and no patient selected, require it
             if not patient:
-                raise forms.ValidationError('Please enter a patient ITS ID.')
+                raise forms.ValidationError('Please enter a patient ITS ID and click "Fetch" to load patient information.')
         
         return cleaned_data
     

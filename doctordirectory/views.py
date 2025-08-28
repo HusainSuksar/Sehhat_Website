@@ -553,25 +553,31 @@ def create_appointment(request, doctor_id=None):
         if form.is_valid():
             appointment = form.save(commit=False)
             
-            # If no patient was selected in the form and current user is a patient, 
-            # automatically assign them as the patient
-            if not appointment.patient and hasattr(request.user, 'patient_profile'):
-                try:
-                    # Get the patient instance (patient_profile is a RelatedManager)
-                    appointment.patient = request.user.patient_profile.get()
-                except Patient.DoesNotExist:
-                    # If current user has no patient profile, they must select a patient
-                    if not appointment.patient:
-                        messages.error(request, 'Please select a patient for this appointment.')
-                        return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
-                except Patient.MultipleObjectsReturned:
-                    # If multiple patient profiles exist, get the first one
-                    appointment.patient = request.user.patient_profile.first()
-            
-            # Ensure a patient is assigned
+            # Ensure a patient is assigned - the form's clean method should handle this
             if not appointment.patient:
-                messages.error(request, 'Please select a patient for this appointment.')
-                return render(request, 'doctordirectory/appointment_form.html', {'form': form, 'doctor': doctor})
+                # If still no patient after form validation, try to assign current user if they're a patient
+                if request.user.role == 'patient' and hasattr(request.user, 'patient_profile'):
+                    try:
+                        patient_profile = request.user.patient_profile.first()
+                        if patient_profile:
+                            appointment.patient = patient_profile
+                        else:
+                            # Create patient profile for current user if it doesn't exist
+                            from datetime import date
+                            patient_profile = Patient.objects.create(
+                                user=request.user,
+                                date_of_birth=date(1990, 1, 1),  # Default, can be updated
+                                gender='other'  # Default, can be updated
+                            )
+                            appointment.patient = patient_profile
+                    except Exception as e:
+                        messages.error(request, f'Error creating patient profile: {str(e)}')
+                        return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
+                
+                # Final check - if still no patient, show error
+                if not appointment.patient:
+                    messages.error(request, 'Please enter a valid ITS ID and click "Fetch" to identify the patient.')
+                    return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
             
             appointment.save()
             
@@ -600,7 +606,7 @@ def create_appointment(request, doctor_id=None):
         'title': 'Book Appointment' if doctor else 'Create Appointment'
     }
     
-    return render(request, 'doctordirectory/appointment_form.html', context)
+    return render(request, 'doctordirectory/appointment_form_with_fetch.html', context)
 
 
 @login_required

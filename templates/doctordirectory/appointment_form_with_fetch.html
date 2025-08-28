@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment - Umoor Sehhat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h5 {
+        color: #2563eb;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .its-lookup-container {
+        position: relative;
+    }
+    
+    .fetch-button {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+    
+    .patient-info-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .patient-info-card.show {
+        display: block;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .alert-custom {
+        padding: 0.75rem 1rem;
+        margin-top: 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        display: none;
+    }
+    
+    .alert-success {
+        background-color: #d1fae5;
+        border: 1px solid #10b981;
+        color: #065f46;
+    }
+    
+    .alert-error {
+        background-color: #fee2e2;
+        border: 1px solid #ef4444;
+        color: #991b1b;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">{{ title|default:"Book Appointment" }}</h1>
+                    <p class="text-muted mb-0">Schedule an appointment with a doctor</p>
+                </div>
+                <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+
+            <form method="post" id="appointmentForm">
+                {% csrf_token %}
+                
+                <!-- Patient Information Section -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-user-injured"></i>
+                        Patient Information
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.patient_its_id.id_for_label }}" class="form-label">
+                                    {{ form.patient_its_id.label }}
+                                    {% if form.patient_its_id.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                <div class="its-lookup-container">
+                                    {{ form.patient_its_id }}
+                                    <button type="button" class="btn btn-primary btn-sm fetch-button" id="fetchPatientBtn">
+                                        <span id="fetchBtnText">Fetch</span>
+                                        <div class="loading-spinner d-none" id="fetchSpinner"></div>
+                                    </button>
+                                </div>
+                                {% if form.patient_its_id.help_text %}
+                                    <div class="form-text">{{ form.patient_its_id.help_text }}</div>
+                                {% endif %}
+                                {% if form.patient_its_id.errors %}
+                                    <div class="text-danger small">{{ form.patient_its_id.errors.0 }}</div>
+                                {% endif %}
+                                
+                                <!-- Success/Error Messages -->
+                                <div class="alert-custom alert-success" id="fetchSuccessAlert">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <span id="fetchSuccessMessage"></span>
+                                </div>
+                                <div class="alert-custom alert-error" id="fetchErrorAlert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <span id="fetchErrorMessage"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.patient_name_display.id_for_label }}" class="form-label">
+                                    {{ form.patient_name_display.label }}
+                                </label>
+                                {{ form.patient_name_display }}
+                                {% if form.patient_name_display.help_text %}
+                                    <div class="form-text">{{ form.patient_name_display.help_text }}</div>
+                                {% endif %}
+                                {% if form.patient_name_display.errors %}
+                                    <div class="text-danger small">{{ form.patient_name_display.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Patient Details Card -->
+                    <div class="patient-info-card" id="patientInfoCard">
+                        <h6 class="mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Patient Details
+                        </h6>
+                        <div class="row" id="patientDetails">
+                            <!-- Details will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden patient field -->
+                    {{ form.patient }}
+                    {% if form.patient.errors %}
+                        <div class="text-danger small">{{ form.patient.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Doctor and Service Section -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-user-md"></i>
+                        Doctor & Service
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.doctor.id_for_label }}" class="form-label">
+                                    {{ form.doctor.label }}
+                                    {% if form.doctor.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.doctor }}
+                                {% if form.doctor.errors %}
+                                    <div class="text-danger small">{{ form.doctor.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.service.id_for_label }}" class="form-label">
+                                    {{ form.service.label }}
+                                </label>
+                                {{ form.service }}
+                                {% if form.service.errors %}
+                                    <div class="text-danger small">{{ form.service.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appointment Details Section -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-calendar-alt"></i>
+                        Appointment Details
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.appointment_date.id_for_label }}" class="form-label">
+                                    {{ form.appointment_date.label }}
+                                    {% if form.appointment_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.appointment_date }}
+                                {% if form.appointment_date.errors %}
+                                    <div class="text-danger small">{{ form.appointment_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.appointment_time.id_for_label }}" class="form-label">
+                                    {{ form.appointment_time.label }}
+                                    {% if form.appointment_time.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ form.appointment_time }}
+                                {% if form.appointment_time.errors %}
+                                    <div class="text-danger small">{{ form.appointment_time.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.reason_for_visit.id_for_label }}" class="form-label">
+                                    {{ form.reason_for_visit.label }}
+                                </label>
+                                {{ form.reason_for_visit }}
+                                {% if form.reason_for_visit.errors %}
+                                    <div class="text-danger small">{{ form.reason_for_visit.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    {{ form.notes.label }}
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                    <div class="text-danger small">{{ form.notes.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'doctordirectory:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itsIdField = document.getElementById('{{ form.patient_its_id.id_for_label }}');
+    const patientNameField = document.getElementById('{{ form.patient_name_display.id_for_label }}');
+    const patientInfoCard = document.getElementById('patientInfoCard');
+    const patientHiddenField = document.getElementById('id_patient');
+    const fetchButton = document.getElementById('fetchPatientBtn');
+    const fetchBtnText = document.getElementById('fetchBtnText');
+    const fetchSpinner = document.getElementById('fetchSpinner');
+    const successAlert = document.getElementById('fetchSuccessAlert');
+    const errorAlert = document.getElementById('fetchErrorAlert');
+    const successMessage = document.getElementById('fetchSuccessMessage');
+    const errorMessage = document.getElementById('fetchErrorMessage');
+    
+    // Fetch button click handler
+    fetchButton.addEventListener('click', function() {
+        const itsId = itsIdField.value.trim();
+        
+        if (!itsId) {
+            showError('Please enter an ITS ID first');
+            return;
+        }
+        
+        if (itsId.length !== 8 || !/^\d{8}$/.test(itsId)) {
+            showError('ITS ID must be exactly 8 digits');
+            return;
+        }
+        
+        fetchPatientData(itsId);
+    });
+    
+    // Enter key handler for ITS ID field
+    itsIdField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            fetchButton.click();
+        }
+    });
+    
+    function fetchPatientData(itsId) {
+        // Show loading state
+        showLoading(true);
+        hideAlerts();
+        
+        // Make AJAX request
+        fetch('/accounts/api/lookup-its/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ its_id: itsId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            showLoading(false);
+            
+            if (data.success) {
+                showPatientInfo(data.user_data);
+                showSuccess('Patient information fetched successfully!');
+            } else {
+                showError(data.message || 'Patient not found');
+                clearPatientInfo();
+            }
+        })
+        .catch(error => {
+            showLoading(false);
+            console.error('Error fetching patient data:', error);
+            showError('Error connecting to server. Please try again.');
+            clearPatientInfo();
+        });
+    }
+    
+    function showLoading(loading) {
+        if (loading) {
+            fetchBtnText.textContent = '';
+            fetchSpinner.classList.remove('d-none');
+            fetchButton.disabled = true;
+        } else {
+            fetchBtnText.textContent = 'Fetch';
+            fetchSpinner.classList.add('d-none');
+            fetchButton.disabled = false;
+        }
+    }
+    
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successAlert.style.display = 'block';
+        errorAlert.style.display = 'none';
+    }
+    
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorAlert.style.display = 'block';
+        successAlert.style.display = 'none';
+    }
+    
+    function hideAlerts() {
+        successAlert.style.display = 'none';
+        errorAlert.style.display = 'none';
+    }
+    
+    function showPatientInfo(userData) {
+        // Update patient name display
+        const fullName = `${userData.first_name} ${userData.last_name}`.trim();
+        patientNameField.value = fullName || userData.username;
+        
+        // Show patient details card
+        const patientDetails = document.getElementById('patientDetails');
+        patientDetails.innerHTML = `
+            <div class="col-md-4">
+                <strong>Name:</strong><br>
+                <span class="text-muted">${fullName || userData.username}</span>
+            </div>
+            <div class="col-md-4">
+                <strong>ITS ID:</strong><br>
+                <span class="text-muted">${userData.its_id}</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Phone:</strong><br>
+                <span class="text-muted">${userData.phone_number || 'Not provided'}</span>
+            </div>
+            <div class="col-md-4 mt-2">
+                <strong>Email:</strong><br>
+                <span class="text-muted">${userData.email || 'Not provided'}</span>
+            </div>
+            <div class="col-md-4 mt-2">
+                <strong>Gender:</strong><br>
+                <span class="text-muted">${userData.gender || 'Not specified'}</span>
+            </div>
+            <div class="col-md-4 mt-2">
+                <strong>Status:</strong><br>
+                <span class="badge ${userData.is_existing_user ? 'bg-success' : 'bg-info'}">
+                    ${userData.is_existing_user ? 'Existing Patient' : 'New Patient'}
+                </span>
+            </div>
+        `;
+        
+        patientInfoCard.classList.add('show');
+        
+        // Set hidden patient field if we have a patient ID
+        if (userData.patient_id && patientHiddenField) {
+            patientHiddenField.value = userData.patient_id;
+        }
+    }
+    
+    function clearPatientInfo() {
+        patientNameField.value = '';
+        patientInfoCard.classList.remove('show');
+        if (patientHiddenField) {
+            patientHiddenField.value = '';
+        }
+    }
+    
+    // Form submission validation
+    document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+        const itsId = itsIdField.value.trim();
+        const patientName = patientNameField.value.trim();
+        
+        if (itsId && !patientName) {
+            e.preventDefault();
+            showError('Please click "Fetch" to load patient information before submitting');
+            return false;
+        }
+        
+        if (!itsId && !patientHiddenField.value) {
+            e.preventDefault();
+            showError('Please enter and fetch patient information');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
