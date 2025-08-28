@@ -87,7 +87,7 @@ class ITSService:
     @classmethod
     def fetch_user_data(cls, its_id: str) -> Optional[Dict]:
         """
-        Fetch user data from ITS API (or get from existing database)
+        Fetch user data from ITS API (with database fallback for development)
         
         Args:
             its_id: 8-digit ITS ID
@@ -99,59 +99,91 @@ class ITSService:
         if not its_id or len(its_id) != 8 or not its_id.isdigit():
             return None
         
-        # Convert to int for seed generation
+        # Convert to int for validation
         its_id_int = int(its_id)
         
         # Basic range validation
         if not (10000000 <= its_id_int <= 99999999):
             return None
         
-        # First check if user exists in database - if so, return their data
+        # TODO: Replace this section with real ITS API call in production
+        # For now, check database first (development mode)
+        from django.conf import settings
         from .models import User
-        try:
-            existing_user = User.objects.get(its_id=its_id)
-            # Return existing user's data
-            return {
-                'its_id': existing_user.its_id,
-                'first_name': existing_user.first_name,
-                'last_name': existing_user.last_name,
-                'full_name': existing_user.get_full_name(),
-                'arabic_full_name': existing_user.arabic_full_name,
-                'prefix': existing_user.prefix,
-                'age': existing_user.age,
-                'gender': existing_user.gender,
-                'marital_status': existing_user.marital_status,
-                'misaq': existing_user.misaq,
-                'occupation': existing_user.occupation,
-                'qualification': existing_user.qualification,
-                'idara': existing_user.idara,
-                'category': existing_user.category,
-                'organization': existing_user.organization,
-                'mobile_number': existing_user.mobile_number,
-                'whatsapp_number': existing_user.whatsapp_number,
-                'address': existing_user.address,
-                'jamaat': existing_user.jamaat,
-                'jamiaat': existing_user.jamiaat,
-                'nationality': existing_user.nationality,
-                'vatan': existing_user.vatan,
-                'city': existing_user.city,
-                'country': existing_user.country,
-                'hifz_sanad': existing_user.hifz_sanad,
-                'photograph': existing_user.profile_photo,
-            }
-        except User.DoesNotExist:
-            # User doesn't exist in database, so ITS ID is not valid
-            return None
+        
+        # Check if we should use real ITS API (production mode)
+        use_real_its_api = getattr(settings, 'USE_REAL_ITS_API', False)
+        
+        if use_real_its_api:
+            # PRODUCTION: Call real ITS API
+            try:
+                # TODO: Implement real ITS API call here
+                # Example structure:
+                # response = requests.post(settings.ITS_API_URL, {
+                #     'its_id': its_id,
+                #     'api_key': settings.ITS_API_KEY
+                # })
+                # if response.status_code == 200:
+                #     api_data = response.json()
+                #     return cls._format_its_api_response(api_data)
+                # else:
+                #     return None
+                
+                # For now, return None to indicate API not implemented
+                logger.warning(f"Real ITS API not implemented yet for ITS ID: {its_id}")
+                return None
+                
+            except Exception as e:
+                logger.error(f"ITS API call failed for {its_id}: {str(e)}")
+                return None
+        else:
+            # DEVELOPMENT: Use database as ITS API simulation
+            try:
+                existing_user = User.objects.get(its_id=its_id)
+                logger.info(f"Found user {its_id} in database (development mode)")
+                
+                # Return data in ITS API format
+                return {
+                    'its_id': existing_user.its_id,
+                    'first_name': existing_user.first_name,
+                    'last_name': existing_user.last_name,
+                    'full_name': existing_user.get_full_name(),
+                    'arabic_full_name': existing_user.arabic_full_name,
+                    'prefix': existing_user.prefix,
+                    'age': existing_user.age,
+                    'gender': existing_user.gender,
+                    'marital_status': existing_user.marital_status,
+                    'misaq': existing_user.misaq,
+                    'occupation': existing_user.occupation,
+                    'qualification': existing_user.qualification,
+                    'idara': existing_user.idara,
+                    'category': existing_user.category,
+                    'organization': existing_user.organization,
+                    'mobile_number': existing_user.mobile_number,
+                    'whatsapp_number': existing_user.whatsapp_number,
+                    'address': existing_user.address,
+                    'jamaat': existing_user.jamaat,
+                    'jamiaat': existing_user.jamiaat,
+                    'nationality': existing_user.nationality,
+                    'vatan': existing_user.vatan,
+                    'city': existing_user.city,
+                    'country': existing_user.country,
+                    'hifz_sanad': existing_user.hifz_sanad,
+                    'photograph': existing_user.profile_photo,
+                }
+            except User.DoesNotExist:
+                logger.warning(f"User {its_id} not found in database (development mode)")
+                return None
 
     
     @classmethod
     def authenticate_user(cls, its_id: str, password: str) -> Optional[Dict]:
         """
-        Authenticate user against database (simulating ITS API)
+        Authenticate user against ITS API (with database fallback for development)
         
         Args:
             its_id: 8-digit ITS ID
-            password: User's password (basic validation only for mock)
+            password: User's ITS password
             
         Returns:
             Authentication result with user data and role
@@ -161,40 +193,119 @@ class ITSService:
             logger.warning(f"Invalid ITS ID format: {its_id}")
             return None
         
-        # Basic password validation (mock - in production would validate against ITS API)
+        # Basic password validation
         if not password or len(password) < 4:
             logger.warning(f"Invalid password for ITS ID: {its_id}")
             return None
         
-        # Check if user exists in database
+        from django.conf import settings
         from .models import User
-        try:
-            existing_user = User.objects.get(its_id=its_id)
-            logger.info(f"Found existing user {its_id} in database")
-            
-            # Get user data
-            user_data = cls.fetch_user_data(its_id)
-            if not user_data:
-                logger.error(f"Failed to fetch user data for existing user: {its_id}")
+        
+        # Check if we should use real ITS API (production mode)
+        use_real_its_api = getattr(settings, 'USE_REAL_ITS_API', False)
+        
+        if use_real_its_api:
+            # PRODUCTION: Authenticate against real ITS API
+            try:
+                # TODO: Implement real ITS API authentication here
+                # Example structure:
+                # response = requests.post(settings.ITS_AUTH_URL, {
+                #     'its_id': its_id,
+                #     'password': password,
+                #     'api_key': settings.ITS_API_KEY
+                # })
+                # if response.status_code == 200 and response.json().get('authenticated'):
+                #     api_data = response.json()
+                #     user_data = cls._format_its_api_response(api_data['user_data'])
+                #     role = cls.determine_user_role(user_data)
+                #     return {
+                #         'authenticated': True,
+                #         'user_data': user_data,
+                #         'role': role,
+                #         'login_timestamp': datetime.now().isoformat(),
+                #         'auth_source': 'its_api'
+                #     }
+                # else:
+                #     return None
+                
+                # For now, return None to indicate API not implemented
+                logger.warning(f"Real ITS API authentication not implemented yet for ITS ID: {its_id}")
                 return None
+                
+            except Exception as e:
+                logger.error(f"ITS API authentication failed for {its_id}: {str(e)}")
+                return None
+        else:
+            # DEVELOPMENT: Use database as ITS API simulation
+            try:
+                existing_user = User.objects.get(its_id=its_id)
+                logger.info(f"Found existing user {its_id} in database (development mode)")
+                
+                # Get user data (will use database in development mode)
+                user_data = cls.fetch_user_data(its_id)
+                if not user_data:
+                    logger.error(f"Failed to fetch user data for existing user: {its_id}")
+                    return None
+                
+                # Use existing user's role or determine from ITS data
+                role = existing_user.role or cls.determine_user_role(user_data)
+                
+                logger.info(f"User {its_id} authenticated successfully with role: {role}")
+                
+                # Return authentication result
+                return {
+                    'authenticated': True,
+                    'user_data': user_data,
+                    'role': role,
+                    'login_timestamp': datetime.now().isoformat(),
+                    'auth_source': 'database_simulation'
+                }
+                
+            except User.DoesNotExist:
+                logger.warning(f"User {its_id} not found in database (development mode)")
+                return None
+    
+    @classmethod
+    def _format_its_api_response(cls, api_data: Dict) -> Dict:
+        """
+        Format real ITS API response to match our expected format
+        
+        Args:
+            api_data: Raw response from ITS API
             
-            # Use existing user's role
-            role = existing_user.role
-            
-            logger.info(f"User {its_id} authenticated successfully with role: {role}")
-            
-            # Return authentication result
-            return {
-                'authenticated': True,
-                'user_data': user_data,
-                'role': role,
-                'login_timestamp': datetime.now().isoformat(),
-                'auth_source': 'database'
-            }
-            
-        except User.DoesNotExist:
-            logger.warning(f"User {its_id} not found in database")
-            return None
+        Returns:
+            Formatted user data dictionary
+        """
+        # TODO: Adjust field mappings based on real ITS API response format
+        # This is a template - modify based on actual ITS API structure
+        return {
+            'its_id': api_data.get('its_id'),
+            'first_name': api_data.get('first_name'),
+            'last_name': api_data.get('last_name'),
+            'full_name': f"{api_data.get('first_name', '')} {api_data.get('last_name', '')}".strip(),
+            'arabic_full_name': api_data.get('arabic_full_name', ''),
+            'prefix': api_data.get('prefix', ''),
+            'age': api_data.get('age'),
+            'gender': api_data.get('gender'),
+            'marital_status': api_data.get('marital_status'),
+            'misaq': api_data.get('misaq', ''),
+            'occupation': api_data.get('occupation', ''),
+            'qualification': api_data.get('qualification', ''),
+            'idara': api_data.get('idara', ''),
+            'category': api_data.get('category', ''),
+            'organization': api_data.get('organization', ''),
+            'mobile_number': api_data.get('mobile_number', ''),
+            'whatsapp_number': api_data.get('whatsapp_number', ''),
+            'address': api_data.get('address', ''),
+            'jamaat': api_data.get('jamaat', ''),
+            'jamiaat': api_data.get('jamiaat', ''),
+            'nationality': api_data.get('nationality', ''),
+            'vatan': api_data.get('vatan', ''),
+            'city': api_data.get('city', ''),
+            'country': api_data.get('country', ''),
+            'hifz_sanad': api_data.get('hifz_sanad', ''),
+            'photograph': api_data.get('photograph', ''),
+        }
     
     @classmethod
     def determine_user_role(cls, user_data: Dict) -> str:

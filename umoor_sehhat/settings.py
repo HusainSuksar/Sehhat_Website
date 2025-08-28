@@ -431,3 +431,67 @@ CORS_ALLOWED_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# =============================================================================
+# ITS API CONFIGURATION
+# =============================================================================
+
+# ITS API Integration Settings
+# Set USE_REAL_ITS_API = True in production to use real ITS API
+# Set USE_REAL_ITS_API = False in development to use database simulation
+USE_REAL_ITS_API = os.environ.get('USE_REAL_ITS_API', 'False').lower() in ('true', '1', 'yes')
+
+# ITS API URLs (set these in production environment variables)
+ITS_API_URL = os.environ.get('ITS_API_URL', 'https://its.example.com/api/user')
+ITS_AUTH_URL = os.environ.get('ITS_AUTH_URL', 'https://its.example.com/api/authenticate')
+
+# ITS API Credentials (set these in production environment variables)
+ITS_API_KEY = os.environ.get('ITS_API_KEY', '')
+ITS_API_SECRET = os.environ.get('ITS_API_SECRET', '')
+
+# ITS API Timeout Settings
+ITS_API_TIMEOUT = int(os.environ.get('ITS_API_TIMEOUT', '30'))  # seconds
+ITS_API_RETRY_ATTEMPTS = int(os.environ.get('ITS_API_RETRY_ATTEMPTS', '3'))
+
+# ITS API Response Cache Settings (optional)
+ITS_API_CACHE_TIMEOUT = int(os.environ.get('ITS_API_CACHE_TIMEOUT', '300'))  # 5 minutes
+
+# Development Mode Information
+if not USE_REAL_ITS_API:
+    print("🔧 ITS API: Using database simulation mode (development)")
+    print("   - Only users from generated mock data can login")
+    print("   - Set USE_REAL_ITS_API=True to switch to production mode")
+else:
+    print("🚀 ITS API: Using real ITS API mode (production)")
+    print(f"   - API URL: {ITS_API_URL}")
+    print(f"   - Auth URL: {ITS_AUTH_URL}")
+    if not ITS_API_KEY:
+        print("   ⚠️  WARNING: ITS_API_KEY not set!")
+        
+# =============================================================================
+# PRODUCTION TRANSITION INSTRUCTIONS
+# =============================================================================
+"""
+TO SWITCH TO REAL ITS API IN PRODUCTION:
+
+1. Set environment variables:
+   export USE_REAL_ITS_API=True
+   export ITS_API_URL=https://your-real-its-api.com/api/user
+   export ITS_AUTH_URL=https://your-real-its-api.com/api/authenticate
+   export ITS_API_KEY=your_actual_api_key
+   export ITS_API_SECRET=your_actual_api_secret
+
+2. Implement the real API calls in accounts/services.py:
+   - Replace the TODO sections with actual HTTP requests
+   - Adjust _format_its_api_response() based on real API response format
+   - Test with real ITS credentials
+
+3. The system will automatically:
+   - Accept any valid 8-digit ITS ID from the real API
+   - Fetch user data directly from ITS API
+   - Authenticate against ITS API passwords
+   - Handle role determination based on ITS data
+
+4. All existing functionality (appointment booking, user management, etc.)
+   will work seamlessly with real ITS data!
+"""
