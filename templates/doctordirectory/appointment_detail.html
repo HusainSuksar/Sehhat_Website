@@ -137,18 +137,18 @@
                         </button>
                         {% endif %}
                         
-                        <a href="#" class="btn btn-outline-primary me-2">
+                        <button type="button" class="btn btn-outline-primary me-2" disabled>
                             <i class="fas fa-edit"></i> Edit Appointment
-                        </a>
+                        </button>
                         
                         {% if appointment.status == 'completed' %}
                         <a href="{% url 'doctordirectory:add_medical_record' appointment.patient.pk %}" class="btn btn-outline-success">
                             <i class="fas fa-file-medical"></i> Add Medical Record
                         </a>
-                        <a href="#" class="btn btn-outline-info disabled">
+                        <a href="javascript:void(0)" class="btn btn-outline-info disabled">
                             <i class="fas fa-prescription"></i> Create Prescription
                         </a> <!-- Not implemented -->
-                        <a href="#" class="btn btn-outline-warning disabled">
+                        <a href="javascript:void(0)" class="btn btn-outline-warning disabled">
                             <i class="fas fa-flask"></i> Order Lab Tests
                         </a> <!-- Not implemented -->
                         {% endif %}
@@ -227,10 +227,10 @@
                         <a href="{% url 'doctordirectory:add_medical_record' appointment.patient.pk %}" class="btn btn-outline-success">
                             <i class="fas fa-plus"></i> Add Medical Record
                         </a>
-                        <a href="#" class="btn btn-outline-info disabled">
+                        <a href="javascript:void(0)" class="btn btn-outline-info disabled">
                             <i class="fas fa-prescription"></i> Create Prescription
                         </a> <!-- Not implemented -->
-                        <a href="#" class="btn btn-outline-warning disabled">
+                        <a href="javascript:void(0)" class="btn btn-outline-warning disabled">
                             <i class="fas fa-flask"></i> Order Lab Tests
                         </a> <!-- Not implemented -->
                         {% endif %}

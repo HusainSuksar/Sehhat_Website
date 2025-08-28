@@ -286,7 +286,7 @@
                 <div class="tab-pane fade show active" id="schedule" role="tabpanel">
                     <div class="row">
                         <div class="col-md-6">
-                            <h5><i class="fas fa-calendar-week me-2"></i>This Week</h5>
+                            <h2><i class="fas fa-calendar-week me-2"></i>This Week</h2>
                             {% if schedule_data.this_week %}
                                 {% for slot in schedule_data.this_week %}
                                     <div class="schedule-slot">
@@ -312,7 +312,7 @@
                             {% endif %}
                         </div>
                         <div class="col-md-6">
-                            <h5><i class="fas fa-calendar-plus me-2"></i>Next Week</h5>
+                            <h2><i class="fas fa-calendar-plus me-2"></i>Next Week</h2>
                             {% if schedule_data.next_week %}
                                 {% for slot in schedule_data.next_week %}
                                     <div class="schedule-slot">
@@ -369,7 +369,7 @@
                         </div>
                     </div>
 
-                    <h5><i class="fas fa-history me-2"></i>Recent Patients</h5>
+                    <h2><i class="fas fa-history me-2"></i>Recent Patients</h2>
                     {% if user.is_admin or user.is_doctor and doctor.user == user %}
                         {% if patient_data.recent_patients %}
                             <div class="row">
@@ -421,13 +421,13 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="stats-card">
-                                <h5><i class="fas fa-chart-line me-2"></i>Appointment Trends</h5>
+                                <h2><i class="fas fa-chart-line me-2"></i>Appointment Trends</h2>
                                 <canvas id="trendsChart" height="200"></canvas>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="stats-card">
-                                <h5><i class="fas fa-chart-pie me-2"></i>Appointment Status Distribution</h5>
+                                <h2><i class="fas fa-chart-pie me-2"></i>Appointment Status Distribution</h2>
                                 <canvas id="statusChart" height="200"></canvas>
                             </div>
                         </div>
@@ -436,7 +436,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="stats-card">
-                                <h5><i class="fas fa-clock me-2"></i>Peak Hours</h5>
+                                <h3><i class="fas fa-clock me-2"></i>Peak Hours</h3>
                                 {% if analytics_data.peak_hours %}
                                     <div class="list-group list-group-flush">
                                         {% for hour_data in analytics_data.peak_hours %}
@@ -453,7 +453,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="stats-card">
-                                <h5><i class="fas fa-trophy me-2"></i>Performance Metrics</h5>
+                                <h3><i class="fas fa-trophy me-2"></i>Performance Metrics</h3>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <span>Completion Rate</span>
@@ -488,7 +488,7 @@
 
                 <!-- Enhanced Services Tab -->
                 <div class="tab-pane fade" id="services" role="tabpanel">
-                    <h5><i class="fas fa-medical-kit me-2"></i>Medical Services</h5>
+                    <h2><i class="fas fa-medical-kit me-2"></i>Medical Services</h2>
                     {% if services %}
                         <div class="row">
                             {% for service in services %}
