@@ -34,8 +34,8 @@ def dashboard(request):
     """Doctor directory dashboard with comprehensive statistics"""
     user = request.user
     
-    # Security check: Only allow doctors and admins
-    if not (user.is_admin or user.is_doctor):
+    # Security check: Allow doctors, admins, aamil, and moze coordinators
+    if not (user.is_admin or user.is_doctor or user.is_aamil or user.is_moze_coordinator):
         messages.error(request, 'You do not have permission to access the doctor dashboard.')
         return redirect('accounts:profile')
     
@@ -305,9 +305,17 @@ class DoctorDetailView(LoginRequiredMixin, DetailView):
         context['recent_appointments'] = recent_appointments
         
         # Check if current user can book appointment
+        # Allow admin, patients, aamil, and moze coordinators to book appointments
+        # Also allow doctors to book for other doctors (but not themselves)
+        user = self.request.user
         context['can_book_appointment'] = (
-            self.request.user.is_authenticated and 
-            not self.request.user.is_doctor
+            user.is_authenticated and (
+                user.is_admin or 
+                user.is_patient or 
+                user.is_aamil or 
+                user.is_moze_coordinator or
+                (user.is_doctor and doctor.user != user)  # Doctors can book for other doctors
+            )
         )
         
         # Get doctor's services with optimized query
