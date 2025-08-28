@@ -82,11 +82,11 @@ class BulkUploadSessionAdmin(admin.ModelAdmin):
 
 @admin.register(BulkUploadRecord)
 class BulkUploadRecordAdmin(admin.ModelAdmin):
-    list_display = ['session', 'row_number', 'status', 'created_at', 'error_message_short']
-    list_filter = ['status', 'created_at', 'session__upload_type']
+    list_display = ['session', 'row_number', 'status', 'processed_at', 'error_message_short']
+    list_filter = ['status', 'processed_at', 'session__upload_type']
     search_fields = ['error_message', 'session__original_filename', 'raw_data']
-    readonly_fields = ['session', 'row_number', 'status', 'error_message', 'created_at', 'raw_data']
-    ordering = ['-created_at']
+    readonly_fields = ['session', 'row_number', 'status', 'error_message', 'processed_at', 'raw_data']
+    ordering = ['-processed_at']
     
     def error_message_short(self, obj):
         if obj.error_message:
