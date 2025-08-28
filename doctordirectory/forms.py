@@ -259,11 +259,6 @@ class AppointmentForm(forms.ModelForm):
         patient_its_id = cleaned_data.get('patient_its_id')
         patient = cleaned_data.get('patient')
         
-        # Debug: Print what we received
-        print(f"DEBUG Form clean - patient_its_id: '{patient_its_id}'")
-        print(f"DEBUG Form clean - patient: {patient}")
-        print(f"DEBUG Form clean - all cleaned_data keys: {list(cleaned_data.keys())}")
-        
         # If patient is already set (for patient users), skip ITS ID validation
         if patient:
             return cleaned_data

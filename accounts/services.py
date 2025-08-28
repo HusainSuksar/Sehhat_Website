@@ -87,13 +87,13 @@ class ITSService:
     @classmethod
     def fetch_user_data(cls, its_id: str) -> Optional[Dict]:
         """
-        Fetch user data from ITS API (or generate mock data)
+        Fetch user data from ITS API (or get from existing database)
         
         Args:
             its_id: 8-digit ITS ID
             
         Returns:
-            Dictionary containing all ITS fields or None if invalid
+            Dictionary containing all ITS fields or None if not found
         """
         # Validate ITS ID format
         if not its_id or len(its_id) != 8 or not its_id.isdigit():
@@ -102,126 +102,56 @@ class ITSService:
         # Convert to int for seed generation
         its_id_int = int(its_id)
         
-        # More reasonable validation for testing - allow more ITS IDs
-        # This prevents completely random ITS IDs while allowing reasonable testing
-        if not (10000000 <= its_id_int <= 99999999):  # Must be valid 8-digit range
+        # Basic range validation
+        if not (10000000 <= its_id_int <= 99999999):
             return None
         
-        # Allow special admin account and some common patterns
-        if (
-            its_id == '50000001' or  # Admin account
-            its_id_int % 7 == 0 or   # Divisible by 7
-            its_id_int % 11 == 0 or  # Divisible by 11  
-            its_id_int % 13 == 0 or  # Divisible by 13
-            its_id_int % 3 == 0 or   # Divisible by 3 (more common)
-            its_id_int % 5 == 0 or   # Divisible by 5 (more common)
-            str(its_id_int).endswith('00') or  # Ends with 00
-            str(its_id_int).endswith('01') or  # Ends with 01
-            str(its_id_int).endswith('11') or  # Ends with 11
-            str(its_id_int).endswith('21') or  # Ends with 21
-            str(its_id_int).endswith('31')     # Ends with 31
-        ):
-            pass  # Valid ITS ID
-        else:
-            # Block completely random patterns
+        # First check if user exists in database - if so, return their data
+        from .models import User
+        try:
+            existing_user = User.objects.get(its_id=its_id)
+            # Return existing user's data
+            return {
+                'its_id': existing_user.its_id,
+                'first_name': existing_user.first_name,
+                'last_name': existing_user.last_name,
+                'full_name': existing_user.get_full_name(),
+                'arabic_full_name': existing_user.arabic_full_name,
+                'prefix': existing_user.prefix,
+                'age': existing_user.age,
+                'gender': existing_user.gender,
+                'marital_status': existing_user.marital_status,
+                'misaq': existing_user.misaq,
+                'occupation': existing_user.occupation,
+                'qualification': existing_user.qualification,
+                'idara': existing_user.idara,
+                'category': existing_user.category,
+                'organization': existing_user.organization,
+                'mobile_number': existing_user.mobile_number,
+                'whatsapp_number': existing_user.whatsapp_number,
+                'address': existing_user.address,
+                'jamaat': existing_user.jamaat,
+                'jamiaat': existing_user.jamiaat,
+                'nationality': existing_user.nationality,
+                'vatan': existing_user.vatan,
+                'city': existing_user.city,
+                'country': existing_user.country,
+                'hifz_sanad': existing_user.hifz_sanad,
+                'photograph': existing_user.profile_photo,
+            }
+        except User.DoesNotExist:
+            # User doesn't exist in database, so ITS ID is not valid
             return None
-        
-        # Use ITS ID as seed for consistent data generation
-        random.seed(its_id_int)
-        
-        # Generate basic data
-        first_name = random.choice(cls.FIRST_NAMES)
-        last_name = random.choice(cls.LAST_NAMES)
-        full_name = f"{first_name} {last_name}"
-        arabic_full_name = f"عربي {full_name}"
-        
-        # Determine occupation and category for role assignment
-        rand_num = random.random()
-        
-        if rand_num < 0.05:  # 5% doctors
-            occupation = "Doctor"
-            category = "Professional"
-            qualification = "MBBS, MD"
-            prefix = "Dr."
-        elif rand_num < 0.10:  # 5% Amils
-            occupation = "Religious Affairs"
-            category = "Amil"  # This will trigger aamil role
-            qualification = "Alim, Hafiz"
-            prefix = "Janab"
-        else:  # 90% general population
-            occupation = random.choice(cls.OCCUPATIONS)
-            category = random.choice(cls.CATEGORIES)
-            qualification = random.choice(cls.QUALIFICATIONS)
-            prefix = "Mr." if random.choice(['M', 'F']) == 'M' else "Ms."
-        
-        # Generate other fields
-        age = random.randint(18, 65)
-        gender = random.choice(['male', 'female'])
-        marital_status = random.choice(['single', 'married', 'divorced', 'widowed'])
-        
-        # Contact information
-        mobile = f"+91{random.randint(7000000000, 9999999999)}"
-        whatsapp = mobile if random.random() > 0.3 else f"+91{random.randint(7000000000, 9999999999)}"
-        email = f"{first_name.lower()}.{last_name.lower()}{random.randint(1, 99)}@example.com"
-        
-        # Location information
-        city = random.choice(cls.CITIES)
-        country = random.choice(cls.COUNTRIES)
-        address = f"{random.randint(1, 999)} {random.choice(['Street', 'Road', 'Avenue', 'Lane'])}, {city}"
-        
-        # Other fields
-        jamaat = random.choice(cls.JAMAATS)
-        moze = random.choice(cls.MOZE_NAMES)
-        nationality = random.choice(cls.NATIONALITIES)
-        vatan = random.choice(cls.CITIES)
-        idara = random.choice(cls.IDARAS)
-        organization = random.choice(cls.ORGANIZATIONS)
-        
-        # Misaq information
-        misaq = f"Misaq-{random.randint(1000, 9999)}"
-        hifz_sanad = f"HS-{random.randint(1000, 9999)}" if random.random() > 0.7 else ""
-        
-        # Reset random seed
-        random.seed()
-        
-        return {
-            # 21 ITS API fields
-            'its_id': its_id,
-            'arabic_full_name': arabic_full_name,
-            'prefix': prefix,
-            'first_name': first_name,
-            'last_name': last_name,
-            'age': age,
-            'gender': gender,
-            'marital_status': marital_status,
-            'misaq': misaq,
-            'occupation': occupation,
-            'qualification': qualification,
-            'idara': idara,
-            'category': category,
-            'organization': organization,
-            'email': email,
-            'mobile_number': mobile,
-            'whatsapp_number': whatsapp,
-            'address': address,
-            'jamaat': jamaat,
-            'jamiaat': f"{jamaat} Jamiaat",
-            'nationality': nationality,
-            'vatan': vatan,
-            'city': city,
-            'country': country,
-            'hifz_sanad': hifz_sanad,
-            'photograph': f"https://api.dicebear.com/7.x/avataaars/svg?seed={its_id}"
-        }
+
     
     @classmethod
     def authenticate_user(cls, its_id: str, password: str) -> Optional[Dict]:
         """
-        Authenticate user against ITS API
+        Authenticate user against database (simulating ITS API)
         
         Args:
             its_id: 8-digit ITS ID
-            password: User's ITS password
+            password: User's password (basic validation only for mock)
             
         Returns:
             Authentication result with user data and role
@@ -231,31 +161,40 @@ class ITSService:
             logger.warning(f"Invalid ITS ID format: {its_id}")
             return None
         
-        # Mock password validation
-        # In production, this would call actual ITS API
+        # Basic password validation (mock - in production would validate against ITS API)
         if not password or len(password) < 4:
             logger.warning(f"Invalid password for ITS ID: {its_id}")
             return None
         
-        # Fetch user data
-        user_data = cls.fetch_user_data(its_id)
-        if not user_data:
-            logger.error(f"Failed to fetch user data for ITS ID: {its_id}")
+        # Check if user exists in database
+        from .models import User
+        try:
+            existing_user = User.objects.get(its_id=its_id)
+            logger.info(f"Found existing user {its_id} in database")
+            
+            # Get user data
+            user_data = cls.fetch_user_data(its_id)
+            if not user_data:
+                logger.error(f"Failed to fetch user data for existing user: {its_id}")
+                return None
+            
+            # Use existing user's role
+            role = existing_user.role
+            
+            logger.info(f"User {its_id} authenticated successfully with role: {role}")
+            
+            # Return authentication result
+            return {
+                'authenticated': True,
+                'user_data': user_data,
+                'role': role,
+                'login_timestamp': datetime.now().isoformat(),
+                'auth_source': 'database'
+            }
+            
+        except User.DoesNotExist:
+            logger.warning(f"User {its_id} not found in database")
             return None
-        
-        # Determine user role based on ITS data
-        role = cls.determine_user_role(user_data)
-        
-        logger.info(f"User {its_id} authenticated successfully with role: {role}")
-        
-        # Return authentication result
-        return {
-            'authenticated': True,
-            'user_data': user_data,
-            'role': role,
-            'login_timestamp': datetime.now().isoformat(),
-            'auth_source': 'its_api'
-        }
     
     @classmethod
     def determine_user_role(cls, user_data: Dict) -> str:

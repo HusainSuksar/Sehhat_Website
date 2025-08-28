@@ -411,18 +411,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading(false);
             
             if (data.success) {
-                console.log('DEBUG Fetch success:', data.user_data);
                 showPatientInfo(data.user_data);
                 showSuccess('Patient information fetched successfully!');
-                
-                // Debug: Check form state after fetch
-                console.log('DEBUG After fetch:');
-                console.log('- ITS ID field value:', itsIdField.value);
-                console.log('- Patient name field value:', patientNameField.value);
-                console.log('- Hidden patient field value:', patientHiddenField ? patientHiddenField.value : 'null');
-                console.log('- ITS fetched attribute:', patientHiddenField ? patientHiddenField.getAttribute('data-its-fetched') : 'null');
             } else {
-                console.log('DEBUG Fetch failed:', data.message);
                 showError(data.message || 'Patient not found');
                 clearPatientInfo();
             }
@@ -528,14 +519,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('appointmentForm').addEventListener('submit', function(e) {
         const itsId = itsIdField.value.trim();
         const patientName = patientNameField.value.trim();
-        
-        // Debug: Log form state before submission
-        console.log('DEBUG Form submission:');
-        console.log('- ITS ID field value:', itsId);
-        console.log('- Patient name field value:', patientName);
-        console.log('- Hidden patient field value:', patientHiddenField ? patientHiddenField.value : 'null');
-        console.log('- ITS fetched attribute:', patientHiddenField ? patientHiddenField.getAttribute('data-its-fetched') : 'null');
-        console.log('- ITS ID attribute:', patientHiddenField ? patientHiddenField.getAttribute('data-its-id') : 'null');
         
         // Check if ITS ID is provided but patient data not fetched
         const hasPatientData = patientName || patientHiddenField.getAttribute('data-its-fetched') === 'true';
