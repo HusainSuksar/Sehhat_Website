@@ -34,8 +34,8 @@ class RoleBasedAccessMiddleware(MiddlewareMixin):
             'badri_mahal_admin': ['/'],  # Admin has access to everything
         }
         
-        # Admin and superuser bypass all restrictions
-        if user.is_admin or user.is_superuser:
+        # Badri Mahal Admin bypasses all restrictions
+        if user.is_admin:
             return None
         
         # Check if user's role allows access to the current path

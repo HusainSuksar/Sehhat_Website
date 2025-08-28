@@ -710,7 +710,7 @@ def user_delete(request, pk):
     """
     Delete a user (admin only)
     """
-    if not (request.user.is_admin or request.user.is_superuser):
+    if not request.user.is_admin:
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     try:
@@ -720,9 +720,9 @@ def user_delete(request, pk):
         if user == request.user:
             return JsonResponse({'error': 'Cannot delete your own account'}, status=400)
         
-        # Prevent deleting superusers unless request user is superuser
-        if user.is_superuser and not request.user.is_superuser:
-            return JsonResponse({'error': 'Cannot delete superuser account'}, status=403)
+        # Prevent deleting admin users unless request user is admin
+        if user.is_admin and not request.user.is_admin:
+            return JsonResponse({'error': 'Cannot delete admin account'}, status=403)
         
         # Store user info for response
         user_name = user.get_full_name()
