@@ -493,9 +493,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         patientInfoCard.classList.add('show');
         
-        // Set hidden patient field if we have a patient ID
-        if (userData.patient_id && patientHiddenField) {
-            patientHiddenField.value = userData.patient_id;
+        // Set hidden patient field if we have a patient ID, or mark as fetched for new users
+        if (patientHiddenField) {
+            if (userData.patient_id) {
+                patientHiddenField.value = userData.patient_id;
+            } else {
+                // For new users from ITS, set a special marker that the form can recognize
+                patientHiddenField.setAttribute('data-its-fetched', 'true');
+                patientHiddenField.setAttribute('data-its-id', userData.its_id);
+            }
         }
     }
     
@@ -504,6 +510,8 @@ document.addEventListener('DOMContentLoaded', function() {
         patientInfoCard.classList.remove('show');
         if (patientHiddenField) {
             patientHiddenField.value = '';
+            patientHiddenField.removeAttribute('data-its-fetched');
+            patientHiddenField.removeAttribute('data-its-id');
         }
     }
     
@@ -513,7 +521,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const patientName = patientNameField.value.trim();
         
         // Check if ITS ID is provided but patient data not fetched
-        if (itsId && !patientName) {
+        const hasPatientData = patientName || patientHiddenField.getAttribute('data-its-fetched') === 'true';
+        if (itsId && !hasPatientData) {
             e.preventDefault();
             showError('Please click "Fetch" to load patient information before submitting the appointment');
             itsIdField.focus();
@@ -521,7 +530,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Check if no patient information at all
-        if (!itsId && !patientHiddenField.value) {
+        const hasPatientId = patientHiddenField.value;
+        const hasItsFetched = patientHiddenField.getAttribute('data-its-fetched') === 'true';
+        
+        if (!itsId && !hasPatientId && !hasItsFetched) {
             e.preventDefault();
             showError('Please enter a valid 8-digit ITS ID and click "Fetch" to load patient information');
             itsIdField.focus();

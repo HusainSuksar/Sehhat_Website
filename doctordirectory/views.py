@@ -558,6 +558,14 @@ def create_appointment(request, doctor_id=None):
     
     if request.method == 'POST':
         form = AppointmentForm(request.POST, doctor=doctor, user=request.user)
+        
+        # Debug: Check form data
+        print(f"POST data: {dict(request.POST)}")
+        print(f"Form is_valid: {form.is_valid()}")
+        if not form.is_valid():
+            print(f"Form errors: {form.errors}")
+            print(f"Non-field errors: {form.non_field_errors()}")
+        
         if form.is_valid():
             # Get patient from form's cleaned_data (the clean method should have set it)
             patient = form.cleaned_data.get('patient')
