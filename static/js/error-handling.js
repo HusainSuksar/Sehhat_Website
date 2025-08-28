@@ -34,7 +34,7 @@ class NotificationManager {
 
     show(message, type = 'info', duration = 5000, options = {}) {
         const id = Date.now() + Math.random();
-        const notification = this.createNotification(id, message, type, options);
+        const notification = this.createNotification(id, message, type, options, duration);
         
         this.container.appendChild(notification);
         this.notifications.set(id, notification);
@@ -54,7 +54,7 @@ class NotificationManager {
         return id;
     }
 
-    createNotification(id, message, type, options) {
+    createNotification(id, message, type, options, duration = 5000) {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.dataset.id = id;

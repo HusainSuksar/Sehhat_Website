@@ -13,7 +13,7 @@
         margin-bottom: 1.5rem;
     }
     
-    .form-section h5 {
+    .form-section h2 {
         color: #2563eb;
         margin-bottom: 1rem;
         font-weight: 600;
@@ -110,10 +110,10 @@
                 
                 <!-- Patient Information Section -->
                 <div class="form-section">
-                    <h5>
+                    <h2>
                         <i class="fas fa-user-injured"></i>
                         Patient Information
-                    </h5>
+                    </h2>
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -166,10 +166,10 @@
                     
                     <!-- Patient Details Card -->
                     <div class="patient-info-card" id="patientInfoCard">
-                        <h6 class="mb-3">
+                        <h3 class="mb-3">
                             <i class="fas fa-info-circle me-2"></i>
                             Patient Details
-                        </h6>
+                        </h3>
                         <div class="row" id="patientDetails">
                             <!-- Details will be populated by JavaScript -->
                         </div>
@@ -184,10 +184,10 @@
 
                 <!-- Doctor and Service Section -->
                 <div class="form-section">
-                    <h5>
+                    <h2>
                         <i class="fas fa-user-md"></i>
                         {% if user.is_doctor %}My Services{% else %}Doctor & Service{% endif %}
-                    </h5>
+                    </h2>
                     
                     <div class="row">
                         {% if not user.is_doctor and doctor %}
@@ -241,10 +241,10 @@
 
                 <!-- Appointment Details Section -->
                 <div class="form-section">
-                    <h5>
+                    <h2>
                         <i class="fas fa-calendar-alt"></i>
                         Appointment Details
-                    </h5>
+                    </h2>
                     
                     <div class="row">
                         <div class="col-md-6">

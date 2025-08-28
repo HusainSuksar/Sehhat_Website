@@ -59,8 +59,13 @@ class ChartManager {
         Chart.defaults.borderColor = '#e2e8f0';
         Chart.defaults.backgroundColor = 'rgba(37, 99, 235, 0.1)';
         
-        // Register plugins
-        Chart.register(...Chart.registerables);
+        // Register plugins (check if registerables exists first)
+        if (Chart.registerables && Array.isArray(Chart.registerables)) {
+            Chart.register(...Chart.registerables);
+        } else {
+            // Fallback for older Chart.js versions
+            console.warn('Chart.registerables not found, using fallback registration');
+        }
     }
 
     createGradients() {
