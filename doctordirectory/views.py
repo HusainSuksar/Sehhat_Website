@@ -61,6 +61,10 @@ def dashboard(request):
     total_appointments_global = Appointment.objects.count()
     total_medical_records = MedicalRecord.objects.count()
     
+    # Students count
+    from students.models import Student
+    total_students = Student.objects.count()
+    
     # Weekly statistics
     week_start = timezone.now().date() - timedelta(days=7)
     weekly_appointments = Appointment.objects.filter(
@@ -156,13 +160,11 @@ def dashboard(request):
     # Get recent medical records
     if doctor_profile:
         try:
-            # Try to get MahalShifa doctor profile for medical records
-            from mahalshifa.models import Doctor as MahalShifaDoctor
-            mahalshifa_doctor = MahalShifaDoctor.objects.get(user=user)
+            # Use the already imported MahalShifaDoctor (no need to re-import)
             recent_medical_records = MedicalRecord.objects.filter(
-                doctor=mahalshifa_doctor
+                doctor=doctor_profile
             ).select_related('patient').order_by('-created_at')[:5]
-        except (MahalShifaDoctor.DoesNotExist, NameError):
+        except Exception as e:
             recent_medical_records = []
     else:
         recent_medical_records = MedicalRecord.objects.all().select_related('patient', 'doctor').order_by('-created_at')[:5]
@@ -177,6 +179,7 @@ def dashboard(request):
         'total_patients_global': total_patients_global or 0,
         'total_appointments_global': total_appointments_global or 0,
         'total_medical_records': total_medical_records or 0,
+        'total_students': total_students or 0,
         
         # Weekly statistics
         'weekly_appointments': weekly_appointments or 0,
@@ -551,33 +554,32 @@ def create_appointment(request, doctor_id=None):
     if request.method == 'POST':
         form = AppointmentForm(request.POST, doctor=doctor, user=request.user)
         if form.is_valid():
-            appointment = form.save(commit=False)
+            # Get patient from form's cleaned_data (the clean method should have set it)
+            patient = form.cleaned_data.get('patient')
             
-            # Ensure a patient is assigned - the form's clean method should handle this
-            if not appointment.patient:
-                # If still no patient after form validation, try to assign current user if they're a patient
-                if request.user.role == 'patient' and hasattr(request.user, 'patient_profile'):
-                    try:
-                        patient_profile = request.user.patient_profile.first()
-                        if patient_profile:
-                            appointment.patient = patient_profile
-                        else:
-                            # Create patient profile for current user if it doesn't exist
-                            from datetime import date
-                            patient_profile = Patient.objects.create(
-                                user=request.user,
-                                date_of_birth=date(1990, 1, 1),  # Default, can be updated
-                                gender='other'  # Default, can be updated
-                            )
-                            appointment.patient = patient_profile
-                    except Exception as e:
-                        messages.error(request, f'Error creating patient profile: {str(e)}')
-                        return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
-                
-                # Final check - if still no patient, show error
-                if not appointment.patient:
-                    messages.error(request, 'Please enter a valid ITS ID and click "Fetch" to identify the patient.')
+            # If no patient from form, try to assign current user if they're a patient
+            if not patient and request.user.role == 'patient':
+                try:
+                    patient = request.user.patient_profile.first()
+                    if not patient:
+                        # Create patient profile for current user if it doesn't exist
+                        patient = Patient.objects.create(
+                            user=request.user,
+                            date_of_birth=date(1990, 1, 1),  # Default, can be updated
+                            gender='other'  # Default, can be updated
+                        )
+                except Exception as e:
+                    messages.error(request, f'Error creating patient profile: {str(e)}')
                     return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
+            
+            # Final validation - must have a patient
+            if not patient:
+                messages.error(request, 'Please enter a valid ITS ID and click "Fetch" to identify the patient.')
+                return render(request, 'doctordirectory/appointment_form_with_fetch.html', {'form': form, 'doctor': doctor})
+            
+            # Create the appointment with explicit patient assignment
+            appointment = form.save(commit=False)
+            appointment.patient = patient
             
             appointment.save()
             
