@@ -258,6 +258,26 @@ class AppointmentForm(forms.ModelForm):
         cleaned_data = super().clean()
         patient_its_id = cleaned_data.get('patient_its_id')
         patient = cleaned_data.get('patient')
+        appointment_date = cleaned_data.get('appointment_date')
+        
+        # Validate appointment date and time are not in the past
+        if appointment_date:
+            from datetime import date, datetime, time as dt_time
+            appointment_time = cleaned_data.get('appointment_time')
+            
+            if appointment_date < date.today():
+                raise forms.ValidationError('Appointment date cannot be in the past.')
+            elif appointment_date == date.today() and appointment_time:
+                # If booking for today, check if time is not in the past
+                current_time = datetime.now().time()
+                if appointment_time <= current_time:
+                    raise forms.ValidationError('Appointment time cannot be in the past for today\'s date.')
+        
+        # Validate service belongs to selected doctor
+        doctor = cleaned_data.get('doctor')
+        service = cleaned_data.get('service')
+        if doctor and service and service.doctor != doctor:
+            raise forms.ValidationError('Selected service is not available for this doctor.')
         
         # If patient is already set (for patient users), skip ITS ID validation
         if patient:
@@ -328,10 +348,13 @@ class AppointmentForm(forms.ModelForm):
                         )
                         cleaned_data['patient'] = patient_profile
                     else:
-                        raise forms.ValidationError(f'Could not fetch patient data for ITS ID: {patient_its_id}. Please verify the ITS ID.')
+                        raise forms.ValidationError(f'Could not fetch patient data for ITS ID: {patient_its_id}. Please verify the ITS ID is correct and belongs to a valid user.')
                         
             except Exception as e:
-                raise forms.ValidationError(f'Error processing ITS ID: {str(e)}')
+                if 'ITS ID' in str(e) or 'fetch' in str(e).lower():
+                    raise forms.ValidationError(f'Error processing ITS ID: {str(e)}')
+                else:
+                    raise forms.ValidationError(f'Error processing patient information. Please try again or contact support.')
         else:
             # If no patient_its_id provided and no patient selected, require it
             if not patient:

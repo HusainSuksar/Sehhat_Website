@@ -565,7 +565,42 @@ document.addEventListener('DOMContentLoaded', function() {
             appointmentTime.focus();
             return false;
         }
+        
+        // Validate date is not in the past
+        const appointmentDate = document.getElementById('id_appointment_date');
+        if (appointmentDate && appointmentDate.value) {
+            const selectedDate = new Date(appointmentDate.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time for date comparison
+            
+            if (selectedDate < today) {
+                e.preventDefault();
+                showError('Appointment date cannot be in the past');
+                appointmentDate.focus();
+                return false;
+            }
+            
+            // If booking for today, check time is not in the past
+            if (selectedDate.getTime() === today.getTime() && appointmentTime.value) {
+                const currentTime = new Date();
+                const selectedTime = new Date(`${appointmentDate.value}T${appointmentTime.value}`);
+                
+                if (selectedTime <= currentTime) {
+                    e.preventDefault();
+                    showError('Appointment time cannot be in the past for today\'s date');
+                    appointmentTime.focus();
+                    return false;
+                }
+            }
+        }
     });
+    
+    // Set minimum date to today for date input
+    const dateInput = document.getElementById('id_appointment_date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+    }
 });
 </script>
 {% endblock %}
