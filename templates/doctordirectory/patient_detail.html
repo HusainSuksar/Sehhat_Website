@@ -559,8 +559,49 @@
 </div>
 
 <script>
-// Bootstrap 5 tabs work automatically with data-bs-toggle="tab" attributes
-// No manual initialization needed - Bootstrap handles it automatically
-console.log('Patient detail page loaded - tabs should work automatically');
+// Force tab functionality to work
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Patient detail page loaded');
+    
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap !== 'undefined') {
+        console.log('Bootstrap is loaded');
+    } else {
+        console.error('Bootstrap is not loaded!');
+    }
+    
+    // Force tab functionality
+    const tabButtons = document.querySelectorAll('#patientTabs button[data-bs-toggle="tab"]');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    console.log('Found', tabButtons.length, 'tab buttons');
+    console.log('Found', tabPanes.length, 'tab panes');
+    
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Tab button clicked:', this.getAttribute('data-bs-target'));
+            
+            // Remove active classes from all buttons and panes
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Show the target pane
+            const targetId = this.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+                console.log('Activated pane:', targetId);
+            } else {
+                console.error('Target pane not found:', targetId);
+            }
+        });
+    });
+});
 </script>
 {% endblock %}
