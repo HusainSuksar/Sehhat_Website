@@ -852,3 +852,35 @@ def lookup_its_id(request):
             'success': False,
             'message': f'Error processing request: {str(e)}'
         })
+
+
+@login_required
+def doctor_services_api(request, doctor_id):
+    """API endpoint to get services for a specific doctor"""
+    try:
+        from doctordirectory.models import Doctor, Service
+        
+        # Get the doctor
+        doctor = get_object_or_404(Doctor, pk=doctor_id)
+        
+        # Get services for this doctor
+        services = Service.objects.filter(doctor=doctor, is_active=True).values(
+            'id', 'name', 'description', 'price', 'duration'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'doctor': {
+                'id': doctor.id,
+                'name': doctor.name,
+                'specialty': doctor.specialty
+            },
+            'services': list(services)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error fetching doctor services: {str(e)}',
+            'services': []
+        })

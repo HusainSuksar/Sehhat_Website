@@ -20,6 +20,7 @@ urlpatterns = [
     path('appointments/', views.appointment_list, name='appointment_list'),
     path('appointments/create/', views.create_appointment, name='create_appointment'),
     path('appointments/create/<int:doctor_id>/', views.create_appointment, name='create_appointment_for_doctor'),
+    path('appointments/create/patient/<int:patient_id>/', views.create_appointment, name='create_appointment_for_patient'),
     path('appointments/<int:pk>/', views.appointment_detail, name='appointment_detail'),
     
     # Schedule management (only existing views)

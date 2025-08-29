@@ -519,17 +519,78 @@ def patient_detail(request, pk):
         print(f"Error loading appointments for patient {patient.pk}: {e}")
         appointments = []
     
-    # Get patient's medical records from Mahal Shifa (if user has corresponding MS patient)
+    # Get patient's medical records from appointment notes
     medical_records = []
     try:
-        if patient.user:
-            from mahalshifa.models import Patient as MSPatient, MedicalRecord
-            try:
-                ms_patient = MSPatient.objects.get(user_account=patient.user)
-                medical_records = MedicalRecord.objects.filter(patient=ms_patient).select_related('doctor__user').order_by('-created_at')
-            except MSPatient.DoesNotExist:
-                # No corresponding Mahal Shifa patient, which is normal
-                pass
+        # Get appointments with medical notes (notes containing "--- Medical Record Added ---")
+        appointments_with_records = appointments.filter(
+            notes__icontains="--- Medical Record Added ---"
+        ).select_related('doctor__user').order_by('-appointment_date', '-appointment_time')
+        
+        # Extract medical record information from appointment notes
+        for appointment in appointments_with_records:
+            if appointment.notes:
+                # Split notes by medical record markers
+                parts = appointment.notes.split("--- Medical Record Added ---")
+                for i, part in enumerate(parts[1:], 1):  # Skip the first part (original notes)
+                    # Parse the medical record format
+                    lines = part.strip().split('\n')
+                    diagnosis = ""
+                    treatment = ""
+                    notes = ""
+                    
+                    current_section = ""
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith("DIAGNOSIS:"):
+                            current_section = "diagnosis"
+                            diagnosis = line.replace("DIAGNOSIS:", "").strip()
+                        elif line.startswith("TREATMENT:"):
+                            current_section = "treatment"
+                            treatment = line.replace("TREATMENT:", "").strip()
+                        elif line.startswith("NOTES:"):
+                            current_section = "notes"
+                            notes = line.replace("NOTES:", "").strip()
+                        elif line and current_section:
+                            # Continue adding to the current section
+                            if current_section == "diagnosis":
+                                diagnosis += " " + line
+                            elif current_section == "treatment":
+                                treatment += " " + line
+                            elif current_section == "notes":
+                                notes += " " + line
+                    
+                    # Create a medical record object for template display
+                    medical_record = {
+                        'doctor': appointment.doctor,
+                        'created_at': appointment.appointment_date,
+                        'chief_complaint': notes,  # Using notes as chief complaint
+                        'diagnosis': diagnosis,
+                        'treatment_plan': treatment,
+                        'appointment': appointment
+                    }
+                    medical_records.append(medical_record)
+        
+        # Also check for appointments with regular notes (non-medical record format)
+        other_appointments = appointments.exclude(
+            notes__icontains="--- Medical Record Added ---"
+        ).filter(notes__isnull=False).exclude(notes="").select_related('doctor__user').order_by('-appointment_date', '-appointment_time')
+        
+        for appointment in other_appointments:
+            if appointment.notes.strip():
+                medical_record = {
+                    'doctor': appointment.doctor,
+                    'created_at': appointment.appointment_date,
+                    'chief_complaint': appointment.notes,
+                    'diagnosis': '',
+                    'treatment_plan': '',
+                    'appointment': appointment
+                }
+                medical_records.append(medical_record)
+        
+        # Sort all medical records by date (newest first)
+        medical_records.sort(key=lambda x: x['created_at'], reverse=True)
+        
     except Exception as e:
         print(f"Error loading medical records for patient {patient.pk}: {e}")
         medical_records = []
@@ -544,13 +605,14 @@ def patient_detail(request, pk):
 
 
 @login_required
-def create_appointment(request, doctor_id=None):
+def create_appointment(request, doctor_id=None, patient_id=None):
     """Create a new appointment"""
     # Check if user has permission to create appointments
-    if not (request.user.is_admin or request.user.is_doctor or request.user.is_patient):
+    if not (request.user.is_admin or request.user.is_doctor or request.user.is_patient or request.user.is_aamil or request.user.is_moze_coordinator):
         messages.error(request, 'You do not have permission to book appointments.')
         return redirect('doctordirectory:dashboard')
     
+    # Get doctor if specified
     if doctor_id:
         try:
             doctor = get_object_or_404(Doctor, pk=doctor_id)
@@ -563,6 +625,16 @@ def create_appointment(request, doctor_id=None):
             return redirect('doctordirectory:dashboard')
     else:
         doctor = None
+    
+    # Get patient if specified
+    patient = None
+    if patient_id:
+        try:
+            from .models import Patient
+            patient = get_object_or_404(Patient, pk=patient_id)
+        except Exception as e:
+            messages.error(request, 'Patient not found.')
+            return redirect('doctordirectory:patient_list')
     
     if request.method == 'POST':
         form = AppointmentForm(request.POST, doctor=doctor, user=request.user)
@@ -616,11 +688,12 @@ def create_appointment(request, doctor_id=None):
             else:
                 messages.error(request, 'Please correct the errors in the form.')
     else:
-        form = AppointmentForm(doctor=doctor, user=request.user)
+        form = AppointmentForm(doctor=doctor, user=request.user, patient=patient)
     
     context = {
         'form': form,
         'doctor': doctor,
+        'patient': patient,
         'title': 'Book Appointment' if doctor else 'Create Appointment'
     }
     

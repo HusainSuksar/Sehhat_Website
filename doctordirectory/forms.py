@@ -172,6 +172,7 @@ class AppointmentForm(forms.ModelForm):
         # Extract custom parameters if provided
         doctor = kwargs.pop('doctor', None)
         user = kwargs.pop('user', None)
+        patient = kwargs.pop('patient', None)
         super().__init__(*args, **kwargs)
         
         # Store user for validation
@@ -258,6 +259,21 @@ class AppointmentForm(forms.ModelForm):
                     style = self.fields['patient_its_id'].widget.attrs['style']
                     if 'background-color: #f8f9fa' in style:
                         self.fields['patient_its_id'].widget.attrs['style'] = style.replace('background-color: #f8f9fa;', '').strip()
+        
+        # Pre-fill patient information if patient is provided (from patient detail page)
+        if patient and patient.user:
+            self.fields['patient'].initial = patient
+            if patient.user.its_id:
+                self.fields['patient_its_id'].initial = patient.user.its_id
+                self.fields['patient_name_display'].initial = patient.user.get_full_name()
+                # Make the fields readonly since patient is already selected
+                self.fields['patient_its_id'].widget.attrs.update({
+                    'readonly': True,
+                    'style': 'background-color: #e3f2fd; color: #1565c0;'
+                })
+                self.fields['patient_name_display'].widget.attrs.update({
+                    'style': 'background-color: #e3f2fd; color: #1565c0;'
+                })
     
     def clean(self):
         cleaned_data = super().clean()

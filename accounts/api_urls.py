@@ -35,4 +35,5 @@ urlpatterns = [
     path('sync-its/', api_views.sync_its_data, name='sync_its_data'),
     path('test-its/', api_views.test_its_api, name='test_its_api'),
     path('its-login/', api_views.its_login_api, name='its_login_api'),
+    path('doctor-services/<int:doctor_id>/', api_views.doctor_services_api, name='doctor_services'),
 ]

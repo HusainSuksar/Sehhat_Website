@@ -613,6 +613,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const today = new Date().toISOString().split('T')[0];
         appointmentDate.setAttribute('min', today);
     }
+    
+    // Handle doctor selection change to filter services
+    const doctorField = document.getElementById('{{ form.doctor.id_for_label }}');
+    const serviceField = document.getElementById('{{ form.service.id_for_label }}');
+    
+    if (doctorField && serviceField) {
+        doctorField.addEventListener('change', function() {
+            const selectedDoctorId = this.value;
+            
+            if (selectedDoctorId) {
+                // Fetch services for the selected doctor
+                fetch(`/accounts/api/doctor-services/${selectedDoctorId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear existing options
+                        serviceField.innerHTML = '<option value="">---------</option>';
+                        
+                        // Add services for the selected doctor
+                        if (data.services && data.services.length > 0) {
+                            data.services.forEach(service => {
+                                const option = document.createElement('option');
+                                option.value = service.id;
+                                option.textContent = `${service.name} - ₹${service.price}`;
+                                serviceField.appendChild(option);
+                            });
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No services available for this doctor';
+                            serviceField.appendChild(option);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching doctor services:', error);
+                        serviceField.innerHTML = '<option value="">Error loading services</option>';
+                    });
+            } else {
+                // Reset services if no doctor selected
+                serviceField.innerHTML = '<option value="">Select a doctor first</option>';
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
