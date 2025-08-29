@@ -997,3 +997,101 @@ def doctor_analytics(request):
     }
     
     return render(request, 'doctordirectory/analytics.html', context)
+
+
+class DoctorListView(LoginRequiredMixin, ListView):
+    """List view for all doctors"""
+    model = Doctor
+    template_name = 'doctordirectory/doctor_list.html'
+    context_object_name = 'doctors'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        queryset = Doctor.objects.filter(user__is_active=True).select_related('user').prefetch_related('specialities')
+        
+        # Search functionality
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=search) |
+                Q(user__last_name__icontains=search) |
+                Q(specialities__name__icontains=search) |
+                Q(qualification__icontains=search)
+            ).distinct()
+        
+        # Specialty filter
+        specialty = self.request.GET.get('specialty')
+        if specialty:
+            queryset = queryset.filter(specialities__name=specialty)
+        
+        return queryset.order_by('user__first_name', 'user__last_name')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get all specialties for filter dropdown
+        from .models import Speciality
+        context['specialties'] = Speciality.objects.all().order_by('name')
+        context['current_search'] = self.request.GET.get('search', '')
+        context['current_specialty'] = self.request.GET.get('specialty', '')
+        
+        return context
+
+
+class DoctorDetailView(LoginRequiredMixin, DetailView):
+    """Detailed view for a specific doctor"""
+    model = Doctor
+    template_name = 'doctordirectory/doctor_detail.html'
+    context_object_name = 'doctor'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        doctor = self.get_object()
+        
+        # Get doctor's appointments
+        appointments = Appointment.objects.filter(doctor=doctor).order_by('-appointment_date', '-appointment_time')
+        
+        # Get doctor's patients
+        patients = Patient.objects.filter(appointments__doctor=doctor).distinct()
+        
+        # Get doctor's services
+        services = MedicalService.objects.filter(doctor=doctor, is_available=True)
+        
+        # Get doctor's schedule
+        schedule = DoctorSchedule.objects.filter(doctor=doctor)
+        
+        # Analytics data for the last 30 days
+        thirty_days_ago = timezone.now().date() - timedelta(days=30)
+        recent_appointments = appointments.filter(appointment_date__gte=thirty_days_ago)
+        
+        # Monthly statistics
+        monthly_stats = {
+            'total_appointments': recent_appointments.count(),
+            'total_patients': patients.filter(appointments__appointment_date__gte=thirty_days_ago).distinct().count(),
+            'completed_appointments': recent_appointments.filter(status='completed').count(),
+            'pending_appointments': recent_appointments.filter(status='scheduled').count(),
+        }
+        
+        # Daily appointment counts for chart
+        daily_appointments = []
+        for i in range(30):
+            day = timezone.now().date() - timedelta(days=i)
+            count = appointments.filter(appointment_date=day).count()
+            daily_appointments.append({
+                'date': day.strftime('%Y-%m-%d'),
+                'count': count
+            })
+        daily_appointments.reverse()
+        
+        context.update({
+            'appointments': appointments[:10],  # Latest 10 appointments
+            'patients': patients[:10],  # Latest 10 patients
+            'services': services,
+            'schedule': schedule,
+            'monthly_stats': monthly_stats,
+            'daily_appointments': daily_appointments,
+            'total_appointments': appointments.count(),
+            'total_patients': patients.count(),
+        })
+        
+        return context
