@@ -566,9 +566,15 @@ def patient_detail(request, pk):
                                 notes += " " + line
                     
                     # Create a medical record object for template display
+                    # Combine appointment date and time for proper datetime formatting
+                    from datetime import datetime, time as dt_time
+                    appointment_datetime = datetime.combine(
+                        appointment.appointment_date, 
+                        appointment.appointment_time or dt_time(0, 0)
+                    )
                     medical_record = {
                         'doctor': appointment.doctor,
-                        'created_at': appointment.appointment_date,
+                        'created_at': appointment_datetime,
                         'chief_complaint': notes,  # Using notes as chief complaint
                         'diagnosis': diagnosis,
                         'treatment_plan': treatment,
@@ -583,9 +589,14 @@ def patient_detail(request, pk):
         
         for appointment in other_appointments:
             if appointment.notes.strip():
+                # Combine appointment date and time for proper datetime formatting
+                appointment_datetime = datetime.combine(
+                    appointment.appointment_date, 
+                    appointment.appointment_time or dt_time(0, 0)
+                )
                 medical_record = {
                     'doctor': appointment.doctor,
-                    'created_at': appointment.appointment_date,
+                    'created_at': appointment_datetime,
                     'chief_complaint': appointment.notes,
                     'diagnosis': '',
                     'treatment_plan': '',
