@@ -360,6 +360,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorAlert = document.getElementById('fetchErrorAlert');
     const successMessage = document.getElementById('fetchSuccessMessage');
     const errorMessage = document.getElementById('fetchErrorMessage');
+    const appointmentDate = document.getElementById('id_appointment_date');
+    const appointmentTime = document.getElementById('id_appointment_time');
     
     // Check if required elements exist
     if (!itsIdField || !fetchButton) {
@@ -549,25 +551,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Check if appointment date and time are provided
-        const appointmentDate = document.querySelector('input[name="appointment_date"]');
-        const appointmentTime = document.querySelector('input[name="appointment_time"]');
         
-        if (!appointmentDate.value) {
+        if (!appointmentDate || !appointmentDate.value) {
             e.preventDefault();
             showError('Please select an appointment date');
-            appointmentDate.focus();
+            if (appointmentDate) appointmentDate.focus();
             return false;
         }
         
-        if (!appointmentTime.value) {
+        if (!appointmentTime || !appointmentTime.value) {
             e.preventDefault();
             showError('Please select an appointment time');
-            appointmentTime.focus();
+            if (appointmentTime) appointmentTime.focus();
             return false;
         }
         
         // Validate date is not in the past
-        const appointmentDate = document.getElementById('id_appointment_date');
         if (appointmentDate && appointmentDate.value) {
             const selectedDate = new Date(appointmentDate.value);
             const today = new Date();
@@ -596,10 +595,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Set minimum date to today for date input
-    const dateInput = document.getElementById('id_appointment_date');
-    if (dateInput) {
+    if (appointmentDate) {
         const today = new Date().toISOString().split('T')[0];
-        dateInput.setAttribute('min', today);
+        appointmentDate.setAttribute('min', today);
     }
 });
 </script>
