@@ -861,21 +861,13 @@ def doctor_services_api(request, doctor_id):
     try:
         from doctordirectory.models import Doctor, MedicalService
         
-        print(f"DEBUG: API called for doctor_id: {doctor_id}")
-        
         # Get the doctor
         doctor = get_object_or_404(Doctor, pk=doctor_id)
-        print(f"DEBUG: Found doctor: {doctor.name}")
         
         # Get services for this doctor
         services = MedicalService.objects.filter(doctor=doctor, is_available=True).values(
             'id', 'name', 'description', 'price', 'duration_minutes'
         )
-        
-        services_list = list(services)
-        print(f"DEBUG: Found {len(services_list)} services for doctor {doctor.name}")
-        for service in services_list[:3]:  # Print first 3 services
-            print(f"DEBUG: Service - {service['name']}: ₹{service['price']}")
         
         return JsonResponse({
             'success': True,
