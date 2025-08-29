@@ -859,14 +859,14 @@ def lookup_its_id(request):
 def doctor_services_api(request, doctor_id):
     """API endpoint to get services for a specific doctor"""
     try:
-        from doctordirectory.models import Doctor, Service
+        from doctordirectory.models import Doctor, MedicalService
         
         # Get the doctor
         doctor = get_object_or_404(Doctor, pk=doctor_id)
         
         # Get services for this doctor
-        services = Service.objects.filter(doctor=doctor, is_active=True).values(
-            'id', 'name', 'description', 'price', 'duration'
+        services = MedicalService.objects.filter(doctor=doctor, is_available=True).values(
+            'id', 'name', 'description', 'price', 'duration_minutes'
         )
         
         return JsonResponse({
