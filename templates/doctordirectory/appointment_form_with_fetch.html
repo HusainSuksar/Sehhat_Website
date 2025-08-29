@@ -536,13 +536,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Check if no patient information at all
-        const hasPatientId = patientHiddenField.value;
-        const hasItsFetched = patientHiddenField.getAttribute('data-its-fetched') === 'true';
-        
-        if (!itsId && !hasPatientId && !hasItsFetched) {
+        // For admin/doctor users, ITS ID is required
+        if (!itsId || itsId.trim() === '') {
             e.preventDefault();
-            showError('Please enter a valid 8-digit ITS ID and click "Fetch" to load patient information');
+            showError('Patient ITS ID is required. Please enter a valid 8-digit ITS ID and click "Fetch" to load patient information.');
+            itsIdField.focus();
+            return false;
+        }
+        
+        // Check if patient data was fetched
+        const hasPatientId = patientHiddenField && patientHiddenField.value;
+        const hasItsFetched = patientHiddenField && patientHiddenField.getAttribute('data-its-fetched') === 'true';
+        const hasPatientName = patientNameField && patientNameField.value.trim();
+        
+        if (!hasPatientId && !hasItsFetched && !hasPatientName) {
+            e.preventDefault();
+            showError('Please click "Fetch" to load patient information before submitting the appointment');
             itsIdField.focus();
             return false;
         }

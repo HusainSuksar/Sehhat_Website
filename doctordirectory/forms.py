@@ -177,6 +177,11 @@ class AppointmentForm(forms.ModelForm):
         # Store user for validation
         self.user = user
         
+        # Make patient_its_id required for admin and doctor users
+        if user and (user.is_admin or user.is_doctor):
+            self.fields['patient_its_id'].required = True
+            self.fields['patient_its_id'].help_text = 'Required: Enter the 8-digit ITS ID to automatically fetch patient details'
+        
         # If a doctor is provided, set it as the initial value and make it readonly
         if doctor:
             self.fields['doctor'].initial = doctor
@@ -283,17 +288,10 @@ class AppointmentForm(forms.ModelForm):
         if patient:
             return cleaned_data
         
-        # Debug: Print form data to understand what's being submitted
-        if hasattr(self, 'data') and self.data:
-            print(f"DEBUG: Form data - patient_its_id: '{patient_its_id}', patient: '{patient}', form_data keys: {list(self.data.keys())}")
-            print(f"DEBUG: patient_its_id from data: '{self.data.get('patient_its_id', '')}'")
-            
-        # If patient_its_id is empty but we might have it in the raw data, try to get it
-        if not patient_its_id and hasattr(self, 'data') and self.data:
-            raw_its_id = self.data.get('patient_its_id', '').strip()
-            if raw_its_id:
-                patient_its_id = raw_its_id
-                print(f"DEBUG: Retrieved ITS ID from raw data: '{patient_its_id}'")
+        # For admin/doctor users, patient_its_id is required
+        if hasattr(self, 'user') and self.user and (self.user.is_admin or self.user.is_doctor):
+            if not patient_its_id or not patient_its_id.strip():
+                raise forms.ValidationError('Patient ITS ID is required. Please enter a valid 8-digit ITS ID and click "Fetch" to load patient information.')
         
         # Validate and fetch patient by ITS ID
         if patient_its_id and patient_its_id.strip():
