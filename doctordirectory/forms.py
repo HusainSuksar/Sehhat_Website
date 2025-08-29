@@ -283,6 +283,18 @@ class AppointmentForm(forms.ModelForm):
         if patient:
             return cleaned_data
         
+        # Debug: Print form data to understand what's being submitted
+        if hasattr(self, 'data') and self.data:
+            print(f"DEBUG: Form data - patient_its_id: '{patient_its_id}', patient: '{patient}', form_data keys: {list(self.data.keys())}")
+            print(f"DEBUG: patient_its_id from data: '{self.data.get('patient_its_id', '')}'")
+            
+        # If patient_its_id is empty but we might have it in the raw data, try to get it
+        if not patient_its_id and hasattr(self, 'data') and self.data:
+            raw_its_id = self.data.get('patient_its_id', '').strip()
+            if raw_its_id:
+                patient_its_id = raw_its_id
+                print(f"DEBUG: Retrieved ITS ID from raw data: '{patient_its_id}'")
+        
         # Validate and fetch patient by ITS ID
         if patient_its_id and patient_its_id.strip():
             # Clean the ITS ID
