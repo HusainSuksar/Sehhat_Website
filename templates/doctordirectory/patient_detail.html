@@ -580,28 +580,15 @@
 </div>
 
 <script>
-// Force tab functionality to work
+// Tab functionality for patient detail page
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Patient detail page loaded');
-    
-    // Check if Bootstrap is loaded
-    if (typeof bootstrap !== 'undefined') {
-        console.log('Bootstrap is loaded');
-    } else {
-        console.error('Bootstrap is not loaded!');
-    }
-    
-    // Force tab functionality
+    // Manual tab switching to ensure reliability
     const tabButtons = document.querySelectorAll('#patientTabs button[data-bs-toggle="tab"]');
     const tabPanes = document.querySelectorAll('.tab-pane');
-    
-    console.log('Found', tabButtons.length, 'tab buttons');
-    console.log('Found', tabPanes.length, 'tab panes');
     
     tabButtons.forEach((button, index) => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Tab button clicked:', this.getAttribute('data-bs-target'));
             
             // Remove active classes from all buttons and panes
             tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -618,17 +605,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (targetPane) {
                 targetPane.classList.add('show', 'active');
                 
-                // Force visibility with inline styles
+                // Ensure visibility
                 targetPane.style.display = 'block';
                 targetPane.style.opacity = '1';
                 targetPane.style.visibility = 'visible';
-                
-                console.log('Activated pane:', targetId);
-                console.log('Pane classes:', targetPane.className);
-                console.log('Pane display style:', window.getComputedStyle(targetPane).display);
-                console.log('Pane visibility:', window.getComputedStyle(targetPane).visibility);
-            } else {
-                console.error('Target pane not found:', targetId);
             }
         });
     });

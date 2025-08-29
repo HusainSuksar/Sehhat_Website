@@ -583,27 +583,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add tab debugging for doctor detail tabs
-console.log('Doctor detail page loaded');
-
-// Check if Bootstrap is loaded
-if (typeof bootstrap !== 'undefined') {
-    console.log('Bootstrap is loaded');
-} else {
-    console.error('Bootstrap is not loaded!');
-}
-
-// Force tab functionality for doctor tabs
+// Tab functionality for doctor detail page
 const doctorTabButtons = document.querySelectorAll('#doctorDetailTabs button[data-bs-toggle="tab"]');
 const doctorTabPanes = document.querySelectorAll('.tab-pane');
-
-console.log('Found', doctorTabButtons.length, 'doctor tab buttons');
-console.log('Found', doctorTabPanes.length, 'doctor tab panes');
 
 doctorTabButtons.forEach((button, index) => {
     button.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Doctor tab button clicked:', this.getAttribute('data-bs-target'));
         
         // Remove active classes from all buttons and panes
         doctorTabButtons.forEach(btn => btn.classList.remove('active'));
@@ -619,9 +605,11 @@ doctorTabButtons.forEach((button, index) => {
         const targetPane = document.querySelector(targetId);
         if (targetPane) {
             targetPane.classList.add('show', 'active');
-            console.log('Activated doctor pane:', targetId);
-        } else {
-            console.error('Doctor target pane not found:', targetId);
+            
+            // Ensure visibility
+            targetPane.style.display = 'block';
+            targetPane.style.opacity = '1';
+            targetPane.style.visibility = 'visible';
         }
     });
 });
