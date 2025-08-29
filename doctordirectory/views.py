@@ -39,10 +39,10 @@ def dashboard(request):
         messages.error(request, 'You do not have permission to access the doctor dashboard.')
         return redirect('accounts:profile')
     
-    # Get doctor profile from mahalshifa
+    # Get doctor profile from doctordirectory
     try:
-        doctor_profile = MahalShifaDoctor.objects.get(user=user)
-    except MahalShifaDoctor.DoesNotExist:
+        doctor_profile = Doctor.objects.get(user=user)
+    except Doctor.DoesNotExist:
         doctor_profile = None
     
     # Get patient profile if user is also a patient
@@ -55,11 +55,11 @@ def dashboard(request):
         print(f"Error loading patient profile for user {user.username}: {e}")
         patient_profile = None
     
-    # Global statistics (for all users) - Use mahalshifa doctors
-    total_doctors = MahalShifaDoctor.objects.filter(user__is_active=True).count()
+    # Global statistics (for all users) - Use doctordirectory doctors
+    total_doctors = Doctor.objects.filter(user__is_active=True).count()
     total_patients_global = Patient.objects.count()
     total_appointments_global = Appointment.objects.count()
-    total_medical_records = MedicalRecord.objects.count()
+    total_medical_records = Appointment.objects.filter(notes__isnull=False).exclude(notes="").count()
     
     # Students count
     from students.models import Student
@@ -147,8 +147,8 @@ def dashboard(request):
     else:
         recent_logs = PatientLog.objects.all().order_by('-timestamp')[:10]
     
-    # Get top specialties from mahalshifa doctors
-    top_specialties = MahalShifaDoctor.objects.values('specialization').annotate(
+    # Get top specialties from doctordirectory doctors
+    top_specialties = Doctor.objects.values('specialty').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
     
@@ -157,17 +157,22 @@ def dashboard(request):
         count=Count('id')
     ).order_by('-count')
     
-    # Get recent medical records
+    # Get recent medical records (from appointment notes)
     if doctor_profile:
         try:
-            # Use the already imported MahalShifaDoctor (no need to re-import)
-            recent_medical_records = MedicalRecord.objects.filter(
-                doctor=doctor_profile
-            ).select_related('patient').order_by('-created_at')[:5]
+            # Get appointments with notes for this doctor
+            recent_appointments_with_notes = Appointment.objects.filter(
+                doctor=doctor_profile,
+                notes__isnull=False
+            ).exclude(notes="").select_related('patient__user').order_by('-appointment_date', '-appointment_time')[:5]
+            recent_medical_records = recent_appointments_with_notes
         except Exception as e:
             recent_medical_records = []
     else:
-        recent_medical_records = MedicalRecord.objects.all().select_related('patient', 'doctor').order_by('-created_at')[:5]
+        # For non-doctors, show recent appointments with notes from all doctors
+        recent_medical_records = Appointment.objects.filter(
+            notes__isnull=False
+        ).exclude(notes="").select_related('patient__user', 'doctor__user').order_by('-appointment_date', '-appointment_time')[:5]
     
     # Ensure all stats are integers, not None
     context = {
