@@ -559,18 +559,8 @@
 </div>
 
 <script>
-// Initialize Bootstrap tabs
-document.addEventListener('DOMContentLoaded', function() {
-    // Enable Bootstrap tab functionality
-    var tabTriggerList = [].slice.call(document.querySelectorAll('#patientTabs button'))
-    tabTriggerList.forEach(function (tabTriggerEl) {
-        var tabTrigger = new bootstrap.Tab(tabTriggerEl)
-        
-        tabTriggerEl.addEventListener('click', function (event) {
-            event.preventDefault()
-            tabTrigger.show()
-        })
-    })
-});
+// Bootstrap 5 tabs work automatically with data-bs-toggle="tab" attributes
+// No manual initialization needed - Bootstrap handles it automatically
+console.log('Patient detail page loaded - tabs should work automatically');
 </script>
 {% endblock %}
