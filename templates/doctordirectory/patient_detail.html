@@ -131,6 +131,27 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
+    /* Force tab functionality to work */
+    .tab-pane {
+        display: none !important;
+    }
+    
+    .tab-pane.active {
+        display: block !important;
+    }
+    
+    .tab-pane.active.show {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Ensure tabs are clickable */
+    .nav-tabs .nav-link {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+    }
+
     .btn-modern {
         padding: 0.75rem 1.5rem;
         border-radius: 10px;
@@ -596,7 +617,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetPane = document.querySelector(targetId);
             if (targetPane) {
                 targetPane.classList.add('show', 'active');
+                
+                // Force visibility with inline styles
+                targetPane.style.display = 'block';
+                targetPane.style.opacity = '1';
+                targetPane.style.visibility = 'visible';
+                
                 console.log('Activated pane:', targetId);
+                console.log('Pane classes:', targetPane.className);
+                console.log('Pane display style:', window.getComputedStyle(targetPane).display);
+                console.log('Pane visibility:', window.getComputedStyle(targetPane).visibility);
             } else {
                 console.error('Target pane not found:', targetId);
             }
