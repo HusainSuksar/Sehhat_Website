@@ -621,12 +621,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (doctorField && serviceField) {
         doctorField.addEventListener('change', function() {
             const selectedDoctorId = this.value;
+            console.log('Doctor selected:', selectedDoctorId);
             
             if (selectedDoctorId) {
                 // Fetch services for the selected doctor
+                console.log('Fetching services from:', `/accounts/api/doctor-services/${selectedDoctorId}/`);
                 fetch(`/accounts/api/doctor-services/${selectedDoctorId}/`)
-                    .then(response => response.json())
+                    .then(response => {
+                        console.log('API Response status:', response.status);
+                        return response.json();
+                    })
                     .then(data => {
+                        console.log('API Response data:', data);
                         // Clear existing options
                         serviceField.innerHTML = '<option value="">---------</option>';
                         
