@@ -79,7 +79,7 @@ class Command(BaseCommand):
                 
                 if created:
                     created_count += 1
-                    self.stdout.write(f"  ✅ Created: {service.name} - ₹{service.price}")
+                    self.stdout.write(f"  ✅ Created: {service.name}")
                 else:
                     updated_count += 1
                     self.stdout.write(f"  ⚠️ Already exists: {service.name}")

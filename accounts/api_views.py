@@ -866,7 +866,7 @@ def doctor_services_api(request, doctor_id):
         
         # Get services for this doctor
         services = MedicalService.objects.filter(doctor=doctor, is_available=True).values(
-            'id', 'name', 'description', 'price', 'duration_minutes'
+            'id', 'name', 'description', 'duration_minutes'
         )
         
         return JsonResponse({
