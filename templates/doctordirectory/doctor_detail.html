@@ -583,6 +583,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Remove all loading overlays and spinners immediately
+function removeAllLoadingElements() {
+    // Remove common loading overlay selectors
+    const loadingSelectors = [
+        '.loading-overlay', '.spinner-overlay', '.loader-overlay',
+        '.loading', '.spinner', '.loader', '.loading-spinner',
+        '.fa-spinner', '.fa-spin', '[class*="loading"]', '[class*="spinner"]',
+        '.overlay', '.modal-backdrop', '.backdrop'
+    ];
+    
+    loadingSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            el.style.display = 'none';
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+            el.style.pointerEvents = 'none';
+            el.remove();
+        });
+    });
+    
+    // Remove any elements with spinning animations
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.animation && style.animation.includes('spin')) {
+            el.style.animation = 'none';
+            el.style.display = 'none';
+            el.remove();
+        }
+    });
+    
+    console.log('Removed all loading elements');
+}
+
+// Run immediately and on tab clicks
+removeAllLoadingElements();
+
 // Tab functionality for doctor detail page
 const doctorTabButtons = document.querySelectorAll('#doctorDetailTabs button[data-bs-toggle="tab"]');
 const doctorTabPanes = document.querySelectorAll('.tab-pane');
@@ -606,10 +644,19 @@ doctorTabButtons.forEach((button, index) => {
         if (targetPane) {
             targetPane.classList.add('show', 'active');
             
-            // Ensure visibility
-            targetPane.style.display = 'block';
-            targetPane.style.opacity = '1';
-            targetPane.style.visibility = 'visible';
+            // Ensure visibility with maximum priority
+            targetPane.style.display = 'block !important';
+            targetPane.style.opacity = '1 !important';
+            targetPane.style.visibility = 'visible !important';
+            targetPane.style.position = 'relative';
+            targetPane.style.zIndex = '9999';
+            
+            // Remove loading elements again after tab switch
+            setTimeout(() => {
+                removeAllLoadingElements();
+            }, 100);
+            
+            console.log('Doctor tab activated:', targetId);
         }
     });
 });

@@ -586,15 +586,46 @@
 </div>
 
 <script>
+// Remove all loading overlays and spinners
+function removeAllLoadingElements() {
+    const loadingSelectors = [
+        '.loading-overlay', '.spinner-overlay', '.loader-overlay',
+        '.loading', '.spinner', '.loader', '.loading-spinner',
+        '.fa-spinner', '.fa-spin', '[class*="loading"]', '[class*="spinner"]',
+        '.overlay', '.modal-backdrop', '.backdrop'
+    ];
+    
+    loadingSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            el.style.display = 'none';
+            el.style.opacity = '0';
+            el.style.visibility = 'hidden';
+            el.style.pointerEvents = 'none';
+            el.remove();
+        });
+    });
+    
+    // Remove spinning animations
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.animation && style.animation.includes('spin')) {
+            el.style.animation = 'none';
+            el.style.display = 'none';
+            el.remove();
+        }
+    });
+}
+
 // Tab functionality for patient detail page
 document.addEventListener('DOMContentLoaded', function() {
     // Clear any global loading states
     document.body.style.pointerEvents = 'auto';
     document.body.style.overflow = 'auto';
     
-    // Remove any loading overlays
-    const globalLoadingElements = document.querySelectorAll('.loading-overlay, .spinner-overlay, .loader-overlay');
-    globalLoadingElements.forEach(el => el.remove());
+    // Remove loading elements immediately
+    removeAllLoadingElements();
     
     // Manual tab switching to ensure reliability
     const tabButtons = document.querySelectorAll('#patientTabs button[data-bs-toggle="tab"]');
