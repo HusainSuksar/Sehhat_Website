@@ -486,7 +486,7 @@ def patient_detail(request, pk):
     user = request.user
     
     # Check permissions
-    if user.role == 'admin':
+    if user.is_admin:
         pass  # Admin can see all patients
     elif user.role == 'doctor':
         try:
