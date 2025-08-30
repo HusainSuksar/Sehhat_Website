@@ -1007,7 +1007,7 @@ class DoctorListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        queryset = Doctor.objects.filter(user__is_active=True).select_related('user').prefetch_related('specialities')
+        queryset = Doctor.objects.filter(user__is_active=True).select_related('user')
         
         # Search functionality
         search = self.request.GET.get('search')
@@ -1015,23 +1015,28 @@ class DoctorListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
                 Q(user__first_name__icontains=search) |
                 Q(user__last_name__icontains=search) |
-                Q(specialities__name__icontains=search) |
+                Q(specialty__icontains=search) |
                 Q(qualification__icontains=search)
             ).distinct()
         
         # Specialty filter
         specialty = self.request.GET.get('specialty')
         if specialty:
-            queryset = queryset.filter(specialities__name=specialty)
+            queryset = queryset.filter(specialty__icontains=specialty)
         
         return queryset.order_by('user__first_name', 'user__last_name')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get all specialties for filter dropdown
-        from .models import Speciality
-        context['specialties'] = Speciality.objects.all().order_by('name')
+        # Get all unique specialties for filter dropdown
+        specialties = Doctor.objects.filter(
+            specialty__isnull=False
+        ).exclude(
+            specialty=""
+        ).values_list('specialty', flat=True).distinct().order_by('specialty')
+        
+        context['specialties'] = specialties
         context['current_search'] = self.request.GET.get('search', '')
         context['current_specialty'] = self.request.GET.get('specialty', '')
         
