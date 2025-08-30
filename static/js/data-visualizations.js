@@ -53,23 +53,32 @@ class ChartManager {
     }
 
     setupChartDefaults() {
-        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        Chart.defaults.font.size = 12;
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.borderColor = '#e2e8f0';
-        Chart.defaults.backgroundColor = 'rgba(37, 99, 235, 0.1)';
-        
-        // Register plugins (check if registerables exists first)
         try {
-            if (Chart.registerables && Array.isArray(Chart.registerables) && Chart.registerables.length > 0) {
-                Chart.register(...Chart.registerables);
-            } else if (Chart.defaults) {
-                // Chart.js is loaded but registerables not available - likely newer version
-                // Most components are auto-registered in newer versions
-                console.log('Chart.js components auto-registered');
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not available');
+                return;
+            }
+            
+            Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+            Chart.defaults.font.size = 12;
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.borderColor = '#e2e8f0';
+            Chart.defaults.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+            
+            // Register plugins (check if registerables exists first)
+            try {
+                if (Chart.registerables && Array.isArray(Chart.registerables) && Chart.registerables.length > 0) {
+                    Chart.register(...Chart.registerables);
+                } else if (Chart.defaults) {
+                    // Chart.js is loaded but registerables not available - likely newer version
+                    // Most components are auto-registered in newer versions
+                    console.log('Chart.js components auto-registered');
+                }
+            } catch (error) {
+                console.warn('Chart.js registration failed:', error);
             }
         } catch (error) {
-            console.warn('Chart.js registration failed:', error);
+            console.error('Chart.js setup failed:', error);
         }
     }
 

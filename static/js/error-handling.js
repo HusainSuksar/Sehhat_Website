@@ -550,8 +550,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.addEventListener('error', function(e) {
     console.error('Global error:', e.error);
-    notificationManager.error('Unexpected Error', {
-        description: 'An unexpected error occurred. Please refresh the page and try again.'
+    console.error('Error details:', {
+        message: e.message,
+        filename: e.filename,
+        lineno: e.lineno,
+        colno: e.colno,
+        stack: e.error?.stack
+    });
+    
+    // Temporarily show detailed error instead of generic message
+    notificationManager.error('JavaScript Error Detected', {
+        description: `${e.message} at ${e.filename}:${e.lineno}:${e.colno}`
     });
 });
 
